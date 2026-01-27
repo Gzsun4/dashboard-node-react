@@ -13,7 +13,7 @@ const AdminUsers = () => {
 
     const fetchUsers = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/admin/users', {
+            const response = await fetch('/api/admin/users', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -31,7 +31,7 @@ const AdminUsers = () => {
         if (!window.confirm('Are you sure you want to delete this user?')) return;
 
         try {
-            await fetch(`http://localhost:5000/api/admin/users/${id}`, {
+            await fetch(`/api/admin/users/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -86,8 +86,8 @@ const AdminUsers = () => {
                                         <td className="text-secondary">{user.email}</td>
                                         <td>
                                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${user.role === 'Admin'
-                                                    ? 'bg-primary-soft text-primary border border-blue-500/20'
-                                                    : 'bg-secondary-soft text-secondary border border-gray-500/20'
+                                                ? 'bg-primary-soft text-primary border border-blue-500/20'
+                                                : 'bg-secondary-soft text-secondary border border-gray-500/20'
                                                 }`}>
                                                 {user.role}
                                             </span>

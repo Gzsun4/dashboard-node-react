@@ -14,7 +14,7 @@ const Income = () => {
 
     const fetchIncomes = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/data/incomes', {
+            const response = await fetch('/api/data/incomes', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
@@ -73,7 +73,7 @@ const Income = () => {
                 // Let's just do CREATE for now.
                 alert("Edit functionality not yet connected to backend API. Please delete and recreate.");
             } else {
-                const res = await fetch('http://localhost:5000/api/data/incomes', {
+                const res = await fetch('/api/data/incomes', {
                     method: 'POST',
                     headers,
                     body
@@ -106,7 +106,7 @@ const Income = () => {
     const handleDelete = async (id) => {
         if (!window.confirm("Are you sure?")) return;
         try {
-            await fetch(`http://localhost:5000/api/data/incomes/${id}`, {
+            await fetch(`/api/data/incomes/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

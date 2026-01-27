@@ -14,7 +14,7 @@ const Savings = () => {
 
     const fetchGoals = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/data/goals', {
+            const response = await fetch('/api/data/goals', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
@@ -62,7 +62,7 @@ const Savings = () => {
             });
 
             if (editingId) {
-                const res = await fetch(`http://localhost:5000/api/data/goals/${editingId}`, {
+                const res = await fetch(`/api/data/goals/${editingId}`, {
                     method: 'PUT',
                     headers,
                     body
@@ -70,7 +70,7 @@ const Savings = () => {
                 const updated = await res.json();
                 setGoals(goals.map(g => g._id === editingId ? updated : g));
             } else {
-                const res = await fetch('http://localhost:5000/api/data/goals', {
+                const res = await fetch('/api/data/goals', {
                     method: 'POST',
                     headers,
                     body
@@ -102,7 +102,7 @@ const Savings = () => {
     const handleDelete = async (id) => {
         if (!window.confirm("Are you sure?")) return;
         try {
-            await fetch(`http://localhost:5000/api/data/goals/${id}`, {
+            await fetch(`/api/data/goals/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

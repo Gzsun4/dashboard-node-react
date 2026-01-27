@@ -15,7 +15,7 @@ const Expenses = () => {
 
     const fetchExpenses = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/data/expenses', {
+            const response = await fetch('/api/data/expenses', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
@@ -77,7 +77,7 @@ const Expenses = () => {
                 // Actually my goal was "multi-user", I'll stick to Create/Delete for now.
                 alert("Edit functionality not yet connected to backend API. Please delete and recreate.");
             } else {
-                const res = await fetch('http://localhost:5000/api/data/expenses', {
+                const res = await fetch('/api/data/expenses', {
                     method: 'POST',
                     headers,
                     body
@@ -109,7 +109,7 @@ const Expenses = () => {
     const handleDelete = async (id) => {
         if (!window.confirm("Are you sure?")) return;
         try {
-            await fetch(`http://localhost:5000/api/data/expenses/${id}`, {
+            await fetch(`/api/data/expenses/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

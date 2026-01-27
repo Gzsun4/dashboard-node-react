@@ -23,9 +23,9 @@ const Dashboard = () => {
                 const headers = { 'Authorization': `Bearer ${token}` };
 
                 const [incomesRes, expensesRes, goalsRes] = await Promise.all([
-                    fetch('http://localhost:5000/api/data/incomes', { headers }),
-                    fetch('http://localhost:5000/api/data/expenses', { headers }),
-                    fetch('http://localhost:5000/api/data/goals', { headers })
+                    fetch('/api/data/incomes', { headers }),
+                    fetch('/api/data/expenses', { headers }),
+                    fetch('/api/data/goals', { headers })
                 ]);
 
                 const incomes = await incomesRes.json();
