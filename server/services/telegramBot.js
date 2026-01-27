@@ -33,7 +33,7 @@ const CATEGORY_MAP = {
 };
 
 const INCOME_TRIGGERS = ['ingreso', 'gane', 'recibi', 'cobre', 'sueldo', 'depositaren', 'abono', 'pago'];
-const REMINDER_TRIGGERS = ['alerta', 'recordatorio', 'avisame', 'acuerdame', 'recuerdame', 'alarma'];
+const REMINDER_TRIGGERS = ['alerta', 'recordatorio', 'avisame', 'acuerdame', 'recuerdame', 'alarma', 'programame', 'avisar', 'hazme acuerdo', 'hazme acordar'];
 
 // --- FUNCIONES DE AYUDA (NLP) ---
 
@@ -299,8 +299,11 @@ const handleMessage = async (msg) => {
     // 3. Deshacer
     if (lowerText === 'deshacer') return handleUndo(user, chatId);
 
-    // 4. RECORDATORIOS (Nueva lógica)
-    if (REMINDER_TRIGGERS.some(t => lowerText.includes(t))) {
+
+    // 4. RECORDATORIOS (Nueva lógica) - Normalizamos texto y usamos includes
+    const normalized = normalizeText(text);
+    // Expandimos triggers para cubrir 'hazme acuerdo', 'recuerdame' (sin tilde ya normalizado), etc.
+    if (REMINDER_TRIGGERS.some(t => normalized.includes(t)) || normalized.includes('hazme acuerdo')) {
         await processReminderRequest(text, user, chatId);
         return;
     }
@@ -325,6 +328,7 @@ Hola <b>${userName}</b>!
 🔔 <b>RECORDATORIOS</b> (¡Nuevo!)
 • <i>"Alerta en 10 min sacar basura"</i>
 • <i>"Recordatorio a las 6 pm reunión"</i>
+• <i>"Hazme acuerdo en 1 hora llamar"</i>
 
 ✏️ <b>HERRAMIENTAS</b>
 • <b>/editar</b> - Corregir errores
@@ -348,8 +352,14 @@ const processReminderRequest = async (text, user, chatId) => {
             scheduledAt: scheduledTime
         });
 
-        const timeStr = scheduledTime.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
-        await bot.sendMessage(chatId, `✅ <b>Recordatorio Programado</b>\n📅 Para: ${scheduledTime.toLocaleDateString()} a las ${timeStr}\n📝 "${description}"`, { parse_mode: 'HTML' });
+        // FIX: Mostrar hora en zona horaria de Perú (America/Lima)
+        const timeParams = { hour: '2-digit', minute: '2-digit', timeZone: 'America/Lima' };
+        const dateParams = { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'America/Lima' };
+
+        const timeStr = scheduledTime.toLocaleTimeString('es-PE', timeParams);
+        const dateStr = scheduledTime.toLocaleDateString('es-PE', dateParams);
+
+        await bot.sendMessage(chatId, `✅ <b>Recordatorio Programado</b>\n📅 Para: ${dateStr} a las ${timeStr}\n📝 "${description}"`, { parse_mode: 'HTML' });
 
     } catch (error) {
         console.error(error);
