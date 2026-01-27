@@ -34,7 +34,7 @@ const LoginPage = () => {
             <div className="blob bg-blue-600 w-72 h-72 top-0 right-0 mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
             <div className="blob bg-pink-600 w-72 h-72 -bottom-8 left-20 mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
 
-            <div className="glass-card p-10 md:p-12 w-full max-w-[500px] animate-fade-in relative z-10 m-4 border border-white/20 shadow-2xl rounded-[2rem] backdrop-blur-2xl">
+            <div className="glass-card p-8 md:p-10 w-full max-w-[420px] animate-fade-in relative z-10 m-4 border border-white/20 shadow-2xl rounded-[2rem] backdrop-blur-2xl">
                 <div className="text-center mb-10">
                     <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent tracking-tight">
                         Bienvenido
