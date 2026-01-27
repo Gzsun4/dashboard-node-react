@@ -13,11 +13,18 @@ import { sendTelegramMessage } from './services/telegramService.js';
 
 dotenv.config();
 
-connectDB();
+console.log("Starting server..."); // Debug log for deployment
+console.log("Connecting to database...");
+
+connectDB().catch(err => {
+    console.error("Database connection failed:", err.message);
+    console.log("Server will continue without database connection");
+});
 
 const app = express();
 
-console.log("Starting server..."); // Debug log for deployment
+console.log("Express app initialized");
+
 
 app.use(express.json());
 app.use(cors());
@@ -48,7 +55,10 @@ if (process.env.NODE_ENV === 'production') {
     app.get('/', (req, res) => res.send('Server is ready'));
 }
 
+console.log(`About to start server on port ${PORT}...`);
+
 app.listen(PORT, () => {
+
     console.log(`Server running on port ${PORT}`);
 
     // Setup reminder cron job after server starts
