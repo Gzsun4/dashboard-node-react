@@ -46,6 +46,9 @@ const AdminUsers = () => {
     };
 
     const [showModal, setShowModal] = useState(false);
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [newPassword, setNewPassword] = useState('');
     const [newUser, setNewUser] = useState({ name: '', email: '', password: '' });
 
     const handleCreateUser = async (e) => {
@@ -56,7 +59,6 @@ const AdminUsers = () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newUser)
             });
-            // Don't auto-login, just refresh list
             fetchUsers();
             setShowModal(false);
             setNewUser({ name: '', email: '', password: '' });
@@ -64,6 +66,27 @@ const AdminUsers = () => {
         } catch (error) {
             console.error("Error creating user", error);
             alert("Error al crear usuario");
+        }
+    };
+
+    const handleResetPassword = async (e) => {
+        e.preventDefault();
+        try {
+            await fetch(`/api/admin/users/${selectedUser._id}/reset-password`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ password: newPassword })
+            });
+            setShowPasswordModal(false);
+            setNewPassword('');
+            setSelectedUser(null);
+            alert('Contraseña actualizada exitosamente');
+        } catch (error) {
+            console.error('Error resetting password:', error);
+            alert('Error al actualizar contraseña');
         }
     };
 
@@ -142,15 +165,27 @@ const AdminUsers = () => {
                                             {new Date(user.createdAt).toLocaleDateString()}
                                         </td>
                                         <td className="text-right">
-                                            {user.role !== 'Admin' && (
+                                            <div className="flex gap-2 justify-end">
                                                 <button
-                                                    onClick={() => deleteUser(user._id)}
-                                                    className="p-2 text-danger hover:bg-danger-soft rounded-lg transition-colors group"
-                                                    title="Eliminar Usuario"
+                                                    onClick={() => {
+                                                        setSelectedUser(user);
+                                                        setShowPasswordModal(true);
+                                                    }}
+                                                    className="p-2 text-primary hover:bg-primary-soft rounded-lg transition-colors"
+                                                    title="Resetear Contraseña"
                                                 >
-                                                    <Trash2 size={18} />
+                                                    🔑
                                                 </button>
-                                            )}
+                                                {user.role !== 'Admin' && (
+                                                    <button
+                                                        onClick={() => deleteUser(user._id)}
+                                                        className="p-2 text-danger hover:bg-danger-soft rounded-lg transition-colors group"
+                                                        title="Eliminar Usuario"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -212,6 +247,72 @@ const AdminUsers = () => {
                                 </button>
                                 <button type="submit" className="btn btn-primary px-6 py-2 rounded-xl shadow-lg shadow-primary/25">
                                     Crear Usuario
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Resetear Contraseña */}
+            {showPasswordModal && selectedUser && (
+                <div className="modal-backdrop fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+                    <div className="glass-card w-full max-w-[500px] p-8 md:p-10 border border-white/20 shadow-2xl rounded-[2rem] relative animate-fade-in"
+                        style={{ transform: 'none' }}>
+                        <button
+                            onClick={() => {
+                                setShowPasswordModal(false);
+                                setSelectedUser(null);
+                                setNewPassword('');
+                            }}
+                            style={{
+                                position: 'absolute',
+                                top: '1rem',
+                                right: '1rem',
+                                background: 'transparent',
+                                border: 'none',
+                                color: 'white',
+                                cursor: 'pointer',
+                                fontSize: '1.5rem',
+                                lineHeight: 1
+                            }}
+                        >
+                            ×
+                        </button>
+
+                        <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                            Resetear Contraseña
+                        </h3>
+                        <p className="text-secondary mb-4">
+                            Usuario: <strong>{selectedUser.name}</strong> ({selectedUser.email})
+                        </p>
+                        <form onSubmit={handleResetPassword} className="space-y-6">
+                            <div>
+                                <label className="block text-sm font-semibold text-secondary mb-2 ml-1">Nueva Contraseña</label>
+                                <input
+                                    type="password"
+                                    className="input-field w-full py-3 px-5 rounded-xl border-white/10"
+                                    value={newPassword}
+                                    onChange={e => setNewPassword(e.target.value)}
+                                    required
+                                    placeholder="••••••••"
+                                    minLength={6}
+                                />
+                            </div>
+                            <div className="flex justify-end gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    className="px-6 py-2 rounded-xl text-secondary hover:text-white hover:bg-white/10 transition-colors"
+                                    onClick={() => {
+                                        setShowPasswordModal(false);
+                                        setSelectedUser(null);
+                                        setNewPassword('');
+                                    }}
+                                >
+                                    Cancelar
+                                </button>
+                                <button type="submit" className="btn btn-primary px-6 py-2 rounded-xl shadow-lg shadow-primary/25">
+                                    Actualizar Contraseña
                                 </button>
                             </div>
                         </form>
