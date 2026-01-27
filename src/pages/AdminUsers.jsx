@@ -91,113 +91,119 @@ const AdminUsers = () => {
     };
 
     return (
-        <div className="animate-fade-in">
-            <div className="page-header flex justify-between items-center">
-                <div>
-                    <h1 className="page-title">Gestión de Usuarios</h1>
-                    <p className="page-subtitle">Administra los usuarios del sistema</p>
-                </div>
-                <div className="flex gap-3">
-                    <button
-                        className="btn btn-primary"
-                        onClick={() => setShowModal(true)}
-                    >
-                        <User size={18} /> Agregar Usuario
-                    </button>
-                    <div className="bg-primary-soft p-3 rounded-full">
-                        <Shield size={32} className="text-primary" />
+        <>
+            <div className="animate-fade-in">
+                <div className="page-header flex justify-between items-center">
+                    <div>
+                        <h1 className="page-title">Gestión de Usuarios</h1>
+                        <p className="page-subtitle">Administra los usuarios del sistema</p>
+                    </div>
+                    <div className="flex gap-3">
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => setShowModal(true)}
+                        >
+                            <User size={18} /> Agregar Usuario
+                        </button>
+                        <div className="bg-primary-soft p-3 rounded-full">
+                            <Shield size={32} className="text-primary" />
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div className="glass-card overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Usuario</th>
-                                <th>Estado</th>
-                                <th>Email</th>
-                                <th>Rol</th>
-                                <th>Unido</th>
-                                <th className="text-right">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {loading ? (
-                                <tr><td colSpan="6" className="text-center p-8">Cargando usuarios...</td></tr>
-                            ) : users.length === 0 ? (
-                                <tr><td colSpan="6" className="text-center p-8">No se encontraron usuarios</td></tr>
-                            ) : (
-                                users.map((user) => (
-                                    <tr key={user._id}>
-                                        <td>
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-secondary-soft flex-center">
-                                                    <User size={20} className="text-secondary" />
+                <div className="glass-card overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Usuario</th>
+                                    <th>Estado</th>
+                                    <th>Email</th>
+                                    <th>Rol</th>
+                                    <th>Unido</th>
+                                    <th className="text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {loading ? (
+                                    <tr><td colSpan="6" className="text-center p-8">Cargando usuarios...</td></tr>
+                                ) : users.length === 0 ? (
+                                    <tr><td colSpan="6" className="text-center p-8">No se encontraron usuarios</td></tr>
+                                ) : (
+                                    users.map((user) => (
+                                        <tr key={user._id}>
+                                            <td>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-secondary-soft flex-center">
+                                                        <User size={20} className="text-secondary" />
+                                                    </div>
+                                                    <span className="font-semibold">{user.name}</span>
                                                 </div>
-                                                <span className="font-semibold">{user.name}</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            {onlineUsers.includes(user._id) ? (
-                                                <span className="flex items-center gap-2 text-sm">
-                                                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                                                    <span className="text-green-500 font-semibold">Online</span>
-                                                </span>
-                                            ) : (
-                                                <span className="flex items-center gap-2 text-sm">
-                                                    <span className="w-2 h-2 rounded-full bg-gray-500"></span>
-                                                    <span className="text-gray-500">Offline</span>
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="text-secondary">{user.email}</td>
-                                        <td>
-                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${user.role === 'Admin'
-                                                ? 'bg-primary-soft text-primary border border-blue-500/20'
-                                                : 'bg-secondary-soft text-secondary border border-gray-500/20'
-                                                }`}>
-                                                {user.role}
-                                            </span>
-                                        </td>
-                                        <td className="text-secondary">
-                                            {new Date(user.createdAt).toLocaleDateString()}
-                                        </td>
-                                        <td className="text-right">
-                                            <div className="flex gap-2 justify-end">
-                                                <button
-                                                    onClick={() => {
-                                                        setSelectedUser(user);
-                                                        setShowPasswordModal(true);
-                                                    }}
-                                                    className="p-2 text-primary hover:bg-primary-soft rounded-lg transition-colors"
-                                                    title="Resetear Contraseña"
-                                                >
-                                                    🔑
-                                                </button>
-                                                {user.role !== 'Admin' && (
-                                                    <button
-                                                        onClick={() => deleteUser(user._id)}
-                                                        className="p-2 text-danger hover:bg-danger-soft rounded-lg transition-colors group"
-                                                        title="Eliminar Usuario"
-                                                    >
-                                                        <Trash2 size={18} />
-                                                    </button>
+                                            </td>
+                                            <td>
+                                                {onlineUsers.includes(user._id) ? (
+                                                    <span className="flex items-center gap-2 text-sm">
+                                                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                                        <span className="text-green-500 font-semibold">Online</span>
+                                                    </span>
+                                                ) : (
+                                                    <span className="flex items-center gap-2 text-sm">
+                                                        <span className="w-2 h-2 rounded-full bg-gray-500"></span>
+                                                        <span className="text-gray-500">Offline</span>
+                                                    </span>
                                                 )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                                            </td>
+                                            <td className="text-secondary">{user.email}</td>
+                                            <td>
+                                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${user.role === 'Admin'
+                                                    ? 'bg-primary-soft text-primary border border-blue-500/20'
+                                                    : 'bg-secondary-soft text-secondary border border-gray-500/20'
+                                                    }`}>
+                                                    {user.role}
+                                                </span>
+                                            </td>
+                                            <td className="text-secondary">
+                                                {new Date(user.createdAt).toLocaleDateString()}
+                                            </td>
+                                            <td className="text-right">
+                                                <div className="flex gap-2 justify-end">
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedUser(user);
+                                                            setShowPasswordModal(true);
+                                                        }}
+                                                        className="p-2 text-primary hover:bg-primary-soft rounded-lg transition-colors"
+                                                        title="Resetear Contraseña"
+                                                    >
+                                                        🔑
+                                                    </button>
+                                                    {user.role !== 'Admin' && (
+                                                        <button
+                                                            onClick={() => deleteUser(user._id)}
+                                                            className="p-2 text-danger hover:bg-danger-soft rounded-lg transition-colors group"
+                                                            title="Eliminar Usuario"
+                                                        >
+                                                            <Trash2 size={18} />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
             {/* Modal Agregar Usuario */}
             {showModal && (
-                <div className="modal-backdrop">
+                <div className="modal-backdrop" style={{
+                    background: 'rgba(0, 0, 0, 0.7)',
+                    backdropFilter: 'blur(8px)',
+                    zIndex: 9999
+                }}>
                     <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '500px', position: 'relative' }}>
                         <button
                             onClick={() => setShowModal(false)}
@@ -253,15 +259,8 @@ const AdminUsers = () => {
                                     placeholder="••••••••"
                                 />
                             </div>
-                            <div className="flex justify-end gap-3 pt-2">
-                                <button
-                                    type="button"
-                                    className="px-6 py-2 rounded-xl text-secondary hover:text-white hover:bg-white/10 transition-colors"
-                                    onClick={() => setShowModal(false)}
-                                >
-                                    Cancelar
-                                </button>
-                                <button type="submit" className="btn btn-primary px-6 py-2 rounded-xl shadow-lg shadow-primary/25">
+                            <div className="flex justify-end pt-2">
+                                <button type="submit" className="btn btn-primary px-6 py-2 rounded-xl shadow-lg shadow-primary/25 w-full justify-center">
                                     Crear Usuario
                                 </button>
                             </div>
@@ -272,7 +271,11 @@ const AdminUsers = () => {
 
             {/* Modal Resetear Contraseña */}
             {showPasswordModal && selectedUser && (
-                <div className="modal-backdrop">
+                <div className="modal-backdrop" style={{
+                    background: 'rgba(0, 0, 0, 0.7)',
+                    backdropFilter: 'blur(8px)',
+                    zIndex: 9999
+                }}>
                     <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '500px', position: 'relative' }}>
                         <button
                             onClick={() => {
@@ -314,19 +317,8 @@ const AdminUsers = () => {
                                     minLength={6}
                                 />
                             </div>
-                            <div className="flex justify-end gap-3 pt-2">
-                                <button
-                                    type="button"
-                                    className="px-6 py-2 rounded-xl text-secondary hover:text-white hover:bg-white/10 transition-colors"
-                                    onClick={() => {
-                                        setShowPasswordModal(false);
-                                        setSelectedUser(null);
-                                        setNewPassword('');
-                                    }}
-                                >
-                                    Cancelar
-                                </button>
-                                <button type="submit" className="btn btn-primary px-6 py-2 rounded-xl shadow-lg shadow-primary/25">
+                            <div className="flex justify-end pt-2">
+                                <button type="submit" className="btn btn-primary px-6 py-2 rounded-xl shadow-lg shadow-primary/25 w-full justify-center">
                                     Actualizar Contraseña
                                 </button>
                             </div>
@@ -334,7 +326,7 @@ const AdminUsers = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </>
     );
 };
 
