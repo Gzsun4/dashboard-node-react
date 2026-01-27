@@ -148,6 +148,7 @@
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         width: 280px;
         box-shadow: none;
+        padding: 2rem 1.5rem 1.5rem 1.5rem;
     }
 
     .sidebar.open {
@@ -157,5 +158,14 @@
 
     .sidebar-backdrop {
         display: block;
+    }
+
+    .sidebar-header {
+        margin-bottom: 2.5rem;
+        padding-left: 0.5rem;
+    }
+
+    .logo-text {
+        font-size: 1.75rem;
     }
 }
