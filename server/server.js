@@ -10,6 +10,7 @@ import testRoutes from './routes/testRoutes.js';
 import cron from 'node-cron';
 import ReminderConfig from './models/ReminderConfig.js';
 import { sendTelegramMessage } from './services/telegramService.js';
+import { initializeBot } from './services/telegramBot.js';
 
 dotenv.config();
 
@@ -60,6 +61,9 @@ console.log(`About to start server on port ${PORT}...`);
 app.listen(PORT, () => {
 
     console.log(`Server running on port ${PORT}`);
+
+    // Initialize Telegram bot
+    initializeBot();
 
     // Setup reminder cron job after server starts
     cron.schedule('* * * * *', async () => {
