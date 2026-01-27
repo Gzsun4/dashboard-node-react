@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, TrendingUp, TrendingDown, PiggyBank, Wallet, Users, LogOut, Menu, X, Bell } from 'lucide-react';
+import { LayoutDashboard, TrendingUp, TrendingDown, PiggyBank, Wallet, Users, LogOut, Menu, Bell } from 'lucide-react';
 import './Sidebar.css';
 
 const Sidebar = () => {
@@ -37,7 +37,7 @@ const Sidebar = () => {
                 onClick={toggleSidebar}
                 aria-label="Toggle menu"
             >
-                {isOpen ? <X size={24} /> : <Menu size={24} />}
+                <Menu size={24} />
             </button>
 
             {isOpen && (
