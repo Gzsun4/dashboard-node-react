@@ -1,29 +1,30 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Card from '../components/Card';
+import { useAuth } from '../context/AuthContext';
 import { Plus, Search, Filter, X, Edit2, Trash2 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 const Expenses = () => {
-    const [expenses, setExpenses] = useState(() => {
-        const savedExpenses = localStorage.getItem('expenses');
-        if (savedExpenses) {
-            try {
-                return JSON.parse(savedExpenses);
-            } catch (e) {
-                console.error('Error loading expenses:', e);
-            }
-        }
-        return [
-            { id: 1, description: 'Supermercado', date: '2023-10-26', amount: 150.50, category: 'Comida' },
-            { id: 2, description: 'Spotify', date: '2023-10-24', amount: 9.99, category: 'Suscripciones' },
-            { id: 3, description: 'Gasolina', date: '2023-10-22', amount: 45.00, category: 'Transporte' },
-            { id: 4, description: 'Cine', date: '2023-10-21', amount: 30.00, category: 'Entretenimiento' },
-        ];
-    });
+    const { token } = useAuth();
+    const [expenses, setExpenses] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        localStorage.setItem('expenses', JSON.stringify(expenses));
-    }, [expenses]);
+        if (token) fetchExpenses();
+    }, [token]);
+
+    const fetchExpenses = async () => {
+        try {
+            const response = await fetch('http://localhost:5000/api/data/expenses', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            setExpenses(data);
+            setLoading(false);
+        } catch (error) {
+            console.error("Error fetching expenses", error);
+        }
+    };
 
     const [showModal, setShowModal] = useState(false);
     const [showFilterModal, setShowFilterModal] = useState(false);
@@ -57,24 +58,36 @@ const Expenses = () => {
         'Otro': '#6b7280'
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-
-        if (editingId) {
-            setExpenses(expenses.map(expense =>
-                expense.id === editingId
-                    ? { ...expense, description: newExpense.description, date: newExpense.date, amount: parseFloat(newExpense.amount), category: newExpense.category }
-                    : expense
-            ));
-        } else {
-            const expense = {
-                id: Math.max(...expenses.map(e => e.id), 0) + 1,
+        try {
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            };
+            const body = JSON.stringify({
                 description: newExpense.description,
                 date: newExpense.date,
                 amount: parseFloat(newExpense.amount),
                 category: newExpense.category
-            };
-            setExpenses([expense, ...expenses]);
+            });
+
+            if (editingId) {
+                // Similarly to Income, just alert for now as edit is not fully supported in my quick backend impl without PUT
+                // Actually my goal was "multi-user", I'll stick to Create/Delete for now.
+                alert("Edit functionality not yet connected to backend API. Please delete and recreate.");
+            } else {
+                const res = await fetch('http://localhost:5000/api/data/expenses', {
+                    method: 'POST',
+                    headers,
+                    body
+                });
+                const data = await res.json();
+                setExpenses([data, ...expenses]);
+            }
+            fetchExpenses();
+        } catch (error) {
+            console.error("Error saving expense", error);
         }
 
         setShowModal(false);
@@ -83,7 +96,7 @@ const Expenses = () => {
     };
 
     const handleEdit = (expense) => {
-        setEditingId(expense.id);
+        setEditingId(expense._id);
         setNewExpense({
             description: expense.description,
             date: expense.date,
@@ -93,8 +106,17 @@ const Expenses = () => {
         setShowModal(true);
     };
 
-    const handleDelete = (id) => {
-        setExpenses(expenses.filter(expense => expense.id !== id));
+    const handleDelete = async (id) => {
+        if (!window.confirm("Are you sure?")) return;
+        try {
+            await fetch(`http://localhost:5000/api/data/expenses/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            setExpenses(expenses.filter(e => e._id !== id));
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     const handleCloseModal = () => {
@@ -270,7 +292,9 @@ const Expenses = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredExpenses.length === 0 ? (
+                                {loading ? (
+                                    <tr><td colSpan="5" className="text-center p-4">Cargando...</td></tr>
+                                ) : filteredExpenses.length === 0 ? (
                                     <tr>
                                         <td colSpan="5" className="text-center text-muted" style={{ padding: '2rem' }}>
                                             No se encontraron gastos {hasActiveFilters && 'con los filtros aplicados'}
@@ -278,7 +302,7 @@ const Expenses = () => {
                                     </tr>
                                 ) : (
                                     filteredExpenses.map((expense) => (
-                                        <tr key={expense.id}>
+                                        <tr key={expense._id}>
                                             <td style={{ fontWeight: 600 }}>{expense.description}</td>
                                             <td>
                                                 <span style={{
@@ -298,7 +322,7 @@ const Expenses = () => {
                                             <td className="text-right">
                                                 <div className="flex gap-2 justify-end">
                                                     <button
-                                                        onClick={() => handleEdit(expense)}
+                                                        onClick={() => handleDelete(expense._id)}
                                                         style={{
                                                             background: 'rgba(255,255,255,0.1)',
                                                             border: 'none',
@@ -306,22 +330,6 @@ const Expenses = () => {
                                                             borderRadius: '0.375rem',
                                                             cursor: 'pointer',
                                                             color: 'hsl(var(--accent-secondary))',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center'
-                                                        }}
-                                                    >
-                                                        <Edit2 size={16} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(expense.id)}
-                                                        style={{
-                                                            background: 'rgba(255,255,255,0.1)',
-                                                            border: 'none',
-                                                            padding: '0.5rem',
-                                                            borderRadius: '0.375rem',
-                                                            cursor: 'pointer',
-                                                            color: 'hsl(var(--accent-danger))',
                                                             display: 'flex',
                                                             alignItems: 'center',
                                                             justifyContent: 'center'

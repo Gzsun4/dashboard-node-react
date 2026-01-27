@@ -1,83 +1,92 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import Card from '../components/Card';
 import { DollarSign, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import './Dashboard.css';
 
-const data = [
-    { name: 'Ene', income: 4000, expense: 2400 },
-    { name: 'Feb', income: 3000, expense: 1398 },
-    { name: 'Mar', income: 2000, expense: 9800 },
-    { name: 'Abr', income: 2780, expense: 3908 },
-    { name: 'May', income: 1890, expense: 4800 },
-    { name: 'Jun', income: 2390, expense: 3800 },
-];
-
 const Dashboard = () => {
+    const { token } = useAuth();
     const [stats, setStats] = useState({
         totalIncome: 0,
         totalExpenses: 0,
         totalSavings: 0,
         balance: 0
     });
+    const [transactions, setTransactions] = useState([]);
+    const [chartData, setChartData] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Cargar datos desde localStorage
-        const loadData = () => {
-            // Cargar ingresos
-            const savedIncomes = localStorage.getItem('incomes');
-            let totalIncome = 0;
-            if (savedIncomes) {
-                try {
-                    const incomes = JSON.parse(savedIncomes);
-                    totalIncome = incomes.reduce((sum, income) => sum + income.amount, 0);
-                } catch (e) {
-                    console.error('Error loading incomes:', e);
-                }
+        const fetchData = async () => {
+            try {
+                const headers = { 'Authorization': `Bearer ${token}` };
+
+                const [incomesRes, expensesRes, goalsRes] = await Promise.all([
+                    fetch('http://localhost:5000/api/data/incomes', { headers }),
+                    fetch('http://localhost:5000/api/data/expenses', { headers }),
+                    fetch('http://localhost:5000/api/data/goals', { headers })
+                ]);
+
+                const incomes = await incomesRes.json();
+                const expenses = await expensesRes.json();
+                const goals = await goalsRes.json();
+
+                // Calculate Totals
+                const totalIncome = incomes.reduce((sum, item) => sum + item.amount, 0);
+                const totalExpenses = expenses.reduce((sum, item) => sum + item.amount, 0);
+                const totalSavings = goals.reduce((sum, item) => sum + item.current, 0);
+                const balance = totalIncome - totalExpenses;
+
+                setStats({ totalIncome, totalExpenses, totalSavings, balance });
+
+                // Process Transactions
+                const allTransactions = [
+                    ...incomes.map(i => ({ ...i, type: 'income', description: i.source })),
+                    ...expenses.map(e => ({ ...e, type: 'expense', description: e.description }))
+                ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                setTransactions(allTransactions.slice(0, 10));
+
+                // Process Chart Data (Last 6 Months)
+                const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+                const chartMap = new Map();
+
+                [...incomes, ...expenses].forEach(item => {
+                    const date = new Date(item.date);
+                    const monthKey = `${date.getFullYear()}-${date.getMonth()}`; // Unique key
+
+                    if (!chartMap.has(monthKey)) {
+                        chartMap.set(monthKey, {
+                            name: monthNames[date.getMonth()],
+                            income: 0,
+                            expense: 0,
+                            order: date.getTime()
+                        });
+                    }
+
+                    if (item.source) { // Is Income
+                        chartMap.get(monthKey).income += item.amount;
+                    } else {
+                        chartMap.get(monthKey).expense += item.amount;
+                    }
+                });
+
+                const processedChartData = Array.from(chartMap.values())
+                    .sort((a, b) => a.order - b.order)
+                    .slice(-6); // Last 6 months
+
+                setChartData(processedChartData);
+                setLoading(false);
+
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                setLoading(false);
             }
-
-            // Cargar gastos
-            const savedExpenses = localStorage.getItem('expenses');
-            let totalExpenses = 0;
-            if (savedExpenses) {
-                try {
-                    const expenses = JSON.parse(savedExpenses);
-                    totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-                } catch (e) {
-                    console.error('Error loading expenses:', e);
-                }
-            }
-
-            // Cargar ahorros
-            const savedGoals = localStorage.getItem('savingsGoals');
-            let totalSavings = 0;
-            if (savedGoals) {
-                try {
-                    const goals = JSON.parse(savedGoals);
-                    totalSavings = goals.reduce((sum, goal) => sum + goal.current, 0);
-                } catch (e) {
-                    console.error('Error loading savings:', e);
-                }
-            }
-
-            // Calcular balance
-            const balance = totalIncome - totalExpenses;
-
-            setStats({
-                totalIncome,
-                totalExpenses,
-                totalSavings,
-                balance
-            });
         };
 
-        loadData();
-
-        // Actualizar cada segundo para reflejar cambios en tiempo real
-        const interval = setInterval(loadData, 1000);
-
-        return () => clearInterval(interval);
-    }, []);
+        if (token) fetchData();
+    }, [token]);
 
     return (
         <div className="animate-fade-in">
@@ -157,7 +166,7 @@ const Dashboard = () => {
                     <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Resumen Mensual</h3>
                     <div className="chart-container">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={data}>
+                            <BarChart data={chartData}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                                 <XAxis dataKey="name" stroke="rgba(255,255,255,0.5)" />
                                 <YAxis stroke="rgba(255,255,255,0.5)" />
@@ -179,57 +188,12 @@ const Dashboard = () => {
                 <Card>
                     <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Transacciones Recientes</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '300px', overflowY: 'auto' }}>
-                        {(() => {
-                            // Cargar y combinar ingresos y gastos
-                            const transactions = [];
-
-                            const savedIncomes = localStorage.getItem('incomes');
-                            if (savedIncomes) {
-                                try {
-                                    const incomes = JSON.parse(savedIncomes);
-                                    incomes.forEach(income => {
-                                        transactions.push({
-                                            type: 'income',
-                                            description: income.source,
-                                            amount: income.amount,
-                                            date: income.date,
-                                            category: income.category
-                                        });
-                                    });
-                                } catch (e) { }
-                            }
-
-                            const savedExpenses = localStorage.getItem('expenses');
-                            if (savedExpenses) {
-                                try {
-                                    const expenses = JSON.parse(savedExpenses);
-                                    expenses.forEach(expense => {
-                                        transactions.push({
-                                            type: 'expense',
-                                            description: expense.description,
-                                            amount: expense.amount,
-                                            date: expense.date,
-                                            category: expense.category
-                                        });
-                                    });
-                                } catch (e) { }
-                            }
-
-                            // Ordenar por fecha (más reciente primero)
-                            transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-                            // Mostrar solo las últimas 10
-                            const recentTransactions = transactions.slice(0, 10);
-
-                            if (recentTransactions.length === 0) {
-                                return (
-                                    <div className="text-center text-muted py-4">
-                                        <p>No hay transacciones aún</p>
-                                    </div>
-                                );
-                            }
-
-                            return recentTransactions.map((transaction, index) => (
+                        {loading ? <p className="text-center text-muted">Cargando...</p> :
+                            transactions.length === 0 ? (
+                                <div className="text-center text-muted py-4">
+                                    <p>No hay transacciones aún</p>
+                                </div>
+                            ) : transactions.map((transaction, index) => (
                                 <div
                                     key={index}
                                     style={{
@@ -245,7 +209,7 @@ const Dashboard = () => {
                                                 {transaction.description}
                                             </p>
                                             <p className="text-secondary" style={{ fontSize: '0.75rem' }}>
-                                                {transaction.category} • {transaction.date}
+                                                {transaction.category} • {new Date(transaction.date).toLocaleDateString()}
                                             </p>
                                         </div>
                                         <p style={{
@@ -259,8 +223,8 @@ const Dashboard = () => {
                                         </p>
                                     </div>
                                 </div>
-                            ));
-                        })()}
+                            ))
+                        }
                     </div>
                 </Card>
             </div>
