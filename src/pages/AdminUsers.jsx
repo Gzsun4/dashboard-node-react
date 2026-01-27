@@ -200,6 +200,23 @@ const AdminUsers = () => {
                 <div className="modal-backdrop fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
                     <div className="glass-card w-full max-w-[500px] p-8 md:p-10 border border-white/20 shadow-2xl rounded-[2rem] relative animate-fade-in"
                         style={{ transform: 'none' }}>
+                        <button
+                            onClick={() => setShowModal(false)}
+                            style={{
+                                position: 'absolute',
+                                top: '1rem',
+                                right: '1rem',
+                                background: 'transparent',
+                                border: 'none',
+                                color: 'white',
+                                cursor: 'pointer',
+                                fontSize: '1.5rem',
+                                lineHeight: 1
+                            }}
+                        >
+                            ×
+                        </button>
+
                         <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
                             Nuevo Usuario
                         </h3>
