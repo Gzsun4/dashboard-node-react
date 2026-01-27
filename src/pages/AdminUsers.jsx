@@ -21,7 +21,12 @@ const AdminUsers = () => {
                 }
             });
             const data = await response.json();
-            setUsers(data);
+            if (Array.isArray(data)) {
+                setUsers(data);
+            } else {
+                console.error("API Error: Users data is not an array", data);
+                setUsers([]);
+            }
             setLoading(false);
         } catch (error) {
             console.error('Error fetching users:', error);
@@ -200,7 +205,7 @@ const AdminUsers = () => {
                     <div className="mobile-card-view p-4 space-y-4">
                         {loading ? (
                             <p className="text-center p-4 text-secondary">Cargando usuarios...</p>
-                        ) : !users || users.length === 0 ? (
+                        ) : !Array.isArray(users) || users.length === 0 ? (
                             <p className="text-center p-4 text-secondary">No hay usuarios</p>
                         ) : (
                             users.map(user => (

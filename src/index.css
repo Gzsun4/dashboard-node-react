@@ -1057,10 +1057,17 @@ input:checked+.toggle-slider:hover {
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
 
-  /* Ensure page title fits */
+  /* Ensure page title fits and doesn't overlap with hamburger */
   .page-title {
     font-size: 1.5rem;
     margin-bottom: 0;
+    padding-top: 1rem;
+    /* Extra top padding as requested to clear hamburger visually if needed */
+  }
+
+  /* Additional safety for header container vertical space */
+  .page-header {
+    padding-top: 1.5rem !important;
   }
 
   /* Sidebar Adjustment */
