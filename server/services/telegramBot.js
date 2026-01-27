@@ -1,13 +1,15 @@
 import TelegramBot from 'node-telegram-bot-api';
+import cron from 'node-cron';
 import User from '../models/User.js';
 import Expense from '../models/Expense.js';
 import Income from '../models/Income.js';
 import Goal from '../models/Goal.js';
+import OneTimeReminder from '../models/OneTimeReminder.js';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
 let bot;
-const userStates = {}; // Almacena el estado de la conversación { chatId: { action: 'EDIT_AMOUNT', data: txId } }
+const userStates = {}; // Almacena el estado de la conversación
 
 // --- CONFIGURACIÓN INTELIGENTE ---
 
@@ -31,6 +33,7 @@ const CATEGORY_MAP = {
 };
 
 const INCOME_TRIGGERS = ['ingreso', 'gane', 'recibi', 'cobre', 'sueldo', 'depositaren', 'abono', 'pago'];
+const REMINDER_TRIGGERS = ['alerta', 'recordatorio', 'avisame', 'acuerdame', 'recuerdame', 'alarma'];
 
 // --- FUNCIONES DE AYUDA (NLP) ---
 
@@ -51,19 +54,17 @@ const parseSmartMessage = (text) => {
 
     // 1. Detectar Tipo (Gasto/Ingreso)
     let type = 'expense'; // Default
-    // Usamos triggers ya normalizados (sin tildes)
     if (INCOME_TRIGGERS.some(trigger => normalized.includes(trigger))) {
         type = 'income';
     }
 
     // 2. Detectar Monto (Números enteros o decimales)
-    const amountMatch = text.match(/(')?(\d+(\.\d{1,2})?)(')?/); // Mejora leve en regex
+    const amountMatch = text.match(/(')?(\d+(\.\d{1,2})?)(')?/);
     const amount = amountMatch ? parseFloat(amountMatch[0]) : null;
 
     // 3. Detectar Fecha (Ayer/Hoy/Anteayer)
     let date = new Date();
 
-    // Ajuste de fecha relativa
     if (normalized.includes('ayer') && !normalized.includes('anteayer')) {
         date.setDate(date.getDate() - 1);
     } else if (normalized.includes('anteayer') || normalized.includes('antier')) {
@@ -81,9 +82,7 @@ const parseSmartMessage = (text) => {
         description = description.replace(amountMatch[0], '').trim();
     }
 
-    // Quitar palabras reservadas comunes para limpiar la descripcion
     const stopWords = [...INCOME_TRIGGERS, 'gasto', 'gasté', 'gaste', 'soles', 'ayer', 'hoy', 'anteayer', 'antier', 'nuevo'];
-
     const words = description.split(/\s+/);
     const cleanWords = words.filter(w => {
         const norm = normalizeText(w);
@@ -94,10 +93,80 @@ const parseSmartMessage = (text) => {
 
     if (!description) description = category;
 
-    // Capitalizar primera letra descripción
     description = description.charAt(0).toUpperCase() + description.slice(1);
 
     return { type, amount, category, description, date: dateStr };
+};
+
+const parseReminder = (text) => {
+    const normalized = normalizeText(text);
+    const now = new Date();
+    let scheduledTime = null;
+
+    // 1. Detección "En X minutos/horas"
+    // Regex flexible para: en 5 min, en 10 minutos, en 1 hora
+    const relativeMatch = text.match(/en\s+(\d+)\s*(min|hora|hr)/i);
+
+    if (relativeMatch) {
+        const val = parseInt(relativeMatch[1]);
+        const unit = relativeMatch[2].toLowerCase();
+
+        if (unit.startsWith('min')) {
+            scheduledTime = new Date(now.getTime() + val * 60000);
+        } else if (unit.startsWith('hora') || unit.startsWith('hr')) {
+            scheduledTime = new Date(now.getTime() + val * 3600000);
+        }
+    }
+
+    // 2. Detección "A las HH:mm"
+    if (!scheduledTime) {
+        // Regex para: a las 10, a las 10:30, a las 5pm
+        const timeMatch = text.match(/a las\s+(\d{1,2})(:(\d{2}))?\s*(am|pm)?/i);
+        if (timeMatch) {
+            let hours = parseInt(timeMatch[1]);
+            const minutes = timeMatch[3] ? parseInt(timeMatch[3]) : 0;
+            const period = timeMatch[4] ? timeMatch[4].toLowerCase() : null;
+
+            if (period === 'pm' && hours < 12) hours += 12;
+            if (period === 'am' && hours === 12) hours = 0;
+
+            scheduledTime = new Date();
+            scheduledTime.setHours(hours, minutes, 0, 0);
+
+            // Si la hora ya pasó hoy en más de 1 minuto, se programa para mañana
+            // (Damos 1 min de margen por si el usuario es "exacto")
+            if (scheduledTime.getTime() <= now.getTime()) {
+                scheduledTime.setDate(scheduledTime.getDate() + 1);
+            }
+        }
+    }
+
+    // 3. Descripción del recordatorio
+    // Quitamos los triggers y las expresiones de tiempo para dejar solo el mensaje
+    let description = text;
+
+    // Quitar triggers
+    REMINDER_TRIGGERS.forEach(trigger => {
+        const regex = new RegExp(trigger, 'gi');
+        description = description.replace(regex, '');
+    });
+
+    // Quitar expresiones de tiempo
+    description = description
+        .replace(/en\s+(\d+)\s*(min|minutos|hora|horas|hr|hrs)/gi, '')
+        .replace(/a las\s+(\d{1,2})(:(\d{2}))?\s*(am|pm)?/gi, '')
+        .replace(/programame/gi, '')
+        .replace(/para/gi, '')
+        .replace(/programar/gi, '')
+        .trim();
+
+    // Si queda vacío, poner default
+    if (!description) description = "🔔 Recordatorio personal";
+
+    // Capitalizar
+    description = description.charAt(0).toUpperCase() + description.slice(1);
+
+    return { scheduledTime, description };
 };
 
 // --- INITIALIZATION ---
@@ -108,41 +177,35 @@ export const initializeBot = () => {
         return;
     }
 
-    // Fix: Cancel dragging polling to avoid conflict if called multiple times (though standard usage is once)
     if (bot) return;
 
     bot = new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: true });
     console.log('Telegram bot initialized 🤖');
 
-    // Manejar Mensajes de Texto
+    // Manejar Mensajes
     bot.on('message', async (msg) => {
         try {
             await handleMessage(msg);
         } catch (error) {
             console.error('Error handling message:', error);
-            bot.sendMessage(msg.chat.id, '❌ Ups, algo salió mal. Intenta de nuevo.');
+            bot.sendMessage(msg.chat.id, '❌ Ups, algo salió mal.');
         }
     });
 
-    // Manejar Callbacks (Clics en botones)
+    // Manejar Callbacks
     bot.on('callback_query', async (callbackQuery) => {
         const msg = callbackQuery.message;
         const chatId = msg.chat.id;
-        const data = callbackQuery.data; // formato: 'action:id'
+        const data = callbackQuery.data;
 
         try {
             const [action, id] = data.split(':');
-
-            // Autenticar usuario (simple check)
             const user = await User.findOne({ telegramChatId: String(chatId) });
             if (!user) return;
 
             if (action === 'EDIT_MENU') {
-                // Mostrar opciones de qué editar
                 await bot.editMessageText(`✏️ <b>¿Qué deseas modificar?</b>`, {
-                    chat_id: chatId,
-                    message_id: msg.message_id,
-                    parse_mode: 'HTML',
+                    chat_id: chatId, message_id: msg.message_id, parse_mode: 'HTML',
                     reply_markup: {
                         inline_keyboard: [
                             [{ text: '💰 Monto', callback_data: `EDIT_AMOUNT:${id}` }, { text: '🏷️ Categoría', callback_data: `EDIT_CAT:${id}` }],
@@ -151,39 +214,55 @@ export const initializeBot = () => {
                         ]
                     }
                 });
-            } else if (action === 'EDIT_AMOUNT') {
-                userStates[chatId] = { action: 'WAITING_AMOUNT', txId: id };
-                await bot.sendMessage(chatId, '🔢 Ingresa el <b>nuevo monto</b> (ej: 50.00):', { parse_mode: 'HTML' });
-
-            } else if (action === 'EDIT_CAT') {
-                userStates[chatId] = { action: 'WAITING_CAT', txId: id };
-                await bot.sendMessage(chatId, '🏷️ Ingresa la <b>nueva categoría</b> (ej: Taxi, Comida):', { parse_mode: 'HTML' });
-
-            } else if (action === 'EDIT_DESC') {
-                userStates[chatId] = { action: 'WAITING_DESC', txId: id };
-                await bot.sendMessage(chatId, '📝 Ingresa la <b>nueva descripción</b>:', { parse_mode: 'HTML' });
-
-            } else if (action === 'EDIT_DATE') {
-                userStates[chatId] = { action: 'WAITING_DATE', txId: id };
-                await bot.sendMessage(chatId, '📅 Ingresa la <b>nueva fecha</b> (YYYY-MM-DD) o escribe "Hoy"/"Ayer":', { parse_mode: 'HTML' });
-
             } else if (action === 'CANCEL_EDIT') {
-                await bot.editMessageText('✅ Edición cancelada.', {
-                    chat_id: chatId,
-                    message_id: msg.message_id
-                });
+                await bot.editMessageText('✅ Edición cancelada.', { chat_id: chatId, message_id: msg.message_id });
                 delete userStates[chatId];
+            } else if (['EDIT_AMOUNT', 'EDIT_CAT', 'EDIT_DESC', 'EDIT_DATE'].includes(action)) {
+                let prompt = '';
+                if (action === 'EDIT_AMOUNT') prompt = '🔢 Nuevo monto:';
+                if (action === 'EDIT_CAT') prompt = '🏷️ Nueva categoría:';
+                if (action === 'EDIT_DESC') prompt = '📝 Nueva descripción:';
+                if (action === 'EDIT_DATE') prompt = '📅 Nueva fecha (YYYY-MM-DD) o "hoy"/"ayer":';
+
+                userStates[chatId] = { action: action.replace('EDIT_', 'WAITING_'), txId: id };
+                await bot.sendMessage(chatId, prompt);
             }
 
-            // Responder al callback para quitar el relojito de carga
             bot.answerCallbackQuery(callbackQuery.id);
-
         } catch (error) {
             console.error(error);
         }
     });
 
     bot.on('polling_error', (error) => console.error('Polling error:', error));
+
+    // --- CRON JOB PARA RECORDATORIOS (Check every minute) ---
+    console.log('🕒 Iniciando servicio de recordatorios...');
+    cron.schedule('* * * * *', async () => {
+        try {
+            const now = new Date();
+            // Buscar recordatorios pendientes cuya fecha ya pasó (o es ahora)
+            const pendingReminders = await OneTimeReminder.find({
+                scheduledAt: { $lte: now },
+                isSent: false
+            });
+
+            for (const reminder of pendingReminders) {
+                try {
+                    await bot.sendMessage(reminder.chatId, `🔔 <b>RECORDATORIO</b>\n\n${reminder.description}`, { parse_mode: 'HTML' });
+
+                    // Marcar como enviado
+                    reminder.isSent = true;
+                    await reminder.save();
+
+                } catch (err) {
+                    console.error('Error enviando recordatorio:', err);
+                }
+            }
+        } catch (err) {
+            console.error('Error en cron de recordatorios:', err);
+        }
+    });
 };
 
 // --- HANDLERS ---
@@ -191,273 +270,180 @@ export const initializeBot = () => {
 const handleMessage = async (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text?.trim();
-
     if (!text) return;
 
-    // 1. Auth Check
     const user = await User.findOne({ telegramChatId: String(chatId) });
 
-    // Comando START (sin auth)
     if (text === '/start') {
         if (!user) {
-            return bot.sendMessage(chatId, `👋 <b>¡Hola! Soy tu Asistente Financiero</b> 🤖\n\n⛔ <b>Aún no estás vinculado.</b>\n\n1. Ve a tu Dashboard Web\n2. Ve a Configuración/Recordatorios\n3. Ingresa este ID: <code>${chatId}</code>`, { parse_mode: 'HTML' });
+            return bot.sendMessage(chatId, `👋 <b>¡Hola!</b>\nPara vincular tu cuenta, ingresa este ID en tu web: <code>${chatId}</code>`, { parse_mode: 'HTML' });
         }
         return sendMenu(chatId, user.name);
     }
 
-    if (!user) {
-        return bot.sendMessage(chatId, `⛔ <b>Cuenta no vinculada.</b>\nID de Chat: <code>${chatId}</code>`, { parse_mode: 'HTML' });
-    }
+    if (!user) return bot.sendMessage(chatId, `⛔ Cuenta no vinculada. ID: <code>${chatId}</code>`, { parse_mode: 'HTML' });
 
-    // 2. Estado de Conversación (Flujos de Edición)
     if (userStates[chatId]) {
         await handleConversationState(chatId, text, user);
         return;
     }
 
-    // 3. Comandos Directos
     const lowerText = text.toLowerCase();
 
-    if (lowerText === '/menu' || lowerText === 'menu' || lowerText === 'ayuda') {
-        return sendMenu(chatId, user.name);
+    // 1. Menú
+    if (['/menu', 'menu', 'ayuda'].includes(lowerText)) return sendMenu(chatId, user.name);
+
+    // 2. Editar
+    if (lowerText === '/editar' || lowerText.includes('/modificar')) return sendRecentTransactionsForEdit(chatId, user);
+
+    // 3. Deshacer
+    if (lowerText === 'deshacer') return handleUndo(user, chatId);
+
+    // 4. RECORDATORIOS (Nueva lógica)
+    if (REMINDER_TRIGGERS.some(t => lowerText.includes(t))) {
+        await processReminderRequest(text, user, chatId);
+        return;
     }
 
-    if (lowerText === '/editar' || lowerText.includes('editar') || lowerText.includes('modificar')) {
-        return sendRecentTransactionsForEdit(chatId, user);
-    }
-
-    if (lowerText === 'deshacer') {
-        return handleUndo(user, chatId);
-    }
-
-    // 4. Procesamiento Inteligente de Transacciones
-    // Si tiene números, asumimos que es una transacción
+    // 5. Transacciones Inteligentes
     if (/\d/.test(text)) {
         await processSmartTransaction(text, user, chatId);
     } else {
-        await bot.sendMessage(chatId, '🤔 No entendí. Si quieres registrar un gasto, incluye el monto. Ej: "Taxi 15". Escribe /menu para ver opciones.');
+        await bot.sendMessage(chatId, '🤔 No entendí. Intenta: "Taxi 15" o "Alerta en 10 min".', { parse_mode: 'HTML' });
     }
 };
 
 const sendMenu = async (chatId, userName) => {
     const menu = `
 🤖 <b>PANEL DE CONTROL</b> 📊
-Hola <b>${userName}</b>, aquí tienes lo que puedo hacer:
+Hola <b>${userName}</b>!
 
-💸 <b>REGISTRAR TRANSACCIONES</b>
-Simplemente escribe lo que hiciste, ¡yo entiendo!
-• <i>"Gasto 20 menu"</i> → Gasto en Alimentación
-• <i>"Pasaje 5 soles"</i> → Gasto en Transporte
-• <i>"Cobre 1500 sueldo"</i> → Ingreso
-• <i>"30 farmacia"</i> → Gasto en Salud
+💸 <b>FINANZAS</b>
+• <i>"Taxi 15"</i> → Gasto
+• <i>"Gane 50"</i> → Ingreso
 
-✏️ <b>EDICIÓN</b>
-• Escribe <b>/editar</b> o "Modificar" para cambiar tus últimos movimientos.
-• Escribe <b>Deshacer</b> para borrar el último registro al instante.
+🔔 <b>RECORDATORIOS</b> (¡Nuevo!)
+• <i>"Alerta en 10 min sacar basura"</i>
+• <i>"Recordatorio a las 6 pm reunión"</i>
 
-📈 <b>CONSULTAS</b> (Pronto)
-• Puedes ver tu resumen en el Dashboard Web.
-
-💡 <b>Tip:</b> No necesitas ser ordenado. <i>"Ayer taxi 15"</i> funciona igual de bien.
+✏️ <b>HERRAMIENTAS</b>
+• <b>/editar</b> - Corregir errores
+• <b>Deshacer</b> - Borrar último
 `;
     await bot.sendMessage(chatId, menu, { parse_mode: 'HTML' });
 };
 
-const processSmartTransaction = async (text, user, chatId) => {
-    const { type, amount, category, description, date } = parseSmartMessage(text); // Ahora recibe fecha
+const processReminderRequest = async (text, user, chatId) => {
+    const { scheduledTime, description } = parseReminder(text);
 
-    if (!amount) {
-        return bot.sendMessage(chatId, '⚠️ Detecté una intención pero <b>me falta el monto</b>. Ej: "Taxi 15"', { parse_mode: 'HTML' });
+    if (!scheduledTime) {
+        return bot.sendMessage(chatId, '⚠️ Entendí que quieres una alerta, pero no detecté la hora.\nPrueba: <i>"en 5 min"</i> o <i>"a las 4 pm"</i>.', { parse_mode: 'HTML' });
     }
 
-    // La fecha ya viene calculada desde el parser (hoy, ayer, etc.)
+    try {
+        await OneTimeReminder.create({
+            user: user._id,
+            chatId,
+            description,
+            scheduledAt: scheduledTime
+        });
+
+        const timeStr = scheduledTime.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+        await bot.sendMessage(chatId, `✅ <b>Recordatorio Programado</b>\n📅 Para: ${scheduledTime.toLocaleDateString()} a las ${timeStr}\n📝 "${description}"`, { parse_mode: 'HTML' });
+
+    } catch (error) {
+        console.error(error);
+        await bot.sendMessage(chatId, '❌ Error al programar recordatorio.');
+    }
+};
+
+const processSmartTransaction = async (text, user, chatId) => {
+    const { type, amount, category, description, date } = parseSmartMessage(text);
+
+    if (!amount) {
+        return bot.sendMessage(chatId, '⚠️ Falta el monto. Ej: "Taxi 15"', { parse_mode: 'HTML' });
+    }
 
     try {
         if (type === 'expense') {
-            await Expense.create({
-                user: user._id,
-                description,
-                amount,
-                category,
-                date: date // Usar la fecha parseada
-            });
+            await Expense.create({ user: user._id, description, amount, category, date });
             await bot.sendMessage(chatId, `✅ <b>Gasto Registrado</b> (${date})\n\n💸 <b>-${amount.toFixed(2)}</b> (${category})\n📝 ${description}`, { parse_mode: 'HTML' });
         } else {
-            await Income.create({
-                user: user._id,
-                source: description,
-                amount,
-                category,
-                date: date // Usar la fecha parseada
-            });
+            await Income.create({ user: user._id, source: description, amount, category, date });
             await bot.sendMessage(chatId, `✅ <b>Ingreso Registrado</b> (${date})\n\n💰 <b>+${amount.toFixed(2)}</b> (${category})\n📝 ${description}`, { parse_mode: 'HTML' });
         }
     } catch (error) {
         console.error(error);
-        await bot.sendMessage(chatId, '❌ Error guardando en base de datos.');
+        await bot.sendMessage(chatId, '❌ Error guardando.');
     }
 };
 
 const sendRecentTransactionsForEdit = async (chatId, user) => {
-    // Buscar ultimos 5 gastos e ingresos mezclados
     const expenses = await Expense.find({ user: user._id }).sort({ createdAt: -1 }).limit(5).lean();
     const incomes = await Income.find({ user: user._id }).sort({ createdAt: -1 }).limit(5).lean();
 
-    // Combinar, ordenar y tomar 5
     const all = [
         ...expenses.map(e => ({ ...e, type: 'Gasto', icon: '💸' })),
         ...incomes.map(i => ({ ...i, type: 'Ingreso', icon: '💰' }))
     ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
 
-    if (all.length === 0) {
-        return bot.sendMessage(chatId, '📭 No tienes transacciones recientes para editar.');
-    }
+    if (all.length === 0) return bot.sendMessage(chatId, '📭 No hay transacciones para editar.');
 
     const keyboard = all.map(tx => ([{
         text: `${tx.icon} S/.${tx.amount} - ${tx.description || tx.source} (${new Date(tx.createdAt).toLocaleDateString()})`,
         callback_data: `EDIT_MENU:${tx._id}`
     }]));
-
     keyboard.push([{ text: '❌ Cancelar', callback_data: 'CANCEL_EDIT' }]);
 
-    await bot.sendMessage(chatId, '📝 <b>Selecciona qué transacción editar:</b>', {
-        parse_mode: 'HTML',
-        reply_markup: { inline_keyboard: keyboard }
-    });
+    await bot.sendMessage(chatId, '📝 <b>Selecciona para editar:</b>', { reply_markup: { inline_keyboard: keyboard }, parse_mode: 'HTML' });
 };
 
 const handleConversationState = async (chatId, text, user) => {
     const state = userStates[chatId];
-
     try {
-        // Encontrar documento
-        let doc = await Expense.findById(state.txId);
-        let modelName = 'Gasto';
-        let isExpense = true;
+        let doc = await Expense.findById(state.txId) || await Income.findById(state.txId);
+        if (!doc) { delete userStates[chatId]; return bot.sendMessage(chatId, '❌ Transacción no encontrada.'); }
 
-        if (!doc) {
-            doc = await Income.findById(state.txId);
-            modelName = 'Ingreso';
-            isExpense = false;
-        }
+        const isIncome = doc.source !== undefined;
 
-        if (!doc) {
-            await bot.sendMessage(chatId, '❌ No encontré la transacción original.');
-            delete userStates[chatId];
-            return;
-        }
-
-        // --- EDICIÓN DE MONTO ---
         if (state.action === 'WAITING_AMOUNT') {
-            const newAmount = parseFloat(text);
-            if (isNaN(newAmount) || newAmount <= 0) {
-                return bot.sendMessage(chatId, '⚠️ Por favor ingresa un número válido.');
-            }
-            doc.amount = newAmount;
-            await doc.save();
-            await bot.sendMessage(chatId, `✅ <b>Monto actualizado</b> a S/. ${newAmount.toFixed(2)}`, { parse_mode: 'HTML' });
-        }
-
-        // --- EDICIÓN DE CATEGORÍA ---
-        else if (state.action === 'WAITING_CAT') {
-            // Intentar detectar categoría inteligente
-            let newCat = detectCategory(text);
-            // Si no detecta, usa el texto exacto (capitalizado)
-            if (!newCat) newCat = text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
-
-            doc.category = newCat;
-            await doc.save();
-            await bot.sendMessage(chatId, `✅ <b>Categoría actualizada</b> a: ${newCat}`, { parse_mode: 'HTML' });
-        }
-
-        // --- EDICIÓN DE DESCRIPCIÓN ---
-        else if (state.action === 'WAITING_DESC') {
-            if (isExpense) doc.description = text;
-            else doc.source = text;
-
-            await doc.save();
-            await bot.sendMessage(chatId, `✅ <b>Descripción actualizada</b> a: "${text}"`, { parse_mode: 'HTML' });
-        }
-
-        // --- EDICIÓN DE FECHA ---
-        else if (state.action === 'WAITING_DATE') {
+            const val = parseFloat(text);
+            if (val > 0) { doc.amount = val; await doc.save(); await bot.sendMessage(chatId, '✅ Monto actualizado.'); }
+        } else if (state.action === 'WAITING_CAT') {
+            doc.category = text; await doc.save(); await bot.sendMessage(chatId, '✅ Categoría actualizada.');
+        } else if (state.action === 'WAITING_DESC') {
+            if (isIncome) doc.source = text; else doc.description = text;
+            await doc.save(); await bot.sendMessage(chatId, '✅ Descripción actualizada.');
+        } else if (state.action === 'WAITING_DATE') {
             let newDate = text;
-            const lower = text.toLowerCase();
+            if (text.toLowerCase() === 'hoy') newDate = new Date().toISOString().split('T')[0];
+            else if (text.toLowerCase() === 'ayer') { const d = new Date(); d.setDate(d.getDate() - 1); newDate = d.toISOString().split('T')[0]; }
+            else if (text.toLowerCase() === 'anteayer') { const d = new Date(); d.setDate(d.getDate() - 2); newDate = d.toISOString().split('T')[0]; }
 
-            const today = new Date();
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) return bot.sendMessage(chatId, '⚠️ Formato inválido. Usa YYYY-MM-DD o escribe "hoy"/"ayer".');
 
-            if (lower === 'hoy') {
-                newDate = today.toISOString().split('T')[0];
-            } else if (lower === 'ayer') {
-                today.setDate(today.getDate() - 1);
-                newDate = today.toISOString().split('T')[0];
-            } else if (lower === 'anteayer') {
-                today.setDate(today.getDate() - 2);
-                newDate = today.toISOString().split('T')[0];
-            }
-
-            // Validar formato YYYY-MM-DD
-            if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) {
-                return bot.sendMessage(chatId, '⚠️ Formato inválido. Usa YYYY-MM-DD o escribe "hoy"/"ayer".');
-            }
-
-            doc.date = newDate;
-            await doc.save();
-            await bot.sendMessage(chatId, `✅ <b>Fecha actualizada</b> a: ${newDate}`, { parse_mode: 'HTML' });
+            doc.date = newDate; await doc.save(); await bot.sendMessage(chatId, '✅ Fecha actualizada.');
         }
-
-    } catch (err) {
-        console.error(err);
-        await bot.sendMessage(chatId, '❌ Error actualizando la transacción.');
-    }
-
-    // Limpiar estado
+    } catch (e) { console.error(e); }
     delete userStates[chatId];
 };
 
 const handleUndo = async (user, chatId) => {
-    try {
-        const lastExpense = await Expense.findOne({ user: user._id }).sort({ createdAt: -1 });
-        const lastIncome = await Income.findOne({ user: user._id }).sort({ createdAt: -1 });
+    const lastExpense = await Expense.findOne({ user: user._id }).sort({ createdAt: -1 });
+    const lastIncome = await Income.findOne({ user: user._id }).sort({ createdAt: -1 });
 
-        if (!lastExpense && !lastIncome) {
-            return bot.sendMessage(chatId, '📭 No hay transacciones recientes para deshacer.');
-        }
+    let target = (!lastExpense && !lastIncome) ? null :
+        (!lastIncome) ? lastExpense :
+            (!lastExpense) ? lastIncome :
+                (lastExpense.createdAt > lastIncome.createdAt) ? lastExpense : lastIncome;
 
-        let target = null;
-        let Model = null;
-        let type = '';
-
-        if (lastExpense && lastIncome) {
-            if (lastExpense.createdAt > lastIncome.createdAt) {
-                target = lastExpense;
-                Model = Expense;
-                type = 'Gasto';
-            } else {
-                target = lastIncome;
-                Model = Income;
-                type = 'Ingreso';
-            }
-        } else if (lastExpense) {
-            target = lastExpense;
-            Model = Expense;
-            type = 'Gasto';
-        } else {
-            target = lastIncome;
-            Model = Income;
-            type = 'Ingreso';
-        }
-
+    if (target) {
         const amount = target.amount;
         const desc = target.description || target.source;
-
-        await Model.findByIdAndDelete(target._id);
-
-        await bot.sendMessage(chatId, `🗑️ <b>Deshecho:</b> Último ${type} eliminado.\n❌ S/. ${amount} - ${desc}`, { parse_mode: 'HTML' });
-
-    } catch (error) {
-        console.error(error);
-        await bot.sendMessage(chatId, '❌ Error al deshacer.');
+        if (target.source) await Income.findByIdAndDelete(target._id); else await Expense.findByIdAndDelete(target._id);
+        await bot.sendMessage(chatId, `🗑️ Último registro eliminado.\n❌ S/. ${amount} - ${desc}`, { parse_mode: 'HTML' });
+    } else {
+        await bot.sendMessage(chatId, '📭 Nada que deshacer.');
     }
 };
 
