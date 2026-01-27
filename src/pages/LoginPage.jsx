@@ -28,59 +28,143 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-[#0a0a0f] via-[#0f0f1a] to-[#1a1a2e]">
+        <div style={{
+            minHeight: '100vh',
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            overflow: 'hidden',
+            background: 'linear-gradient(to bottom right, #0a0a0f, #0f0f1a, #1a1a2e)',
+            padding: '20px'
+        }}>
             {/* Dynamic Background Blobs */}
             <div className="blob bg-purple-600 w-64 h-64 top-0 left-0 mix-blend-multiply filter blur-2xl opacity-20 animate-blob"></div>
             <div className="blob bg-blue-600 w-64 h-64 top-0 right-0 mix-blend-multiply filter blur-2xl opacity-20 animate-blob animation-delay-2000"></div>
             <div className="blob bg-pink-600 w-64 h-64 -bottom-8 left-20 mix-blend-multiply filter blur-2xl opacity-20 animate-blob animation-delay-4000"></div>
 
-            <div className="glass-card w-full max-w-[450px] mx-4 p-6 md:p-10 animate-fade-in relative z-10 border border-white/10 shadow-2xl rounded-[20px] backdrop-blur-xl">
-                <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent tracking-tight">
+            <div style={{
+                width: '100%',
+                maxWidth: '400px',
+                padding: '40px',
+                position: 'relative',
+                zIndex: 10,
+                background: 'rgba(255, 255, 255, 0.05)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '20px',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+            }}>
+                <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+                    <h2 style={{
+                        fontSize: '32px',
+                        fontWeight: 'bold',
+                        background: 'linear-gradient(to right, #60a5fa, #a78bfa)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        marginBottom: '12px'
+                    }}>
                         Bienvenido
                     </h2>
-                    <p className="text-secondary mt-2 text-base font-medium">Ingresa a tu panel financiero</p>
+                    <p style={{ color: '#9ca3af', fontSize: '16px' }}>Ingresa a tu panel financiero</p>
                 </div>
 
                 {error && (
-                    <div className="bg-danger-soft text-danger p-3 rounded-lg mb-6 text-center text-sm border border-red-500/20 font-medium">
+                    <div style={{
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        color: '#ef4444',
+                        padding: '12px',
+                        borderRadius: '12px',
+                        marginBottom: '24px',
+                        textAlign: 'center',
+                        fontSize: '14px',
+                        border: '1px solid rgba(239, 68, 68, 0.2)'
+                    }}>
                         {error}
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="flex flex-col">
-                    <div className="mb-5">
-                        <label className="block text-sm font-semibold text-secondary mb-2 ml-1">Correo Electrónico</label>
+                <form onSubmit={handleSubmit}>
+                    <div style={{ marginBottom: '24px' }}>
+                        <label style={{
+                            display: 'block',
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            color: '#9ca3af',
+                            marginBottom: '12px'
+                        }}>
+                            Correo Electrónico
+                        </label>
                         <input
                             type="email"
                             required
-                            className="input-field w-full h-[50px] px-4 rounded-xl border-white/10 focus:border-primary/50 text-base transition-all bg-white/5"
+                            style={{
+                                width: '100%',
+                                height: '50px',
+                                padding: '0 16px',
+                                borderRadius: '12px',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                color: 'white',
+                                fontSize: '16px',
+                                outline: 'none',
+                                transition: 'all 0.3s'
+                            }}
                             placeholder="nombre@ejemplo.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
                     </div>
 
-                    <div className="mb-5">
-                        <label className="block text-sm font-semibold text-secondary mb-2 ml-1">Contraseña</label>
+                    <div style={{ marginBottom: '24px' }}>
+                        <label style={{
+                            display: 'block',
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            color: '#9ca3af',
+                            marginBottom: '12px'
+                        }}>
+                            Contraseña
+                        </label>
                         <input
                             type="password"
                             required
-                            className="input-field w-full h-[50px] px-4 rounded-xl border-white/10 focus:border-primary/50 text-base transition-all bg-white/5"
+                            style={{
+                                width: '100%',
+                                height: '50px',
+                                padding: '0 16px',
+                                borderRadius: '12px',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                color: 'white',
+                                fontSize: '16px',
+                                outline: 'none',
+                                transition: 'all 0.3s'
+                            }}
                             placeholder="••••••••"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
                     </div>
 
-                    <div className="pt-4">
+                    <div style={{ marginTop: '32px' }}>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full h-[50px] rounded-xl text-base font-bold tracking-wide shadow-lg transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center justify-center"
                             style={{
-                                background: 'linear-gradient(135deg, hsl(var(--accent-primary)), hsl(var(--accent-secondary)))',
-                                boxShadow: '0 10px 25px -5px rgba(var(--accent-primary), 0.3)'
+                                width: '100%',
+                                height: '50px',
+                                borderRadius: '12px',
+                                border: 'none',
+                                background: 'linear-gradient(135deg, #8b5cf6, #6366f1)',
+                                color: 'white',
+                                fontSize: '16px',
+                                fontWeight: 'bold',
+                                cursor: loading ? 'not-allowed' : 'pointer',
+                                boxShadow: '0 10px 25px -5px rgba(139, 92, 246, 0.3)',
+                                transition: 'all 0.3s',
+                                opacity: loading ? 0.7 : 1
                             }}
                         >
                             {loading ? 'Ingresando...' : 'Iniciar Sesión'}
@@ -88,9 +172,18 @@ const LoginPage = () => {
                     </div>
                 </form>
 
-                <div className="mt-8 text-center text-sm text-secondary">
+                <div style={{
+                    marginTop: '40px',
+                    textAlign: 'center',
+                    fontSize: '14px',
+                    color: '#9ca3af'
+                }}>
                     ¿No tienes una cuenta?{' '}
-                    <Link to="/register" className="text-primary hover:text-white transition-colors font-semibold ml-1">
+                    <Link to="/register" style={{
+                        color: '#8b5cf6',
+                        fontWeight: '600',
+                        textDecoration: 'none'
+                    }}>
                         Regístrate aquí
                     </Link>
                 </div>
