@@ -197,9 +197,8 @@ const AdminUsers = () => {
 
             {/* Modal Agregar Usuario */}
             {showModal && (
-                <div className="modal-backdrop fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-                    <div className="glass-card w-full max-w-[500px] p-8 md:p-10 border border-white/20 shadow-2xl rounded-[2rem] relative animate-fade-in"
-                        style={{ transform: 'none' }}>
+                <div className="modal-backdrop">
+                    <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '500px', position: 'relative' }}>
                         <button
                             onClick={() => setShowModal(false)}
                             style={{
@@ -273,9 +272,8 @@ const AdminUsers = () => {
 
             {/* Modal Resetear Contraseña */}
             {showPasswordModal && selectedUser && (
-                <div className="modal-backdrop fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-                    <div className="glass-card w-full max-w-[500px] p-8 md:p-10 border border-white/20 shadow-2xl rounded-[2rem] relative animate-fade-in"
-                        style={{ transform: 'none' }}>
+                <div className="modal-backdrop">
+                    <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '500px', position: 'relative' }}>
                         <button
                             onClick={() => {
                                 setShowPasswordModal(false);
