@@ -376,29 +376,37 @@ const Expenses = () => {
                             <p className="text-center text-muted p-4">No se encontraron gastos</p>
                         ) : (
                             filteredExpenses.map((expense) => (
-                                <div key={expense._id} className="glass p-4 rounded-lg mb-3 flex justify-between items-center">
-                                    <div>
-                                        <p style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '0.2rem' }}>{expense.description}</p>
-                                        <p className="text-sm text-secondary">{expense.date} • {expense.category}</p>
+                                <div key={expense._id} className="glass p-4 rounded-xl mb-3 flex items-center justify-between gap-3">
+                                    {/* Left: Info */}
+                                    <div className="min-w-0 flex-1">
+                                        <p className="font-bold text-white truncate mb-1">{expense.description}</p>
+                                        <div className="flex items-center gap-2 text-xs text-secondary">
+                                            <span>{expense.date}</span>
+                                            <span className="w-1 h-1 rounded-full bg-white/20"></span>
+                                            <span className="truncate max-w-[80px]">{expense.category}</span>
+                                        </div>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-danger" style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>-S/ {expense.amount.toFixed(2)}</p>
-                                        <div className="flex gap-6 justify-end mt-4">
+
+                                    {/* Right: Amount + Actions */}
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <p className="text-danger font-bold text-base whitespace-nowrap mr-1">-S/ {expense.amount.toFixed(0)}</p>
+
+                                        <div className="flex items-center">
                                             <button
                                                 onClick={() => handleEdit(expense)}
-                                                className="p-3 rounded-full text-secondary hover:text-white active:scale-95 transition-all flex items-center justify-center"
-                                                style={{ minWidth: '48px', minHeight: '48px', background: 'transparent' }}
+                                                className="p-3 text-secondary active:scale-95 transition-all flex items-center justify-center"
+                                                style={{ minWidth: '44px', minHeight: '44px', background: 'transparent' }}
                                                 aria-label="Editar"
                                             >
-                                                <Edit2 size={24} strokeWidth={1.5} />
+                                                <Edit2 size={18} strokeWidth={1.5} />
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(expense._id)}
-                                                className="p-3 rounded-full text-danger hover:text-red-400 active:scale-95 transition-all flex items-center justify-center"
-                                                style={{ minWidth: '48px', minHeight: '48px', background: 'transparent' }}
+                                                className="p-3 text-danger active:scale-95 transition-all flex items-center justify-center"
+                                                style={{ minWidth: '44px', minHeight: '44px', background: 'transparent' }}
                                                 aria-label="Eliminar"
                                             >
-                                                <Trash2 size={24} strokeWidth={1.5} />
+                                                <Trash2 size={18} strokeWidth={1.5} />
                                             </button>
                                         </div>
                                     </div>

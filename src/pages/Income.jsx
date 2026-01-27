@@ -273,29 +273,33 @@ const Income = () => {
                             <p className="text-center text-muted p-4">No se encontraron ingresos</p>
                         ) : (
                             filteredIncomes.map((income) => (
-                                <div key={income._id} className="glass p-4 rounded-lg mb-3 flex justify-between items-center">
-                                    <div>
-                                        <p style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '0.2rem' }}>{income.source}</p>
-                                        <p className="text-sm text-secondary">{income.date}</p>
+                                <div key={income._id} className="glass p-4 rounded-xl mb-3 flex items-center justify-between gap-3">
+                                    {/* Left: Info */}
+                                    <div className="min-w-0 flex-1">
+                                        <p className="font-bold text-white truncate mb-1">{income.source}</p>
+                                        <p className="text-xs text-secondary">{income.date}</p>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-success" style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>+S/ {income.amount.toFixed(2)}</p>
-                                        <div className="flex gap-6 justify-end mt-4">
+
+                                    {/* Right: Amount + Actions */}
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <p className="text-success font-bold text-base whitespace-nowrap mr-1">+S/ {income.amount.toFixed(0)}</p>
+
+                                        <div className="flex items-center">
                                             <button
                                                 onClick={() => handleEdit(income)}
-                                                className="p-3 rounded-full text-secondary hover:text-white active:scale-95 transition-all flex items-center justify-center"
-                                                style={{ minWidth: '48px', minHeight: '48px', background: 'transparent' }}
+                                                className="p-3 text-secondary active:scale-95 transition-all flex items-center justify-center"
+                                                style={{ minWidth: '44px', minHeight: '44px', background: 'transparent' }}
                                                 aria-label="Editar"
                                             >
-                                                <Edit2 size={24} strokeWidth={1.5} />
+                                                <Edit2 size={18} strokeWidth={1.5} />
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(income._id)}
-                                                className="p-3 rounded-full text-danger hover:text-red-400 active:scale-95 transition-all flex items-center justify-center"
-                                                style={{ minWidth: '48px', minHeight: '48px', background: 'transparent' }}
+                                                className="p-3 text-danger active:scale-95 transition-all flex items-center justify-center"
+                                                style={{ minWidth: '44px', minHeight: '44px', background: 'transparent' }}
                                                 aria-label="Eliminar"
                                             >
-                                                <Trash2 size={24} strokeWidth={1.5} />
+                                                <Trash2 size={18} strokeWidth={1.5} />
                                             </button>
                                         </div>
                                     </div>

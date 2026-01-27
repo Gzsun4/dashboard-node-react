@@ -200,61 +200,48 @@ const AdminUsers = () => {
                     <div className="mobile-card-view p-4 space-y-4">
                         {loading ? (
                             <p className="text-center p-4 text-secondary">Cargando usuarios...</p>
-                        ) : users.length === 0 ? (
-                            <p className="text-center p-4 text-secondary">No se encontraron usuarios</p>
+                        ) : !users || users.length === 0 ? (
+                            <p className="text-center p-4 text-secondary">No hay usuarios</p>
                         ) : (
                             users.map(user => (
-                                <div key={user._id} className="glass-card p-5 flex flex-col gap-4 relative">
-                                    {/* Header: Photo + Info + Status */}
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 rounded-full bg-secondary-soft flex-center shrink-0">
-                                            <User size={28} className="text-secondary" />
+                                <div key={user._id} className="glass-card p-4 flex items-center justify-between gap-3 relative mb-3">
+                                    {/* Left Side: Info */}
+                                    <div className="flex items-center gap-3 overflow-hidden">
+                                        <div className="w-10 h-10 rounded-full bg-secondary-soft flex-center shrink-0">
+                                            <User size={20} className="text-secondary" />
                                         </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="text-lg font-bold text-white truncate">{user.name}</h3>
-
-                                            {/* Status Below Name */}
-                                            <div className="flex items-center gap-2 mt-1">
-                                                {onlineUsers.includes(user._id) ? (
-                                                    <span className="flex items-center gap-1.5 text-xs text-green-400 font-medium">
-                                                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                                                        Online
-                                                    </span>
-                                                ) : (
-                                                    <span className="flex items-center gap-1.5 text-xs text-gray-500 font-medium">
-                                                        <span className="w-2 h-2 rounded-full bg-gray-500"></span>
-                                                        Offline
-                                                    </span>
+                                        <div className="min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="text-sm font-bold text-white truncate max-w-[120px]">{user.name}</h3>
+                                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${user.role === 'Admin' ? 'bg-primary/20 text-primary' : 'bg-secondary/20 text-secondary'}`}>
+                                                    {user.role === 'Admin' ? 'ADM' : 'USR'}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-xs text-secondary mt-0.5">
+                                                <span>{new Date(user.createdAt).toLocaleDateString()}</span>
+                                                {onlineUsers.includes(user._id) && (
+                                                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
                                                 )}
                                             </div>
                                         </div>
-                                        {/* Role Badge Top Right */}
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${user.role === 'Admin'
-                                            ? 'bg-primary-soft text-primary border border-blue-500/20'
-                                            : 'bg-secondary-soft text-secondary border border-gray-500/20'
-                                            }`}>
-                                            {user.role}
-                                        </span>
                                     </div>
 
-                                    {/* Actions Row - Ghost Style & Touch Friendly */}
-                                    <div className="flex gap-6 justify-end mt-4 pt-4 border-t border-white/5" onClick={(e) => e.stopPropagation() /* Prevent card click */}>
+                                    {/* Right Side: Actions (Inline) */}
+                                    <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                                         <button
                                             onClick={(e) => { e.stopPropagation(); setSelectedUser(user); setShowPasswordModal(true); }}
-                                            className="p-3 rounded-full text-secondary hover:text-white active:scale-95 transition-all flex items-center justify-center"
-                                            style={{ minWidth: '48px', minHeight: '48px', background: 'transparent' }}
-                                            title="Cambiar Contraseña"
+                                            className="p-3 text-secondary active:scale-95 transition-all flex-center"
+                                            style={{ background: 'transparent', minWidth: '44px', minHeight: '44px' }}
                                         >
-                                            <Key size={24} strokeWidth={1.5} />
+                                            <Key size={18} />
                                         </button>
                                         {user.role !== 'Admin' && (
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); deleteUser(user._id); }}
-                                                className="p-3 rounded-full text-danger hover:text-red-400 active:scale-95 transition-all flex items-center justify-center"
-                                                style={{ minWidth: '48px', minHeight: '48px', background: 'transparent' }}
-                                                title="Eliminar Usuario"
+                                                className="p-3 text-danger active:scale-95 transition-all flex-center"
+                                                style={{ background: 'transparent', minWidth: '44px', minHeight: '44px' }}
                                             >
-                                                <Trash2 size={24} strokeWidth={1.5} />
+                                                <Trash2 size={18} />
                                             </button>
                                         )}
                                     </div>
