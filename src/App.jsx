@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import Income from './pages/Income';
 import Expenses from './pages/Expenses';
 import Savings from './pages/Savings';
+import Reminders from './pages/Reminders';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import PrivateRoute from './components/PrivateRoute';
@@ -35,6 +36,7 @@ function App() {
                 <Route path="/income" element={<Income />} />
                 <Route path="/expenses" element={<Expenses />} />
                 <Route path="/savings" element={<Savings />} />
+                <Route path="/reminders" element={<Reminders />} />
 
                 <Route element={<AdminRoute />}>
                   <Route path="/admin/users" element={<AdminUsers />} />

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, TrendingUp, TrendingDown, PiggyBank, Wallet, Users, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, TrendingUp, TrendingDown, PiggyBank, Wallet, Users, LogOut, Menu, X, Bell } from 'lucide-react';
 import './Sidebar.css';
 
 const Sidebar = () => {
@@ -16,6 +16,7 @@ const Sidebar = () => {
         { path: '/income', label: 'Ingresos', icon: TrendingUp },
         { path: '/expenses', label: 'Gastos', icon: TrendingDown },
         { path: '/savings', label: 'Ahorros', icon: PiggyBank },
+        { path: '/reminders', label: 'Recordatorio', icon: Bell },
     ];
 
     if (user && user.role === 'Admin') {
