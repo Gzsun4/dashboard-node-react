@@ -1118,4 +1118,176 @@ input:checked+.toggle-slider:hover {
     height: 300px !important;
     margin-bottom: 1rem;
   }
+
+  /* Hide search/filter container on mobile */
+  .search-filter-container {
+    display: none !important;
+  }
+}
+
+/* ========================================
+   FLOATING ACTION BUTTON (FAB) STYLES
+   ======================================== */
+
+.fab-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, hsl(var(--accent-primary)), hsl(var(--accent-secondary)));
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 0 0 rgba(var(--accent-primary), 0.7);
+  z-index: 999;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fabPulse 2s infinite;
+}
+
+.fab-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5);
+}
+
+.fab-button:active {
+  transform: scale(0.95);
+}
+
+@keyframes fabPulse {
+
+  0%,
+  100% {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 0 0 rgba(var(--accent-primary), 0.7);
+  }
+
+  50% {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 0 10px rgba(var(--accent-primary), 0);
+  }
+}
+
+/* Show FAB only on mobile */
+@media (max-width: 768px) {
+  .fab-button {
+    display: flex;
+  }
+}
+
+/* ========================================
+   BOTTOM SHEET MODAL STYLES
+   ======================================== */
+
+.bottom-sheet-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  animation: backdropFadeIn 0.3s ease-out;
+}
+
+.bottom-sheet-content {
+  width: 100%;
+  background: linear-gradient(145deg, rgba(30, 35, 55, 0.98) 0%, rgba(20, 25, 45, 0.98) 100%);
+  border-top-left-radius: 1.5rem;
+  border-top-right-radius: 1.5rem;
+  padding: 1.5rem;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: slideUpFromBottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: none;
+}
+
+.bottom-sheet-content.closing {
+  animation: slideDownToBottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Bottom Sheet Animations */
+@keyframes backdropFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUpFromBottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDownToBottom {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+/* Bottom Sheet Header */
+.bottom-sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bottom-sheet-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+}
+
+.bottom-sheet-close {
+  background: transparent;
+  border: none;
+  color: hsl(var(--text-secondary));
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.bottom-sheet-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+/* Bottom Sheet Handle (drag indicator) */
+.bottom-sheet-handle {
+  width: 40px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  margin: 0 auto 1rem auto;
 }

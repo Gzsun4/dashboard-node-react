@@ -28,6 +28,7 @@ const Expenses = () => {
 
     const [showModal, setShowModal] = useState(false);
     const [showFilterModal, setShowFilterModal] = useState(false);
+    const [showBottomSheet, setShowBottomSheet] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [newExpense, setNewExpense] = useState({
         description: '',
@@ -451,52 +452,233 @@ const Expenses = () => {
 
             </div>
 
-            {/* Modal Agregar/Editar */}
-            {showModal && (
-                <div className="modal-backdrop" style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0, 0, 0, 0.7)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000
-                }}>
-                    <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '500px', position: 'relative' }}>
-                        <button
-                            onClick={handleCloseModal}
-                            style={{
-                                position: 'absolute',
-                                top: '1rem',
-                                right: '1rem',
-                                background: 'transparent',
-                                border: 'none',
-                                color: 'white',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            <X size={24} />
-                        </button>
+            {/* Floating Action Button (FAB) - Mobile Only */}
+            <button
+                className="fab-button"
+                onClick={() => setShowBottomSheet(true)}
+                aria-label="Buscar y filtrar"
+            >
+                <Search size={24} />
+            </button>
 
-                        <h3 className="mb-6">{editingId ? 'Editar Gasto' : 'Agregar Nuevo Gasto'}</h3>
+            {/* Bottom Sheet Modal - Mobile Only */}
+            {showBottomSheet && (
+                <div
+                    className="bottom-sheet-backdrop"
+                    onClick={() => setShowBottomSheet(false)}
+                >
+                    <div
+                        className="bottom-sheet-content"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="bottom-sheet-handle"></div>
 
-                        <form onSubmit={handleSubmit}>
-                            <div className="mb-4">
-                                <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                    Descripción
-                                </label>
+                        <div className="bottom-sheet-header">
+                            <h3 className="bottom-sheet-title">Buscar y Filtrar</h3>
+                            <button
+                                className="bottom-sheet-close"
+                                onClick={() => setShowBottomSheet(false)}
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        {/* Search Input */}
+                        <div className="mb-4">
+                            <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
+                                Buscar
+                            </label>
+                            <div className="relative">
+                                <div className="absolute" style={{ left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--text-muted))' }}>
+                                    <Search size={18} />
+                                </div>
                                 <input
                                     type="text"
+                                    placeholder="Buscar gastos..."
                                     className="input-field"
-                                    placeholder="Ej: Supermercado, Netflix, Gasolina"
-                                    value={newExpense.description}
-                                    onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
-                                    required
+                                    style={{ paddingLeft: '2.5rem' }}
                                 />
                             </div>
+                        </div>
+
+                        {/* Filter Button */}
+                        <button
+                            className="btn glass w-full"
+                            onClick={() => {
+                                setShowBottomSheet(false);
+                                setShowFilterModal(true);
+                            }}
+                            style={{
+                                background: hasActiveFilters ? 'hsl(var(--accent-primary) / 0.2)' : undefined,
+                                borderColor: hasActiveFilters ? 'hsl(var(--accent-primary))' : undefined,
+                                justifyContent: 'center'
+                            }}
+                        >
+                            <Filter size={18} /> Filtrar {hasActiveFilters && `(${Object.values(activeFilters).filter(v => v).length})`}
+                        </button>
+
+                        {/* Close Button */}
+                        <button
+                            className="btn btn-primary w-full"
+                            onClick={() => setShowBottomSheet(false)}
+                            style={{ marginTop: '1rem' }}
+                        >
+                            Listo
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Agregar/Editar */}
+            {
+                showModal && (
+                    <div className="modal-backdrop" style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: 'rgba(0, 0, 0, 0.7)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 1000
+                    }}>
+                        <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '500px', position: 'relative' }}>
+                            <button
+                                onClick={handleCloseModal}
+                                style={{
+                                    position: 'absolute',
+                                    top: '1rem',
+                                    right: '1rem',
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: 'white',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                <X size={24} />
+                            </button>
+
+                            <h3 className="mb-6">{editingId ? 'Editar Gasto' : 'Agregar Nuevo Gasto'}</h3>
+
+                            <form onSubmit={handleSubmit}>
+                                <div className="mb-4">
+                                    <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
+                                        Descripción
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="input-field"
+                                        placeholder="Ej: Supermercado, Netflix, Gasolina"
+                                        value={newExpense.description}
+                                        onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="mb-4">
+                                    <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
+                                        Categoría
+                                    </label>
+                                    <select
+                                        className="input-field"
+                                        value={newExpense.category}
+                                        onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
+                                        required
+                                    >
+                                        <option value="">Selecciona una categoría</option>
+                                        <option value="Comida">Comida</option>
+                                        <option value="Transporte">Transporte</option>
+                                        <option value="Entretenimiento">Entretenimiento</option>
+                                        <option value="Suscripciones">Suscripciones</option>
+                                        <option value="Servicios">Servicios</option>
+                                        <option value="Otro">Otro</option>
+                                    </select>
+                                </div>
+
+                                <div className="mb-4">
+                                    <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
+                                        Monto
+                                    </label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        className="input-field"
+                                        placeholder="0.00"
+                                        value={newExpense.amount}
+                                        onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="mb-6">
+                                    <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
+                                        Fecha
+                                    </label>
+                                    <input
+                                        type="date"
+                                        className="input-field"
+                                        value={newExpense.date}
+                                        onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="flex gap-3 justify-end">
+                                    <button
+                                        type="button"
+                                        className="btn glass"
+                                        onClick={handleCloseModal}
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="btn text-white"
+                                        style={{ background: 'linear-gradient(135deg, hsl(var(--accent-danger)), #ff6b6b)' }}
+                                    >
+                                        {editingId ? <><Edit2 size={18} /> Actualizar</> : <><Plus size={18} /> Agregar</>}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* Modal Filtros */}
+            {
+                showFilterModal && (
+                    <div className="modal-backdrop" style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: 'rgba(0, 0, 0, 0.7)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 1000
+                    }}>
+                        <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '500px', position: 'relative' }}>
+                            <button
+                                onClick={() => setShowFilterModal(false)}
+                                style={{
+                                    position: 'absolute',
+                                    top: '1rem',
+                                    right: '1rem',
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: 'white',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                <X size={24} />
+                            </button>
+
+                            <h3 className="mb-6">Filtrar Gastos</h3>
 
                             <div className="mb-4">
                                 <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
@@ -504,11 +686,10 @@ const Expenses = () => {
                                 </label>
                                 <select
                                     className="input-field"
-                                    value={newExpense.category}
-                                    onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
-                                    required
+                                    value={filters.category}
+                                    onChange={(e) => setFilters({ ...filters, category: e.target.value })}
                                 >
-                                    <option value="">Selecciona una categoría</option>
+                                    <option value="">Todas las categorías</option>
                                     <option value="Comida">Comida</option>
                                     <option value="Transporte">Transporte</option>
                                     <option value="Entretenimiento">Entretenimiento</option>
@@ -520,29 +701,25 @@ const Expenses = () => {
 
                             <div className="mb-4">
                                 <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                    Monto
+                                    Fecha Desde
                                 </label>
                                 <input
-                                    type="number"
-                                    step="0.01"
+                                    type="date"
                                     className="input-field"
-                                    placeholder="0.00"
-                                    value={newExpense.amount}
-                                    onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
-                                    required
+                                    value={filters.dateFrom}
+                                    onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
                                 />
                             </div>
 
                             <div className="mb-6">
                                 <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                    Fecha
+                                    Fecha Hasta
                                 </label>
                                 <input
                                     type="date"
                                     className="input-field"
-                                    value={newExpense.date}
-                                    onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
-                                    required
+                                    value={filters.dateTo}
+                                    onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
                                 />
                             </div>
 
@@ -550,117 +727,22 @@ const Expenses = () => {
                                 <button
                                     type="button"
                                     className="btn glass"
-                                    onClick={handleCloseModal}
+                                    onClick={handleClearFilters}
                                 >
-                                    Cancelar
+                                    Limpiar Filtros
                                 </button>
                                 <button
-                                    type="submit"
-                                    className="btn text-white"
-                                    style={{ background: 'linear-gradient(135deg, hsl(var(--accent-danger)), #ff6b6b)' }}
+                                    type="button"
+                                    className="btn btn-primary"
+                                    onClick={handleApplyFilters}
                                 >
-                                    {editingId ? <><Edit2 size={18} /> Actualizar</> : <><Plus size={18} /> Agregar</>}
+                                    <Filter size={18} /> Aplicar Filtros
                                 </button>
                             </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* Modal Filtros */}
-            {showFilterModal && (
-                <div className="modal-backdrop" style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0, 0, 0, 0.7)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000
-                }}>
-                    <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '500px', position: 'relative' }}>
-                        <button
-                            onClick={() => setShowFilterModal(false)}
-                            style={{
-                                position: 'absolute',
-                                top: '1rem',
-                                right: '1rem',
-                                background: 'transparent',
-                                border: 'none',
-                                color: 'white',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            <X size={24} />
-                        </button>
-
-                        <h3 className="mb-6">Filtrar Gastos</h3>
-
-                        <div className="mb-4">
-                            <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                Categoría
-                            </label>
-                            <select
-                                className="input-field"
-                                value={filters.category}
-                                onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-                            >
-                                <option value="">Todas las categorías</option>
-                                <option value="Comida">Comida</option>
-                                <option value="Transporte">Transporte</option>
-                                <option value="Entretenimiento">Entretenimiento</option>
-                                <option value="Suscripciones">Suscripciones</option>
-                                <option value="Servicios">Servicios</option>
-                                <option value="Otro">Otro</option>
-                            </select>
-                        </div>
-
-                        <div className="mb-4">
-                            <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                Fecha Desde
-                            </label>
-                            <input
-                                type="date"
-                                className="input-field"
-                                value={filters.dateFrom}
-                                onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-                            />
-                        </div>
-
-                        <div className="mb-6">
-                            <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                Fecha Hasta
-                            </label>
-                            <input
-                                type="date"
-                                className="input-field"
-                                value={filters.dateTo}
-                                onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-                            />
-                        </div>
-
-                        <div className="flex gap-3 justify-end">
-                            <button
-                                type="button"
-                                className="btn glass"
-                                onClick={handleClearFilters}
-                            >
-                                Limpiar Filtros
-                            </button>
-                            <button
-                                type="button"
-                                className="btn btn-primary"
-                                onClick={handleApplyFilters}
-                            >
-                                <Filter size={18} /> Aplicar Filtros
-                            </button>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
         </>
     );
 };
