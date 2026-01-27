@@ -47,4 +47,34 @@ router.get('/debug-reminders', async (req, res) => {
     }
 });
 
+// Debug route to check user linkage
+router.get('/check-user-link/:chatId', async (req, res) => {
+    try {
+        const User = (await import('../models/User.js')).default;
+        const { chatId } = req.params;
+
+        const user = await User.findOne({ telegramChatId: chatId });
+
+        if (user) {
+            res.json({
+                linked: true,
+                user: {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    telegramChatId: user.telegramChatId
+                }
+            });
+        } else {
+            res.json({
+                linked: false,
+                message: 'No user found with this Chat ID',
+                searchedChatId: chatId
+            });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 export default router;
