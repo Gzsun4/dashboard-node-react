@@ -33,7 +33,7 @@ const Sidebar = () => {
     return (
         <>
             <button
-                className={`mobile-menu-toggle glass ${isOpen ? 'hidden' : ''}`}
+                className={`mobile-menu-toggle ${isOpen ? 'hidden' : ''}`}
                 onClick={toggleSidebar}
                 aria-label="Toggle menu"
             >

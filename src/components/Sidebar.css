@@ -123,10 +123,24 @@
     top: 1rem;
     left: 1rem;
     z-index: 1000;
-    padding: 0.6rem;
+    padding: 0.75rem;
+    background: transparent;
+    border: none;
     color: white;
-    justify-content: center;
-    align-items: center;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-menu-toggle:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(var(--accent-primary), 0.3);
+}
+
+.mobile-menu-toggle:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .sidebar-backdrop {
