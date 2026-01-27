@@ -238,27 +238,23 @@ const AdminUsers = () => {
                                     </div>
 
                                     {/* Actions Row - Ghost Style & Touch Friendly */}
-                                    <div className="flex items-center gap-4 mt-2 pt-4 border-t border-white/5">
+                                    <div className="flex gap-6 justify-end mt-4 pt-4 border-t border-white/5" onClick={(e) => e.stopPropagation() /* Prevent card click */}>
                                         <button
-                                            onClick={() => {
-                                                setSelectedUser(user);
-                                                setShowPasswordModal(true);
-                                            }}
-                                            className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl text-primary hover:bg-white/5 active:scale-95 transition-all"
-                                            style={{ minHeight: '44px' }}
+                                            onClick={(e) => { e.stopPropagation(); setSelectedUser(user); setShowPasswordModal(true); }}
+                                            className="p-3 rounded-full text-secondary hover:text-white active:scale-95 transition-all flex items-center justify-center"
+                                            style={{ minWidth: '48px', minHeight: '48px', background: 'transparent' }}
+                                            title="Cambiar Contraseña"
                                         >
-                                            <span className="text-xl">🔑</span>
-                                            <span className="text-sm font-semibold">Contraseña</span>
+                                            <Key size={24} strokeWidth={1.5} />
                                         </button>
-
                                         {user.role !== 'Admin' && (
                                             <button
-                                                onClick={() => deleteUser(user._id)}
-                                                className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl text-danger hover:bg-white/5 active:scale-95 transition-all"
-                                                style={{ minHeight: '44px' }}
+                                                onClick={(e) => { e.stopPropagation(); deleteUser(user._id); }}
+                                                className="p-3 rounded-full text-danger hover:text-red-400 active:scale-95 transition-all flex items-center justify-center"
+                                                style={{ minWidth: '48px', minHeight: '48px', background: 'transparent' }}
+                                                title="Eliminar Usuario"
                                             >
-                                                <Trash2 size={20} />
-                                                <span className="text-sm font-semibold">Eliminar</span>
+                                                <Trash2 size={24} strokeWidth={1.5} />
                                             </button>
                                         )}
                                     </div>

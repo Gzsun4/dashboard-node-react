@@ -280,20 +280,22 @@ const Income = () => {
                                     </div>
                                     <div className="text-right">
                                         <p className="text-success" style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>+S/ {income.amount.toFixed(2)}</p>
-                                        <div className="flex gap-4 justify-end mt-3">
+                                        <div className="flex gap-6 justify-end mt-4">
                                             <button
                                                 onClick={() => handleEdit(income)}
-                                                className="p-3 bg-white/5 rounded-xl text-secondary active:scale-95 transition-all flex items-center justify-center"
-                                                style={{ minWidth: '44px', minHeight: '44px' }}
+                                                className="p-3 rounded-full text-secondary hover:text-white active:scale-95 transition-all flex items-center justify-center"
+                                                style={{ minWidth: '48px', minHeight: '48px', background: 'transparent' }}
+                                                aria-label="Editar"
                                             >
-                                                <Edit2 size={20} />
+                                                <Edit2 size={24} strokeWidth={1.5} />
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(income._id)}
-                                                className="p-3 bg-white/5 rounded-xl text-danger active:scale-95 transition-all flex items-center justify-center"
-                                                style={{ minWidth: '44px', minHeight: '44px' }}
+                                                className="p-3 rounded-full text-danger hover:text-red-400 active:scale-95 transition-all flex items-center justify-center"
+                                                style={{ minWidth: '48px', minHeight: '48px', background: 'transparent' }}
+                                                aria-label="Eliminar"
                                             >
-                                                <Trash2 size={20} />
+                                                <Trash2 size={24} strokeWidth={1.5} />
                                             </button>
                                         </div>
                                     </div>
