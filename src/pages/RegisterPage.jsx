@@ -40,30 +40,27 @@ const RegisterPage = () => {
             <div className="blob bg-green-600 w-72 h-72 top-10 left-10 mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
             <div className="blob bg-blue-600 w-72 h-72 bottom-10 right-10 mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
 
-            <div className="glass-card p-8 w-full max-w-md animate-fade-in relative z-10 m-4">
-                <div className="text-center mb-8">
-                    <div className="inline-flex p-4 rounded-full bg-success-soft mb-4 glow-effect">
-                        <UserPlus size={32} className="text-success" />
-                    </div>
-                    <h2 className="text-3xl font-bold bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
+            <div className="glass-card p-10 md:p-12 w-full max-w-[500px] animate-fade-in relative z-10 m-4 border border-white/20 shadow-2xl rounded-[2rem] backdrop-blur-2xl">
+                <div className="text-center mb-10">
+                    <h2 className="text-4xl font-bold bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent tracking-tight">
                         Crear Cuenta
                     </h2>
-                    <p className="text-secondary mt-2">Únete y controla tus finanzas</p>
+                    <p className="text-secondary mt-3 text-lg font-medium">Únete y controla tus finanzas</p>
                 </div>
 
                 {error && (
-                    <div className="bg-danger-soft text-danger p-3 rounded-lg mb-6 text-center text-sm border border-red-500/20">
+                    <div className="bg-danger-soft text-danger p-4 rounded-xl mb-8 text-center text-sm border border-red-500/20 font-medium">
                         {error}
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium text-secondary mb-1">Nombre Completo</label>
+                        <label className="block text-sm font-semibold text-secondary mb-2 ml-1">Nombre Completo</label>
                         <input
                             type="text"
                             required
-                            className="input-field w-full"
+                            className="input-field w-full py-3 px-5 rounded-xl border-white/10 text-lg"
                             placeholder="Tu Nombre"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
