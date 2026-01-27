@@ -1,10 +1,12 @@
-const express = require('express');
+import express from 'express';
+import { getReminderConfig, saveReminderConfig } from '../controllers/reminderController.js';
+import { protect } from '../middleware/authMiddleware.js';
+
 const router = express.Router();
-const { getReminderConfig, saveReminderConfig } = require('../controllers/reminderController');
-const { protect } = require('../middleware/authMiddleware');
 
 router.route('/')
     .get(protect, getReminderConfig)
     .post(protect, saveReminderConfig);
 
-module.exports = router;
+export default router;
+

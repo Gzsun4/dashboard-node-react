@@ -25,4 +25,5 @@ const reminderConfigSchema = mongoose.Schema({
 // Ensure one config per user
 reminderConfigSchema.index({ user: 1 }, { unique: true });
 
-module.exports = mongoose.model('ReminderConfig', reminderConfigSchema);
+export default mongoose.model('ReminderConfig', reminderConfigSchema);
+

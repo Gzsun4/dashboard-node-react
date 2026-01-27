@@ -1,5 +1,6 @@
-const asyncHandler = require('express-async-handler');
-const ReminderConfig = require('../models/ReminderConfig');
+import asyncHandler from 'express-async-handler';
+import ReminderConfig from '../models/ReminderConfig.js';
+
 
 // @desc    Get user's reminder config
 // @route   GET /api/reminders
@@ -49,7 +50,5 @@ const saveReminderConfig = asyncHandler(async (req, res) => {
     }
 });
 
-module.exports = {
-    getReminderConfig,
-    saveReminderConfig
-};
+export { getReminderConfig, saveReminderConfig };
+
