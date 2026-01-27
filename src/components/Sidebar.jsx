@@ -72,12 +72,15 @@ const Sidebar = () => {
                 </nav>
 
                 <div className="sidebar-footer">
+                    <p style={{ fontSize: '0.7em', opacity: 0.5, textAlign: 'center', marginBottom: '12px', fontStyle: 'italic' }}>
+                        hecho por Gzsunnk
+                    </p>
+
                     <div className="user-profile mb-4">
                         <div className="avatar">{user?.name?.charAt(0) || 'U'}</div>
                         <div className="user-info">
                             <p className="user-name">{user?.name || 'Usuario'}</p>
                             <p className="user-plan" style={{ fontSize: '0.7em', opacity: 0.7 }}>{user?.email}</p>
-                            <p style={{ fontSize: '0.65em', opacity: 0.5, marginTop: '4px', fontStyle: 'italic' }}>hecho por Gzsunnk</p>
                         </div>
                     </div>
 
