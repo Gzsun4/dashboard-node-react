@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
-import { Trash2, Shield, User } from 'lucide-react';
+import { Trash2, Shield, User, Key } from 'lucide-react';
 
 const AdminUsers = () => {
     const [users, setUsers] = useState([]);
