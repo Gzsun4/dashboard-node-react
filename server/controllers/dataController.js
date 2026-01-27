@@ -22,6 +22,14 @@ const createIncome = asyncHandler(async (req, res) => {
     res.status(200).json(income);
 });
 
+const updateIncome = asyncHandler(async (req, res) => {
+    const income = await Income.findById(req.params.id);
+    if (!income) { res.status(404); throw new Error('Income not found'); }
+    if (income.user.toString() !== req.user.id) { res.status(401); throw new Error('User not authorized'); }
+    const updatedIncome = await Income.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.status(200).json(updatedIncome);
+});
+
 const deleteIncome = asyncHandler(async (req, res) => {
     const income = await Income.findById(req.params.id);
     if (!income) { res.status(404); throw new Error('Income not found'); }
@@ -46,6 +54,14 @@ const createExpense = asyncHandler(async (req, res) => {
         description, amount, date, category, user: req.user.id
     });
     res.status(200).json(expense);
+});
+
+const updateExpense = asyncHandler(async (req, res) => {
+    const expense = await Expense.findById(req.params.id);
+    if (!expense) { res.status(404); throw new Error('Expense not found'); }
+    if (expense.user.toString() !== req.user.id) { res.status(401); throw new Error('User not authorized'); }
+    const updatedExpense = await Expense.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.status(200).json(updatedExpense);
 });
 
 const deleteExpense = asyncHandler(async (req, res) => {
@@ -91,7 +107,7 @@ const deleteGoal = asyncHandler(async (req, res) => {
 });
 
 export {
-    getIncomes, createIncome, deleteIncome,
-    getExpenses, createExpense, deleteExpense,
+    getIncomes, createIncome, updateIncome, deleteIncome,
+    getExpenses, createExpense, updateExpense, deleteExpense,
     getGoals, createGoal, updateGoal, deleteGoal
 };

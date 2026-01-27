@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Card from '../components/Card';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Target, Car, Home, Smartphone, X, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Target, Car, Home, Smartphone, X, Edit2, Trash2, History, DollarSign } from 'lucide-react';
 
 const Savings = () => {
     const { token } = useAuth();
@@ -36,6 +36,11 @@ const Savings = () => {
         current: '',
         deadline: ''
     });
+
+    const [showAddMoneyModal, setShowAddMoneyModal] = useState(false);
+    const [showHistoryModal, setShowHistoryModal] = useState(false);
+    const [selectedGoal, setSelectedGoal] = useState(null);
+    const [amountToAdd, setAmountToAdd] = useState('');
 
     const [selectedIcon, setSelectedIcon] = useState(0);
 
@@ -119,6 +124,53 @@ const Savings = () => {
         setSelectedIcon(0);
     };
 
+    const handleAddMoney = async (e) => {
+        e.preventDefault();
+        try {
+            const amount = parseFloat(amountToAdd);
+            if (isNaN(amount) || amount <= 0) return;
+
+            const newCurrent = selectedGoal.current + amount;
+            const newHistory = [...(selectedGoal.history || []), {
+                amount: amount,
+                date: new Date().toLocaleDateString(),
+                note: 'Depósito'
+            }];
+
+            const res = await fetch(`/api/data/goals/${selectedGoal._id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    current: newCurrent,
+                    history: newHistory
+                })
+            });
+
+            const updatedGoal = await res.json();
+            setGoals(goals.map(g => g._id === selectedGoal._id ? updatedGoal : g));
+
+            setShowAddMoneyModal(false);
+            setAmountToAdd('');
+            setSelectedGoal(null);
+        } catch (error) {
+            console.error("Error adding money", error);
+        }
+    };
+
+    const openAddMoney = (goal) => {
+        setSelectedGoal(goal);
+        setAmountToAdd('');
+        setShowAddMoneyModal(true);
+    };
+
+    const openHistory = (goal) => {
+        setSelectedGoal(goal);
+        setShowHistoryModal(true);
+    };
+
     return (
         <>
             <div className="animate-fade-in">
@@ -170,33 +222,35 @@ const Savings = () => {
                                         <span className="text-muted">Faltan S/ {(goal.target - goal.current).toLocaleString()}</span>
                                     </div>
 
-                                    <div className="flex gap-3">
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => openAddMoney(goal)}
+                                            className="btn btn-primary flex-1 justify-center"
+                                            title="Agregar dinero"
+                                            style={{ padding: '0.5rem' }}
+                                        >
+                                            <DollarSign size={16} /> Agregar
+                                        </button>
+                                        <button
+                                            onClick={() => openHistory(goal)}
+                                            className="btn glass p-2"
+                                            title="Ver historial"
+                                        >
+                                            <History size={16} />
+                                        </button>
                                         <button
                                             onClick={() => handleEdit(goal)}
-                                            className="flex-1 btn glass"
-                                            style={{
-                                                padding: '0.6rem',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center'
-                                            }}
-                                            title="Editar meta"
+                                            className="btn glass p-2"
+                                            title="Editar"
                                         >
-                                            <Edit2 size={18} />
+                                            <Edit2 size={16} />
                                         </button>
                                         <button
                                             onClick={() => handleDelete(goal._id)}
-                                            className="btn glass"
-                                            style={{
-                                                padding: '0.6rem 0.75rem',
-                                                color: 'hsl(var(--accent-danger))',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center'
-                                            }}
-                                            title="Eliminar meta"
+                                            className="btn glass p-2 text-danger"
+                                            title="Eliminar"
                                         >
-                                            <Trash2 size={18} />
+                                            <Trash2 size={16} />
                                         </button>
                                     </div>
                                 </div>
@@ -339,6 +393,69 @@ const Savings = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Agregar Dinero */}
+            {showAddMoneyModal && (
+                <div className="modal-backdrop">
+                    <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '400px', position: 'relative' }}>
+                        <button
+                            onClick={() => setShowAddMoneyModal(false)}
+                            style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}
+                        >
+                            <X size={24} />
+                        </button>
+                        <h3 className="mb-6">Agregar Dinero a {selectedGoal?.name}</h3>
+                        <form onSubmit={handleAddMoney}>
+                            <div className="mb-6">
+                                <label className="text-sm text-secondary mb-2 block">Monto a agregar</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    className="input-field"
+                                    placeholder="0.00"
+                                    value={amountToAdd}
+                                    onChange={(e) => setAmountToAdd(e.target.value)}
+                                    autoFocus
+                                    required
+                                />
+                            </div>
+                            <button type="submit" className="btn btn-primary w-full justify-center">
+                                <Plus size={18} /> Confirmar Depósito
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Historial */}
+            {showHistoryModal && (
+                <div className="modal-backdrop">
+                    <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '400px', position: 'relative' }}>
+                        <button
+                            onClick={() => setShowHistoryModal(false)}
+                            style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}
+                        >
+                            <X size={24} />
+                        </button>
+                        <h3 className="mb-6">Historial: {selectedGoal?.name}</h3>
+                        <div className="flex flex-col gap-3" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                            {selectedGoal?.history && selectedGoal.history.length > 0 ? (
+                                selectedGoal.history.slice().reverse().map((entry, index) => (
+                                    <div key={index} className="p-3 rounded-lg flex justify-between items-center" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                                        <div>
+                                            <p className="font-semibold text-sm">{entry.note || 'Depósito'}</p>
+                                            <p className="text-xs text-secondary">{entry.date}</p>
+                                        </div>
+                                        <p className="text-success font-bold">+S/ {entry.amount.toFixed(2)}</p>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-center text-muted">No hay historial disponible.</p>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}

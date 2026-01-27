@@ -5,6 +5,13 @@
     margin-bottom: 2rem;
 }
 
+@media (max-width: 768px) {
+    .dashboard-grid {
+        display: flex;
+        flex-direction: column;
+    }
+}
+
 .stat-card-header {
     display: flex;
     justify-content: space-between;

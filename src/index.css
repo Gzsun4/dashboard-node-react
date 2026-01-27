@@ -416,6 +416,20 @@ table {
   -webkit-overflow-scrolling: touch;
 }
 
+.mobile-card-view {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .table-container {
+    display: none;
+  }
+
+  .mobile-card-view {
+    display: block;
+  }
+}
+
 th {
   text-align: left;
   font-weight: 600;

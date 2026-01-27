@@ -24,7 +24,12 @@ const goalSchema = new mongoose.Schema({
     },
     deadline: {
         type: String
-    }
+    },
+    history: [{
+        amount: Number,
+        date: String,
+        note: String
+    }]
 }, {
     timestamps: true
 });

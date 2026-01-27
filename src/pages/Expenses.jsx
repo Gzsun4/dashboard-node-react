@@ -73,9 +73,13 @@ const Expenses = () => {
             });
 
             if (editingId) {
-                // Similarly to Income, just alert for now as edit is not fully supported in my quick backend impl without PUT
-                // Actually my goal was "multi-user", I'll stick to Create/Delete for now.
-                alert("Edit functionality not yet connected to backend API. Please delete and recreate.");
+                const res = await fetch(`/api/data/expenses/${editingId}`, {
+                    method: 'PUT',
+                    headers,
+                    body
+                });
+                const updatedExpense = await res.json();
+                setExpenses(expenses.map(e => e._id === editingId ? updatedExpense : e));
             } else {
                 const res = await fetch('/api/data/expenses', {
                     method: 'POST',
@@ -323,6 +327,22 @@ const Expenses = () => {
                                                 <td className="text-right">
                                                     <div className="flex gap-2 justify-end">
                                                         <button
+                                                            onClick={() => handleEdit(expense)}
+                                                            style={{
+                                                                background: 'rgba(255,255,255,0.1)',
+                                                                border: 'none',
+                                                                padding: '0.5rem',
+                                                                borderRadius: '0.375rem',
+                                                                cursor: 'pointer',
+                                                                color: 'white',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center'
+                                                            }}
+                                                        >
+                                                            <Edit2 size={16} />
+                                                        </button>
+                                                        <button
                                                             onClick={() => handleDelete(expense._id)}
                                                             style={{
                                                                 background: 'rgba(255,255,255,0.1)',
@@ -347,6 +367,31 @@ const Expenses = () => {
                             </table>
                         </div>
                     </Card>
+
+                    {/* Mobile Card View for Expenses */}
+                    <div className="mobile-card-view lg:hidden">
+                        {loading ? (
+                            <p className="text-center p-4">Cargando...</p>
+                        ) : filteredExpenses.length === 0 ? (
+                            <p className="text-center text-muted p-4">No se encontraron gastos</p>
+                        ) : (
+                            filteredExpenses.map((expense) => (
+                                <div key={expense._id} className="glass p-4 rounded-lg mb-3 flex justify-between items-center">
+                                    <div>
+                                        <p style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '0.2rem' }}>{expense.description}</p>
+                                        <p className="text-sm text-secondary">{expense.date} • {expense.category}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-danger" style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>-S/ {expense.amount.toFixed(2)}</p>
+                                        <div className="flex gap-2 justify-end mt-2">
+                                            <button onClick={() => handleEdit(expense)} className="text-secondary p-1"><Edit2 size={18} /></button>
+                                            <button onClick={() => handleDelete(expense._id)} className="text-danger p-1"><Trash2 size={18} /></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
                 </div>
 
             </div>
