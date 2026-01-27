@@ -211,7 +211,7 @@ const Savings = () => {
                     </button>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                <div className="savings-grid">
                     {loading ? <p>Cargando...</p> : goals.length === 0 ? <p>No hay metas de ahorro.</p> : goals.map((goal) => {
                         const progress = (goal.current / goal.target) * 100;
                         const GoalIcon = Target; // Default, could map from goal.color or name logic if saved
@@ -249,47 +249,42 @@ const Savings = () => {
                                         <span className="text-muted">Faltan S/ {(goal.target - goal.current).toLocaleString()}</span>
                                     </div>
 
-                                    <div className="flex gap-2">
+                                    <div className="goal-actions">
                                         <button
                                             onClick={() => openAddMoney(goal)}
-                                            className="btn flex-1 justify-center items-center gap-2"
+                                            className="btn-add-money"
                                             title="Agregar dinero"
                                             style={{
-                                                padding: '0.6rem',
                                                 background: `linear-gradient(135deg, ${goal.color}, ${goal.color}dd)`,
-                                                boxShadow: `0 4px 12px ${goal.color}40`,
-                                                color: 'white',
-                                                border: 'none',
-                                                fontWeight: 'bold',
-                                                fontSize: '0.95rem'
+                                                boxShadow: `0 4px 12px ${goal.color}40`
                                             }}
                                         >
-                                            <DollarSign size={18} strokeWidth={2.5} /> Depositar
+                                            <DollarSign size={20} strokeWidth={2.5} />
+                                            <span>Depositar</span>
                                         </button>
-                                        <button
-                                            onClick={() => openHistory(goal)}
-                                            className="btn glass p-0 flex-center"
-                                            title="Ver historial"
-                                            style={{ width: '40px', height: '40px', borderRadius: '50%' }}
-                                        >
-                                            <History size={18} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleEdit(goal)}
-                                            className="btn glass p-0 flex-center"
-                                            title="Editar"
-                                            style={{ width: '40px', height: '40px', borderRadius: '50%' }}
-                                        >
-                                            <Edit2 size={18} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(goal._id)}
-                                            className="btn glass p-0 flex-center text-danger"
-                                            title="Eliminar"
-                                            style={{ width: '40px', height: '40px', borderRadius: '50%' }}
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
+                                        <div className="goal-secondary-actions">
+                                            <button
+                                                onClick={() => openHistory(goal)}
+                                                className="btn-icon"
+                                                title="Ver historial"
+                                            >
+                                                <History size={20} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleEdit(goal)}
+                                                className="btn-icon"
+                                                title="Editar"
+                                            >
+                                                <Edit2 size={20} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(goal._id)}
+                                                className="btn-icon btn-icon-danger"
+                                                title="Eliminar"
+                                            >
+                                                <Trash2 size={20} />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </Card>
