@@ -29,6 +29,7 @@ const Expenses = () => {
     const [showModal, setShowModal] = useState(false);
     const [showFilterModal, setShowFilterModal] = useState(false);
     const [showBottomSheet, setShowBottomSheet] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
     const [editingId, setEditingId] = useState(null);
     const [newExpense, setNewExpense] = useState({
         description: '',
@@ -144,6 +145,17 @@ const Expenses = () => {
     // Filtrar gastos
     const filteredExpenses = expenses.filter(expense => {
         let matches = true;
+
+        // Search filter
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            const matchesDescription = expense.description.toLowerCase().includes(query);
+            const matchesCategory = expense.category.toLowerCase().includes(query);
+            const matchesAmount = expense.amount.toString().includes(query);
+            if (!matchesDescription && !matchesCategory && !matchesAmount) {
+                matches = false;
+            }
+        }
 
         if (activeFilters.category && expense.category !== activeFilters.category) {
             matches = false;
@@ -497,6 +509,8 @@ const Expenses = () => {
                                     placeholder="Buscar gastos..."
                                     className="input-field"
                                     style={{ paddingLeft: '2.5rem' }}
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
                                 />
                             </div>
                         </div>

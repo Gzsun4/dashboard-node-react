@@ -27,6 +27,8 @@ const Income = () => {
 
     const [showModal, setShowModal] = useState(false);
     const [showFilterModal, setShowFilterModal] = useState(false);
+    const [showBottomSheet, setShowBottomSheet] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
     const [editingId, setEditingId] = useState(null);
     const [newIncome, setNewIncome] = useState({
         source: '',
@@ -133,6 +135,17 @@ const Income = () => {
     // Filtrar ingresos locally for now
     const filteredIncomes = incomes.filter(income => {
         let matches = true;
+
+        // Search filter
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            const matchesSource = income.source.toLowerCase().includes(query);
+            const matchesCategory = income.category.toLowerCase().includes(query);
+            const matchesAmount = income.amount.toString().includes(query);
+            if (!matchesSource && !matchesCategory && !matchesAmount) {
+                matches = false;
+            }
+        }
 
         if (activeFilters.category && income.category !== activeFilters.category) {
             matches = false;
@@ -347,6 +360,85 @@ const Income = () => {
                 </Card>
 
             </div>
+
+            {/* Floating Action Button (FAB) - Mobile Only */}
+            <button
+                className="fab-button"
+                onClick={() => setShowBottomSheet(true)}
+                aria-label="Buscar y filtrar"
+            >
+                <Search size={24} />
+            </button>
+
+            {/* Bottom Sheet Modal - Mobile Only */}
+            {showBottomSheet && (
+                <div
+                    className="bottom-sheet-backdrop"
+                    onClick={() => setShowBottomSheet(false)}
+                >
+                    <div
+                        className="bottom-sheet-content"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="bottom-sheet-handle"></div>
+
+                        <div className="bottom-sheet-header">
+                            <h3 className="bottom-sheet-title">Buscar y Filtrar</h3>
+                            <button
+                                className="bottom-sheet-close"
+                                onClick={() => setShowBottomSheet(false)}
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        {/* Search Input */}
+                        <div className="mb-4">
+                            <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
+                                Buscar
+                            </label>
+                            <div className="relative">
+                                <div className="absolute" style={{ left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--text-muted))' }}>
+                                    <Search size={18} />
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Buscar ingresos..."
+                                    className="input-field"
+                                    style={{ paddingLeft: '2.5rem' }}
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Filter Button */}
+                        <button
+                            className="btn glass w-full"
+                            onClick={() => {
+                                setShowBottomSheet(false);
+                                setShowFilterModal(true);
+                            }}
+                            style={{
+                                background: hasActiveFilters ? 'hsl(var(--accent-primary) / 0.2)' : undefined,
+                                borderColor: hasActiveFilters ? 'hsl(var(--accent-primary))' : undefined,
+                                justifyContent: 'center'
+                            }}
+                        >
+                            <Filter size={18} /> Filtrar {hasActiveFilters && `(${Object.values(activeFilters).filter(v => v).length})`}
+                        </button>
+
+                        {/* Close Button */}
+                        <button
+                            className="btn btn-primary w-full"
+                            onClick={() => setShowBottomSheet(false)}
+                            style={{ marginTop: '1rem' }}
+                        >
+                            Listo
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Modal Agregar/Editar */}
             {showModal && (
