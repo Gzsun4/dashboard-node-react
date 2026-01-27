@@ -35,90 +35,96 @@ const RegisterPage = () => {
     };
 
     return (
-        <div className="flex-center w-full h-full min-h-[80vh]">
-            <div className="glass-card p-8 w-full max-w-md animate-fade-in relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-3 opacity-10">
-                    <UserPlus size={100} />
+        <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden bg-[hsl(var(--bg-primary))]">
+            {/* Dynamic Background Blobs */}
+            <div className="blob bg-green-600 w-72 h-72 top-10 left-10 mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
+            <div className="blob bg-blue-600 w-72 h-72 bottom-10 right-10 mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
+
+            <div className="glass-card p-8 w-full max-w-md animate-fade-in relative z-10 m-4">
+                <div className="text-center mb-8">
+                    <div className="inline-flex p-4 rounded-full bg-success-soft mb-4 glow-effect">
+                        <UserPlus size={32} className="text-success" />
+                    </div>
+                    <h2 className="text-3xl font-bold bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
+                        Crear Cuenta
+                    </h2>
+                    <p className="text-secondary mt-2">Únete y controla tus finanzas</p>
                 </div>
 
-                <div className="relative z-10">
-                    <h2 className="text-3xl font-bold mb-6 text-center">Create Account</h2>
-
-                    {error && (
-                        <div className="bg-danger-soft text-danger p-3 rounded-lg mb-4 text-center text-sm border border-red-500/20">
-                            {error}
-                        </div>
-                    )}
-
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className="block text-sm text-secondary mb-1">Full Name</label>
-                            <input
-                                type="text"
-                                required
-                                className="input-field"
-                                placeholder="John Doe"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm text-secondary mb-1">Email Address</label>
-                            <input
-                                type="email"
-                                required
-                                className="input-field"
-                                placeholder="name@example.com"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm text-secondary mb-1">Password</label>
-                            <input
-                                type="password"
-                                required
-                                className="input-field"
-                                placeholder="••••••••"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm text-secondary mb-1">Confirm Password</label>
-                            <input
-                                type="password"
-                                required
-                                className="input-field"
-                                placeholder="••••••••"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                            />
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="btn btn-primary w-full justify-center mt-6"
-                        >
-                            {loading ? 'Creating Account...' : (
-                                <>
-                                    <UserPlus size={18} />
-                                    Sign Up
-                                </>
-                            )}
-                        </button>
-                    </form>
-
-                    <div className="mt-6 text-center text-sm text-secondary">
-                        Already have an account?{' '}
-                        <Link to="/login" className="text-primary hover:text-white transition-colors font-medium">
-                            Sign In
-                        </Link>
+                {error && (
+                    <div className="bg-danger-soft text-danger p-3 rounded-lg mb-6 text-center text-sm border border-red-500/20">
+                        {error}
                     </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-secondary mb-1">Nombre Completo</label>
+                        <input
+                            type="text"
+                            required
+                            className="input-field w-full"
+                            placeholder="Tu Nombre"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-secondary mb-1">Correo Electrónico</label>
+                        <input
+                            type="email"
+                            required
+                            className="input-field w-full"
+                            placeholder="nombre@ejemplo.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-secondary mb-1">Contraseña</label>
+                        <input
+                            type="password"
+                            required
+                            className="input-field w-full"
+                            placeholder="••••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-secondary mb-1">Confirmar Contraseña</label>
+                        <input
+                            type="password"
+                            required
+                            className="input-field w-full"
+                            placeholder="••••••••"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="btn btn-primary w-full justify-center py-3 mt-6 text-lg group"
+                        style={{ background: 'linear-gradient(135deg, hsl(var(--accent-success)), #10b981)' }}
+                    >
+                        {loading ? 'Creando...' : (
+                            <>
+                                Registrarse <UserPlus size={20} className="group-hover:translate-x-1 transition-transform" />
+                            </>
+                        )}
+                    </button>
+                </form>
+
+                <div className="mt-8 text-center text-sm text-secondary">
+                    ¿Ya tienes cuenta?{' '}
+                    <Link to="/login" className="text-primary hover:text-white transition-colors font-semibold">
+                        Inicia Sesión
+                    </Link>
                 </div>
             </div>
         </div>
