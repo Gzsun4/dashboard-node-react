@@ -24,4 +24,21 @@ router.get('/test-telegram/:chatId', async (req, res) => {
     }
 });
 
+// Debug route to see all reminders
+router.get('/debug-reminders', async (req, res) => {
+    try {
+        const ReminderConfig = (await import('../models/ReminderConfig.js')).default;
+        const reminders = await ReminderConfig.find({}).populate('user', 'name email');
+        res.json({
+            count: reminders.length,
+            reminders: reminders,
+            currentServerTime: new Date().toISOString(),
+            currentServerTimeFormatted: `${String(new Date().getHours()).padStart(2, '0')}:${String(new Date().getMinutes()).padStart(2, '0')}`
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 export default router;
+
