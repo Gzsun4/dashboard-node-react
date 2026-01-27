@@ -28,6 +28,10 @@ const saveReminderConfig = asyncHandler(async (req, res) => {
         throw new Error('Invalid time format. Use HH:MM (24-hour format)');
     }
 
+    // Update User model with telegramChatId for bot authentication
+    const User = (await import('../models/User.js')).default;
+    await User.findByIdAndUpdate(req.user.id, { telegramChatId });
+
     const config = await ReminderConfig.findOne({ user: req.user.id });
 
     if (config) {
@@ -51,4 +55,3 @@ const saveReminderConfig = asyncHandler(async (req, res) => {
 });
 
 export { getReminderConfig, saveReminderConfig };
-
