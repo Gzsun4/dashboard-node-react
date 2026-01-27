@@ -6,6 +6,9 @@ import authRoutes from './routes/authRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import dataRoutes from './routes/dataRoutes.js';
 import reminderRoutes from './routes/reminderRoutes.js';
+import cron from 'node-cron';
+import ReminderConfig from './models/ReminderConfig.js';
+import { sendTelegramMessage } from './services/telegramService.js';
 
 dotenv.config();
 
@@ -43,36 +46,33 @@ if (process.env.NODE_ENV === 'production') {
     app.get('/', (req, res) => res.send('Server is ready'));
 }
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 
-// Setup reminder cron job
-import cron from 'node-cron';
-import ReminderConfig from './models/ReminderConfig.js';
-import { sendTelegramMessage } from './services/telegramService.js';
+    // Setup reminder cron job after server starts
+    cron.schedule('* * * * *', async () => {
+        try {
+            const now = new Date();
+            const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-// Run every minute to check for reminders
-cron.schedule('* * * * *', async () => {
-    try {
-        const now = new Date();
-        const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            // Find all active reminders matching current time
+            const reminders = await ReminderConfig.find({
+                isActive: true,
+                reminderTime: currentTime
+            }).populate('user', 'name');
 
-        // Find all active reminders matching current time
-        const reminders = await ReminderConfig.find({
-            isActive: true,
-            reminderTime: currentTime
-        }).populate('user', 'name');
+            for (const reminder of reminders) {
+                const message = `🔔 <b>Recordatorio</b>\n\n¡Hola ${reminder.user.name}!\n\nNo olvides registrar tus gastos e ingresos del día en tu dashboard financiero.\n\n💰 Mantén tus finanzas bajo control.`;
 
-        for (const reminder of reminders) {
-            const message = `🔔 <b>Recordatorio</b>\n\n¡Hola ${reminder.user.name}!\n\nNo olvides registrar tus gastos e ingresos del día en tu dashboard financiero.\n\n💰 Mantén tus finanzas bajo control.`;
-
-            try {
-                await sendTelegramMessage(reminder.telegramChatId, message);
-                console.log(`Reminder sent to user ${reminder.user.name} at ${currentTime}`);
-            } catch (error) {
-                console.error(`Failed to send reminder to ${reminder.user.name}:`, error.message);
+                try {
+                    await sendTelegramMessage(reminder.telegramChatId, message);
+                    console.log(`Reminder sent to user ${reminder.user.name} at ${currentTime}`);
+                } catch (error) {
+                    console.error(`Failed to send reminder to ${reminder.user.name}:`, error.message);
+                }
             }
+        } catch (error) {
+            console.error('Error in reminder cron job:', error);
         }
-    } catch (error) {
-        console.error('Error in reminder cron job:', error);
-    }
+    });
 });
