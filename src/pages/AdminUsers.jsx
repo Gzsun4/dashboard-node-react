@@ -146,60 +146,55 @@ const AdminUsers = () => {
 
             {/* Modal Agregar Usuario */}
             {showModal && (
-                <div className="modal-backdrop" style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0, 0, 0, 0.7)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000
-                }}>
-                    <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '400px' }}>
-                        <h3 className="mb-4">Nuevo Usuario</h3>
-                        <form onSubmit={handleCreateUser}>
-                            <div className="mb-4">
-                                <label className="block mb-2 text-sm">Nombre</label>
+                <div className="modal-backdrop fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+                    <div className="glass-card w-full max-w-[500px] p-8 md:p-10 border border-white/20 shadow-2xl rounded-[2rem] relative animate-fade-in"
+                        style={{ transform: 'none' }}>
+                        <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                            Nuevo Usuario
+                        </h3>
+                        <form onSubmit={handleCreateUser} className="space-y-6">
+                            <div>
+                                <label className="block text-sm font-semibold text-secondary mb-2 ml-1">Nombre</label>
                                 <input
                                     type="text"
-                                    className="input-field"
+                                    className="input-field w-full py-3 px-5 rounded-xl border-white/10"
                                     value={newUser.name}
                                     onChange={e => setNewUser({ ...newUser, name: e.target.value })}
                                     required
+                                    placeholder="Nombre completo"
                                 />
                             </div>
-                            <div className="mb-4">
-                                <label className="block mb-2 text-sm">Email</label>
+                            <div>
+                                <label className="block text-sm font-semibold text-secondary mb-2 ml-1">Email</label>
                                 <input
                                     type="email"
-                                    className="input-field"
+                                    className="input-field w-full py-3 px-5 rounded-xl border-white/10"
                                     value={newUser.email}
                                     onChange={e => setNewUser({ ...newUser, email: e.target.value })}
                                     required
+                                    placeholder="correo@ejemplo.com"
                                 />
                             </div>
-                            <div className="mb-6">
-                                <label className="block mb-2 text-sm">Contraseña</label>
+                            <div>
+                                <label className="block text-sm font-semibold text-secondary mb-2 ml-1">Contraseña</label>
                                 <input
                                     type="password"
-                                    className="input-field"
+                                    className="input-field w-full py-3 px-5 rounded-xl border-white/10"
                                     value={newUser.password}
                                     onChange={e => setNewUser({ ...newUser, password: e.target.value })}
                                     required
+                                    placeholder="••••••••"
                                 />
                             </div>
-                            <div className="flex justify-end gap-3">
+                            <div className="flex justify-end gap-3 pt-2">
                                 <button
                                     type="button"
-                                    className="btn glass"
+                                    className="px-6 py-2 rounded-xl text-secondary hover:text-white hover:bg-white/10 transition-colors"
                                     onClick={() => setShowModal(false)}
                                 >
                                     Cancelar
                                 </button>
-                                <button type="submit" className="btn btn-primary">
+                                <button type="submit" className="btn btn-primary px-6 py-2 rounded-xl shadow-lg shadow-primary/25">
                                     Crear Usuario
                                 </button>
                             </div>
