@@ -141,6 +141,14 @@
 @media (max-width: 768px) {
     .mobile-menu-toggle {
         display: flex;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    /* Hide hamburger button when sidebar is open */
+    .mobile-menu-toggle.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
     }
 
     .sidebar {
