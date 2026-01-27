@@ -111,21 +111,22 @@ const Sidebar = () => {
                     </a>
 
                     <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem' }}>
-                        <div className="user-profile mb-4">
-                            <div className="avatar">{user?.name?.charAt(0) || 'U'}</div>
-                            <div className="user-info">
-                                <p className="user-name">{user?.name || 'Usuario'}</p>
-                                <p className="user-plan" style={{ fontSize: '0.7em', opacity: 0.7 }}>{user?.email}</p>
+                        <div className="user-profile-container">
+                            <div className="user-profile">
+                                <div className="avatar">{user?.name?.charAt(0) || 'U'}</div>
+                                <div className="user-info">
+                                    <p className="user-name">{user?.name || 'Usuario'}</p>
+                                    <p className="user-plan" style={{ fontSize: '0.7em', opacity: 0.7 }}>{user?.email}</p>
+                                </div>
                             </div>
+                            <button
+                                onClick={handleLogout}
+                                className="logout-icon-button"
+                                aria-label="Cerrar sesión"
+                            >
+                                <LogOut size={20} />
+                            </button>
                         </div>
-
-                        <button
-                            onClick={handleLogout}
-                            className="w-full flex items-center gap-2 p-2 rounded-lg text-danger hover:bg-danger-soft transition-colors text-sm"
-                        >
-                            <LogOut size={16} />
-                            <span>Cerrar Sesión</span>
-                        </button>
                     </div>
                 </div>
             </aside>
