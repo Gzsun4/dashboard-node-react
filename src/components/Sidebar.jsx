@@ -69,13 +69,13 @@ const Sidebar = () => {
                             <span className="nav-label">{item.label}</span>
                         </NavLink>
                     ))}
+
+                    <p style={{ fontSize: '0.7em', opacity: 0.5, textAlign: 'center', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', fontStyle: 'italic' }}>
+                        hecho por Gzsunnk
+                    </p>
                 </nav>
 
                 <div className="sidebar-footer">
-                    <p style={{ fontSize: '0.7em', opacity: 0.5, textAlign: 'center', marginBottom: '12px', fontStyle: 'italic' }}>
-                        hecho por Gzsunnk
-                    </p>
-
                     <div className="user-profile mb-4">
                         <div className="avatar">{user?.name?.charAt(0) || 'U'}</div>
                         <div className="user-info">
