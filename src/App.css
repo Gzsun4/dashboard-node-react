@@ -1,0 +1,27 @@
+.app-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 280px;
+  /* Width of sidebar */
+  padding: 2rem;
+  padding-bottom: 4rem;
+  max-width: 1600px;
+}
+
+/* Page transitions could go here */
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+  color: hsl(var(--text-secondary));
+}
