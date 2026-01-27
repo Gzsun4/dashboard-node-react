@@ -41,6 +41,8 @@ const Savings = () => {
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [selectedGoal, setSelectedGoal] = useState(null);
     const [amountToAdd, setAmountToAdd] = useState('');
+    const [editingHistoryIndex, setEditingHistoryIndex] = useState(null);
+    const [editingHistoryAmount, setEditingHistoryAmount] = useState('');
 
     const [selectedIcon, setSelectedIcon] = useState(0);
 
@@ -198,6 +200,43 @@ const Savings = () => {
         }
     };
 
+    const handleEditHistory = (index, entry) => {
+        setEditingHistoryIndex(index);
+        setEditingHistoryAmount(entry.amount.toString());
+    };
+
+    const handleSaveHistoryEdit = async (index, oldAmount) => {
+        const newAmount = parseFloat(editingHistoryAmount);
+        if (isNaN(newAmount) || newAmount <= 0) return;
+
+        const newHistory = [...selectedGoal.history];
+        newHistory[index] = { ...newHistory[index], amount: newAmount };
+
+        const amountDifference = newAmount - oldAmount;
+        const newCurrent = selectedGoal.current + amountDifference;
+
+        try {
+            const res = await fetch(`/api/data/goals/${selectedGoal._id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    current: newCurrent,
+                    history: newHistory
+                })
+            });
+            const updatedGoal = await res.json();
+            setGoals(goals.map(g => g._id === selectedGoal._id ? updatedGoal : g));
+            setSelectedGoal(updatedGoal);
+            setEditingHistoryIndex(null);
+            setEditingHistoryAmount('');
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
     return (
         <>
             <div className="animate-fade-in">
@@ -255,11 +294,11 @@ const Savings = () => {
                                             className="btn-add-money"
                                             title="Agregar dinero"
                                             style={{
-                                                background: `linear-gradient(135deg, ${goal.color}, ${goal.color}dd)`,
-                                                boxShadow: `0 4px 12px ${goal.color}40`
+                                                background: 'linear-gradient(135deg, hsl(150, 70%, 45%), hsl(150, 70%, 35%))',
+                                                boxShadow: '0 4px 12px rgba(34, 197, 94, 0.4)'
                                             }}
                                         >
-                                            <DollarSign size={20} strokeWidth={2.5} />
+                                            <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>S/.</span>
                                             <span>Depositar</span>
                                         </button>
                                         <div className="goal-secondary-actions">
@@ -477,8 +516,8 @@ const Savings = () => {
                         <div className="flex flex-col gap-3" style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '5px' }}>
                             {selectedGoal?.history && selectedGoal.history.slice().reverse().length > 0 ? (
                                 selectedGoal.history.slice().reverse().map((entry, i) => {
-                                    // Calculate original index because we reversed the array for display
                                     const originalIndex = selectedGoal.history.length - 1 - i;
+                                    const isEditing = editingHistoryIndex === originalIndex;
                                     return (
                                         <div key={i} className="p-3 rounded-lg flex justify-between items-center" style={{ background: 'rgba(255,255,255,0.05)' }}>
                                             <div>
@@ -486,13 +525,46 @@ const Savings = () => {
                                                 <p className="text-xs text-secondary">{entry.date}</p>
                                             </div>
                                             <div className="flex items-center gap-3">
-                                                <p className="text-success font-bold">+S/ {entry.amount.toFixed(2)}</p>
-                                                <button
-                                                    onClick={() => handleDeleteHistory(originalIndex, entry.amount)}
-                                                    className="text-danger p-1 hover:bg-white/10 rounded"
-                                                >
-                                                    <Trash2 size={14} />
-                                                </button>
+                                                {isEditing ? (
+                                                    <>
+                                                        <input
+                                                            type="number"
+                                                            step="0.01"
+                                                            value={editingHistoryAmount}
+                                                            onChange={(e) => setEditingHistoryAmount(e.target.value)}
+                                                            className="input-field"
+                                                            style={{ width: '100px', padding: '0.25rem 0.5rem', fontSize: '0.875rem' }}
+                                                        />
+                                                        <button
+                                                            onClick={() => handleSaveHistoryEdit(originalIndex, entry.amount)}
+                                                            className="text-success p-1 hover:bg-white/10 rounded"
+                                                        >
+                                                            ✓
+                                                        </button>
+                                                        <button
+                                                            onClick={() => { setEditingHistoryIndex(null); setEditingHistoryAmount(''); }}
+                                                            className="text-secondary p-1 hover:bg-white/10 rounded"
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <p className="text-success font-bold">+S/ {entry.amount.toFixed(2)}</p>
+                                                        <button
+                                                            onClick={() => handleEditHistory(originalIndex, entry)}
+                                                            className="text-secondary p-1 hover:bg-white/10 rounded"
+                                                        >
+                                                            <Edit2 size={14} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteHistory(originalIndex, entry.amount)}
+                                                            className="text-danger p-1 hover:bg-white/10 rounded"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                    </>
+                                                )}
                                             </div>
                                         </div>
                                     )
