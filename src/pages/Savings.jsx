@@ -171,6 +171,33 @@ const Savings = () => {
         setShowHistoryModal(true);
     };
 
+    const handleDeleteHistory = async (index, amount) => {
+        if (!window.confirm("¿Eliminar este registro? Se restará el monto de la meta.")) return;
+
+        const newHistory = [...selectedGoal.history];
+        newHistory.splice(index, 1);
+        const newCurrent = selectedGoal.current - amount;
+
+        try {
+            const res = await fetch(`/api/data/goals/${selectedGoal._id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    current: newCurrent,
+                    history: newHistory
+                })
+            });
+            const updatedGoal = await res.json();
+            setGoals(goals.map(g => g._id === selectedGoal._id ? updatedGoal : g));
+            setSelectedGoal(updatedGoal);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
     return (
         <>
             <div className="animate-fade-in">
@@ -225,32 +252,43 @@ const Savings = () => {
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => openAddMoney(goal)}
-                                            className="btn btn-primary flex-1 justify-center"
+                                            className="btn flex-1 justify-center items-center gap-2"
                                             title="Agregar dinero"
-                                            style={{ padding: '0.5rem' }}
+                                            style={{
+                                                padding: '0.6rem',
+                                                background: `linear-gradient(135deg, ${goal.color}, ${goal.color}dd)`,
+                                                boxShadow: `0 4px 12px ${goal.color}40`,
+                                                color: 'white',
+                                                border: 'none',
+                                                fontWeight: 'bold',
+                                                fontSize: '0.95rem'
+                                            }}
                                         >
-                                            <DollarSign size={16} /> Agregar
+                                            <DollarSign size={18} strokeWidth={2.5} /> Depositar
                                         </button>
                                         <button
                                             onClick={() => openHistory(goal)}
-                                            className="btn glass p-2"
+                                            className="btn glass p-0 flex-center"
                                             title="Ver historial"
+                                            style={{ width: '40px', height: '40px', borderRadius: '50%' }}
                                         >
-                                            <History size={16} />
+                                            <History size={18} />
                                         </button>
                                         <button
                                             onClick={() => handleEdit(goal)}
-                                            className="btn glass p-2"
+                                            className="btn glass p-0 flex-center"
                                             title="Editar"
+                                            style={{ width: '40px', height: '40px', borderRadius: '50%' }}
                                         >
-                                            <Edit2 size={16} />
+                                            <Edit2 size={18} />
                                         </button>
                                         <button
                                             onClick={() => handleDelete(goal._id)}
-                                            className="btn glass p-2 text-danger"
+                                            className="btn glass p-0 flex-center text-danger"
                                             title="Eliminar"
+                                            style={{ width: '40px', height: '40px', borderRadius: '50%' }}
                                         >
-                                            <Trash2 size={16} />
+                                            <Trash2 size={18} />
                                         </button>
                                     </div>
                                 </div>
@@ -441,17 +479,29 @@ const Savings = () => {
                             <X size={24} />
                         </button>
                         <h3 className="mb-6">Historial: {selectedGoal?.name}</h3>
-                        <div className="flex flex-col gap-3" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                            {selectedGoal?.history && selectedGoal.history.length > 0 ? (
-                                selectedGoal.history.slice().reverse().map((entry, index) => (
-                                    <div key={index} className="p-3 rounded-lg flex justify-between items-center" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                                        <div>
-                                            <p className="font-semibold text-sm">{entry.note || 'Depósito'}</p>
-                                            <p className="text-xs text-secondary">{entry.date}</p>
+                        <div className="flex flex-col gap-3" style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '5px' }}>
+                            {selectedGoal?.history && selectedGoal.history.slice().reverse().length > 0 ? (
+                                selectedGoal.history.slice().reverse().map((entry, i) => {
+                                    // Calculate original index because we reversed the array for display
+                                    const originalIndex = selectedGoal.history.length - 1 - i;
+                                    return (
+                                        <div key={i} className="p-3 rounded-lg flex justify-between items-center" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                                            <div>
+                                                <p className="font-semibold text-sm">{entry.note || 'Depósito'}</p>
+                                                <p className="text-xs text-secondary">{entry.date}</p>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <p className="text-success font-bold">+S/ {entry.amount.toFixed(2)}</p>
+                                                <button
+                                                    onClick={() => handleDeleteHistory(originalIndex, entry.amount)}
+                                                    className="text-danger p-1 hover:bg-white/10 rounded"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
                                         </div>
-                                        <p className="text-success font-bold">+S/ {entry.amount.toFixed(2)}</p>
-                                    </div>
-                                ))
+                                    )
+                                })
                             ) : (
                                 <p className="text-center text-muted">No hay historial disponible.</p>
                             )}
