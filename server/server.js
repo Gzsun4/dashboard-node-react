@@ -6,6 +6,7 @@ import authRoutes from './routes/authRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import dataRoutes from './routes/dataRoutes.js';
 import reminderRoutes from './routes/reminderRoutes.js';
+import testRoutes from './routes/testRoutes.js';
 import cron from 'node-cron';
 import ReminderConfig from './models/ReminderConfig.js';
 import { sendTelegramMessage } from './services/telegramService.js';
@@ -26,6 +27,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/reminders', reminderRoutes);
+app.use('/api/test', testRoutes);
 
 const PORT = process.env.PORT || 5000;
 
