@@ -1,4 +1,5 @@
 import express from 'express';
+import { createServer } from 'http';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import connectDB from './config/db.js';
@@ -11,6 +12,7 @@ import cron from 'node-cron';
 import ReminderConfig from './models/ReminderConfig.js';
 import { sendTelegramMessage } from './services/telegramService.js';
 import { initializeBot } from './services/telegramBot.js';
+import { initializeSocket } from './services/socketService.js';
 
 dotenv.config();
 
@@ -58,9 +60,16 @@ if (process.env.NODE_ENV === 'production') {
 
 console.log(`About to start server on port ${PORT}...`);
 
-app.listen(PORT, () => {
+// Create HTTP server
+const httpServer = createServer(app);
+
+// Initialize Socket.IO
+initializeSocket(httpServer);
+
+httpServer.listen(PORT, () => {
 
     console.log(`Server running on port ${PORT}`);
+    console.log('WebSocket server ready for connections');
 
     // Initialize Telegram bot
     initializeBot();

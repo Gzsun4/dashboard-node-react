@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useSocket } from '../context/SocketContext';
 import { Trash2, Shield, User } from 'lucide-react';
 
 const AdminUsers = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const { token } = useAuth();
+    const { onlineUsers } = useSocket();
 
     useEffect(() => {
         fetchUsers();
@@ -91,6 +93,7 @@ const AdminUsers = () => {
                         <thead>
                             <tr>
                                 <th>Usuario</th>
+                                <th>Estado</th>
                                 <th>Email</th>
                                 <th>Rol</th>
                                 <th>Unido</th>
@@ -99,9 +102,9 @@ const AdminUsers = () => {
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan="5" className="text-center p-8">Cargando usuarios...</td></tr>
+                                <tr><td colSpan="6" className="text-center p-8">Cargando usuarios...</td></tr>
                             ) : users.length === 0 ? (
-                                <tr><td colSpan="5" className="text-center p-8">No se encontraron usuarios</td></tr>
+                                <tr><td colSpan="6" className="text-center p-8">No se encontraron usuarios</td></tr>
                             ) : (
                                 users.map((user) => (
                                     <tr key={user._id}>
@@ -112,6 +115,19 @@ const AdminUsers = () => {
                                                 </div>
                                                 <span className="font-semibold">{user.name}</span>
                                             </div>
+                                        </td>
+                                        <td>
+                                            {onlineUsers.includes(user._id) ? (
+                                                <span className="flex items-center gap-2 text-sm">
+                                                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                                    <span className="text-green-500 font-semibold">Online</span>
+                                                </span>
+                                            ) : (
+                                                <span className="flex items-center gap-2 text-sm">
+                                                    <span className="w-2 h-2 rounded-full bg-gray-500"></span>
+                                                    <span className="text-gray-500">Offline</span>
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="text-secondary">{user.email}</td>
                                         <td>
