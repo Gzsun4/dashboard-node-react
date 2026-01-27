@@ -112,7 +112,8 @@ const AdminUsers = () => {
                 </div>
 
                 <div className="glass-card overflow-hidden">
-                    <div className="overflow-x-auto">
+                    {/* Desktop Table View - Hidden on Mobile */}
+                    <div className="table-container">
                         <table>
                             <thead>
                                 <tr>
@@ -193,6 +194,77 @@ const AdminUsers = () => {
                                 )}
                             </tbody>
                         </table>
+                    </div>
+
+                    {/* Mobile Card View - Visible only on Mobile */}
+                    <div className="mobile-card-view p-4 space-y-4">
+                        {loading ? (
+                            <p className="text-center p-4 text-secondary">Cargando usuarios...</p>
+                        ) : users.length === 0 ? (
+                            <p className="text-center p-4 text-secondary">No se encontraron usuarios</p>
+                        ) : (
+                            users.map(user => (
+                                <div key={user._id} className="glass-card p-5 flex flex-col gap-4 relative">
+                                    {/* Header: Photo + Info + Status */}
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-14 h-14 rounded-full bg-secondary-soft flex-center shrink-0">
+                                            <User size={28} className="text-secondary" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="text-lg font-bold text-white truncate">{user.name}</h3>
+
+                                            {/* Status Below Name */}
+                                            <div className="flex items-center gap-2 mt-1">
+                                                {onlineUsers.includes(user._id) ? (
+                                                    <span className="flex items-center gap-1.5 text-xs text-green-400 font-medium">
+                                                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                                        Online
+                                                    </span>
+                                                ) : (
+                                                    <span className="flex items-center gap-1.5 text-xs text-gray-500 font-medium">
+                                                        <span className="w-2 h-2 rounded-full bg-gray-500"></span>
+                                                        Offline
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        {/* Role Badge Top Right */}
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${user.role === 'Admin'
+                                            ? 'bg-primary-soft text-primary border border-blue-500/20'
+                                            : 'bg-secondary-soft text-secondary border border-gray-500/20'
+                                            }`}>
+                                            {user.role}
+                                        </span>
+                                    </div>
+
+                                    {/* Actions Row - Ghost Style & Touch Friendly */}
+                                    <div className="flex items-center gap-4 mt-2 pt-4 border-t border-white/5">
+                                        <button
+                                            onClick={() => {
+                                                setSelectedUser(user);
+                                                setShowPasswordModal(true);
+                                            }}
+                                            className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl text-primary hover:bg-white/5 active:scale-95 transition-all"
+                                            style={{ minHeight: '44px' }}
+                                        >
+                                            <span className="text-xl">🔑</span>
+                                            <span className="text-sm font-semibold">Contraseña</span>
+                                        </button>
+
+                                        {user.role !== 'Admin' && (
+                                            <button
+                                                onClick={() => deleteUser(user._id)}
+                                                className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl text-danger hover:bg-white/5 active:scale-95 transition-all"
+                                                style={{ minHeight: '44px' }}
+                                            >
+                                                <Trash2 size={20} />
+                                                <span className="text-sm font-semibold">Eliminar</span>
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            ))
+                        )}
                     </div>
                 </div>
             </div>

@@ -198,15 +198,15 @@ const Expenses = () => {
                     </button>
                 </div>
 
-                <div className="mb-6 flex gap-4">
-                    <div className="relative w-full" style={{ maxWidth: '400px' }}>
+                <div className="mb-6 flex gap-4 search-filter-container">
+                    <div className="relative w-full search-container-mobile" style={{ maxWidth: '400px' }}>
                         <div className="absolute" style={{ left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--text-muted))' }}>
                             <Search size={18} />
                         </div>
                         <input type="text" placeholder="Buscar gastos..." className="input-field" style={{ paddingLeft: '2.5rem' }} />
                     </div>
                     <button
-                        className="btn glass"
+                        className="btn glass btn-mobile-full"
                         onClick={() => setShowFilterModal(true)}
                         style={{
                             background: hasActiveFilters ? 'hsl(var(--accent-primary) / 0.2)' : undefined,
@@ -218,12 +218,12 @@ const Expenses = () => {
                 </div>
 
                 {/* Layout Grid: Gráfica a la izquierda, Tabla a la derecha */}
-                <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '1.5rem', alignItems: 'start' }}>
+                <div className="expenses-grid" style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '1.5rem', alignItems: 'start' }}>
                     {/* Gráfica de Gastos por Categoría */}
                     {chartData.length > 0 && (
                         <Card style={{ position: 'sticky', top: '2rem' }}>
                             <h3 className="mb-4" style={{ fontSize: '1.1rem', fontWeight: 700 }}>Gastos por Categoría</h3>
-                            <div style={{ width: '100%', height: '280px' }}>
+                            <div className="chart-height-mobile" style={{ width: '100%', height: '280px' }}>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie
@@ -383,9 +383,21 @@ const Expenses = () => {
                                     </div>
                                     <div className="text-right">
                                         <p className="text-danger" style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>-S/ {expense.amount.toFixed(2)}</p>
-                                        <div className="flex gap-2 justify-end mt-2">
-                                            <button onClick={() => handleEdit(expense)} className="text-secondary p-1"><Edit2 size={18} /></button>
-                                            <button onClick={() => handleDelete(expense._id)} className="text-danger p-1"><Trash2 size={18} /></button>
+                                        <div className="flex gap-4 justify-end mt-3">
+                                            <button
+                                                onClick={() => handleEdit(expense)}
+                                                className="p-3 bg-white/5 rounded-xl text-secondary active:scale-95 transition-all flex items-center justify-center"
+                                                style={{ minWidth: '44px', minHeight: '44px' }}
+                                            >
+                                                <Edit2 size={20} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(expense._id)}
+                                                className="p-3 bg-white/5 rounded-xl text-danger active:scale-95 transition-all flex items-center justify-center"
+                                                style={{ minWidth: '44px', minHeight: '44px' }}
+                                            >
+                                                <Trash2 size={20} />
+                                            </button>
                                         </div>
                                     </div>
                                 </div>

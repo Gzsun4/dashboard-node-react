@@ -1028,3 +1028,38 @@ input:checked+.toggle-slider:before {
 input:checked+.toggle-slider:hover {
   background-color: hsl(var(--accent-success) / 0.8);
 }
+
+/* Mobile Responsiveness Overrides */
+@media (max-width: 768px) {
+
+  /* Main Content Padding */
+  .main-content {
+    padding: 1rem !important;
+  }
+
+  /* Search & Filter Stacking */
+  .search-filter-container {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .search-container-mobile {
+    max-width: 100% !important;
+  }
+
+  .btn-mobile-full {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  /* Expenses Grid Fix */
+  .expenses-grid {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+  }
+
+  /* Chart Height Fix */
+  .chart-height-mobile {
+    height: 300px !important;
+  }
+}
