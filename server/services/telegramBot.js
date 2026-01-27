@@ -30,7 +30,7 @@ const CATEGORY_MAP = {
     'Inversiones': ['intereses', 'dividendo', 'retorno']
 };
 
-const INCOME_TRIGGERS = ['ingreso', 'gané', 'recibí', 'cobré', 'sueldo', 'depositaren', 'abono'];
+const INCOME_TRIGGERS = ['ingreso', 'gane', 'recibi', 'cobre', 'sueldo', 'depositaren', 'abono', 'pago'];
 
 // --- FUNCIONES DE AYUDA (NLP) ---
 
@@ -51,33 +51,53 @@ const parseSmartMessage = (text) => {
 
     // 1. Detectar Tipo (Gasto/Ingreso)
     let type = 'expense'; // Default
+    // Usamos triggers ya normalizados (sin tildes)
     if (INCOME_TRIGGERS.some(trigger => normalized.includes(trigger))) {
         type = 'income';
     }
 
     // 2. Detectar Monto (Números enteros o decimales)
-    // Busca patrones como: 50.50, 100 soles, S/200, 50
-    const amountMatch = text.match(/(\d+(\.\d{1,2})?)/);
+    const amountMatch = text.match(/(')?(\d+(\.\d{1,2})?)(')?/); // Mejora leve en regex
     const amount = amountMatch ? parseFloat(amountMatch[0]) : null;
 
-    // 3. Detectar Categoría
+    // 3. Detectar Fecha (Ayer/Hoy/Anteayer)
+    let date = new Date();
+
+    // Ajuste de fecha relativa
+    if (normalized.includes('ayer') && !normalized.includes('anteayer')) {
+        date.setDate(date.getDate() - 1);
+    } else if (normalized.includes('anteayer') || normalized.includes('antier')) {
+        date.setDate(date.getDate() - 2);
+    }
+    const dateStr = date.toISOString().split('T')[0];
+
+    // 4. Detectar Categoría
     let category = detectCategory(text);
     if (!category) category = type === 'expense' ? 'Varios' : 'Otros';
 
-    // 4. Limpiar Descripción (Todo lo que no sea triggers o comandos básicos)
-    // Es difícil limpiar perfecto, así que usamos el texto original pero intentamos quitar el monto si está aislado
+    // 5. Limpiar Descripción
     let description = text;
-    if (amount) {
+    if (amountMatch) {
         description = description.replace(amountMatch[0], '').trim();
     }
-    description = description
-        .replace(/^(gasto|ingreso|ahorro|nuevo)\s*/i, '') // Quitar comando inicial si existe
-        .replace(/^\s*soles\s*/i, '')
-        .trim();
+
+    // Quitar palabras reservadas comunes para limpiar la descripcion
+    const stopWords = [...INCOME_TRIGGERS, 'gasto', 'gasté', 'gaste', 'soles', 'ayer', 'hoy', 'anteayer', 'antier', 'nuevo'];
+
+    const words = description.split(/\s+/);
+    const cleanWords = words.filter(w => {
+        const norm = normalizeText(w);
+        return !stopWords.some(sw => norm === sw);
+    });
+
+    description = cleanWords.join(' ');
 
     if (!description) description = category;
 
-    return { type, amount, category, description };
+    // Capitalizar primera letra descripción
+    description = description.charAt(0).toUpperCase() + description.slice(1);
+
+    return { type, amount, category, description, date: dateStr };
 };
 
 // --- INITIALIZATION ---
@@ -244,13 +264,13 @@ Simplemente escribe lo que hiciste, ¡yo entiendo!
 };
 
 const processSmartTransaction = async (text, user, chatId) => {
-    const { type, amount, category, description } = parseSmartMessage(text);
+    const { type, amount, category, description, date } = parseSmartMessage(text); // Ahora recibe fecha
 
     if (!amount) {
         return bot.sendMessage(chatId, '⚠️ Detecté una intención pero <b>me falta el monto</b>. Ej: "Taxi 15"', { parse_mode: 'HTML' });
     }
 
-    const today = new Date().toISOString().split('T')[0];
+    // La fecha ya viene calculada desde el parser (hoy, ayer, etc.)
 
     try {
         if (type === 'expense') {
@@ -259,18 +279,18 @@ const processSmartTransaction = async (text, user, chatId) => {
                 description,
                 amount,
                 category,
-                date: today
+                date: date // Usar la fecha parseada
             });
-            await bot.sendMessage(chatId, `✅ <b>Gasto Registrado</b>\n\n💸 <b>-${amount.toFixed(2)}</b> (${category})\n📝 ${description}`, { parse_mode: 'HTML' });
+            await bot.sendMessage(chatId, `✅ <b>Gasto Registrado</b> (${date})\n\n💸 <b>-${amount.toFixed(2)}</b> (${category})\n📝 ${description}`, { parse_mode: 'HTML' });
         } else {
             await Income.create({
                 user: user._id,
                 source: description,
                 amount,
                 category,
-                date: today
+                date: date // Usar la fecha parseada
             });
-            await bot.sendMessage(chatId, `✅ <b>Ingreso Registrado</b>\n\n💰 <b>+${amount.toFixed(2)}</b> (${category})\n📝 ${description}`, { parse_mode: 'HTML' });
+            await bot.sendMessage(chatId, `✅ <b>Ingreso Registrado</b> (${date})\n\n💰 <b>+${amount.toFixed(2)}</b> (${category})\n📝 ${description}`, { parse_mode: 'HTML' });
         }
     } catch (error) {
         console.error(error);
