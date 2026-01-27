@@ -69,28 +69,30 @@ const Sidebar = () => {
                             <span className="nav-label">{item.label}</span>
                         </NavLink>
                     ))}
-
-                    <p style={{ fontSize: '0.7em', opacity: 0.5, textAlign: 'center', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', fontStyle: 'italic' }}>
-                        hecho por Gzsunnk
-                    </p>
                 </nav>
 
                 <div className="sidebar-footer">
-                    <div className="user-profile mb-4">
-                        <div className="avatar">{user?.name?.charAt(0) || 'U'}</div>
-                        <div className="user-info">
-                            <p className="user-name">{user?.name || 'Usuario'}</p>
-                            <p className="user-plan" style={{ fontSize: '0.7em', opacity: 0.7 }}>{user?.email}</p>
-                        </div>
-                    </div>
+                    <p style={{ fontSize: '0.7em', opacity: 0.5, textAlign: 'center', marginBottom: '1rem', fontStyle: 'italic' }}>
+                        hecho por Gzsunnk
+                    </p>
 
-                    <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-2 p-2 rounded-lg text-danger hover:bg-danger-soft transition-colors text-sm"
-                    >
-                        <LogOut size={16} />
-                        <span>Cerrar Sesión</span>
-                    </button>
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem' }}>
+                        <div className="user-profile mb-4">
+                            <div className="avatar">{user?.name?.charAt(0) || 'U'}</div>
+                            <div className="user-info">
+                                <p className="user-name">{user?.name || 'Usuario'}</p>
+                                <p className="user-plan" style={{ fontSize: '0.7em', opacity: 0.7 }}>{user?.email}</p>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center gap-2 p-2 rounded-lg text-danger hover:bg-danger-soft transition-colors text-sm"
+                        >
+                            <LogOut size={16} />
+                            <span>Cerrar Sesión</span>
+                        </button>
+                    </div>
                 </div>
             </aside>
         </>
