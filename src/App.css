@@ -10,6 +10,17 @@
   padding: 2rem;
   padding-bottom: 4rem;
   max-width: 1600px;
+  width: 100%;
+  /* Ensure it doesn't overflow horizontally */
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 1.5rem;
+    padding-top: 5rem;
+    /* Space for hamburger */
+  }
 }
 
 /* Page transitions could go here */

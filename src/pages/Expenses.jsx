@@ -281,69 +281,71 @@ const Expenses = () => {
 
                     {/* Tabla de Gastos */}
                     <Card>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Descripción</th>
-                                    <th>Categoría</th>
-                                    <th>Fecha</th>
-                                    <th className="text-right">Monto</th>
-                                    <th className="text-right">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {loading ? (
-                                    <tr><td colSpan="5" className="text-center p-4">Cargando...</td></tr>
-                                ) : filteredExpenses.length === 0 ? (
+                        <div className="table-container">
+                            <table>
+                                <thead>
                                     <tr>
-                                        <td colSpan="5" className="text-center text-muted" style={{ padding: '2rem' }}>
-                                            No se encontraron gastos {hasActiveFilters && 'con los filtros aplicados'}
-                                        </td>
+                                        <th>Descripción</th>
+                                        <th>Categoría</th>
+                                        <th>Fecha</th>
+                                        <th className="text-right">Monto</th>
+                                        <th className="text-right">Acciones</th>
                                     </tr>
-                                ) : (
-                                    filteredExpenses.map((expense) => (
-                                        <tr key={expense._id}>
-                                            <td style={{ fontWeight: 600 }}>{expense.description}</td>
-                                            <td>
-                                                <span style={{
-                                                    padding: '0.25rem 0.75rem',
-                                                    borderRadius: '99px',
-                                                    fontSize: '0.85rem',
-                                                    background: 'hsl(var(--accent-danger) / 0.15)',
-                                                    color: 'hsl(var(--accent-danger))'
-                                                }}>
-                                                    {expense.category}
-                                                </span>
-                                            </td>
-                                            <td className="text-muted">{expense.date}</td>
-                                            <td className="text-right text-danger" style={{ fontWeight: 700 }}>
-                                                -S/ {expense.amount.toFixed(2)}
-                                            </td>
-                                            <td className="text-right">
-                                                <div className="flex gap-2 justify-end">
-                                                    <button
-                                                        onClick={() => handleDelete(expense._id)}
-                                                        style={{
-                                                            background: 'rgba(255,255,255,0.1)',
-                                                            border: 'none',
-                                                            padding: '0.5rem',
-                                                            borderRadius: '0.375rem',
-                                                            cursor: 'pointer',
-                                                            color: 'hsl(var(--accent-secondary))',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center'
-                                                        }}
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
+                                </thead>
+                                <tbody>
+                                    {loading ? (
+                                        <tr><td colSpan="5" className="text-center p-4">Cargando...</td></tr>
+                                    ) : filteredExpenses.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="5" className="text-center text-muted" style={{ padding: '2rem' }}>
+                                                No se encontraron gastos {hasActiveFilters && 'con los filtros aplicados'}
                                             </td>
                                         </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                                    ) : (
+                                        filteredExpenses.map((expense) => (
+                                            <tr key={expense._id}>
+                                                <td style={{ fontWeight: 600 }}>{expense.description}</td>
+                                                <td>
+                                                    <span style={{
+                                                        padding: '0.25rem 0.75rem',
+                                                        borderRadius: '99px',
+                                                        fontSize: '0.85rem',
+                                                        background: 'hsl(var(--accent-danger) / 0.15)',
+                                                        color: 'hsl(var(--accent-danger))'
+                                                    }}>
+                                                        {expense.category}
+                                                    </span>
+                                                </td>
+                                                <td className="text-muted">{expense.date}</td>
+                                                <td className="text-right text-danger" style={{ fontWeight: 700 }}>
+                                                    -S/ {expense.amount.toFixed(2)}
+                                                </td>
+                                                <td className="text-right">
+                                                    <div className="flex gap-2 justify-end">
+                                                        <button
+                                                            onClick={() => handleDelete(expense._id)}
+                                                            style={{
+                                                                background: 'rgba(255,255,255,0.1)',
+                                                                border: 'none',
+                                                                padding: '0.5rem',
+                                                                borderRadius: '0.375rem',
+                                                                cursor: 'pointer',
+                                                                color: 'hsl(var(--accent-secondary))',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center'
+                                                            }}
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </Card>
                 </div>
 

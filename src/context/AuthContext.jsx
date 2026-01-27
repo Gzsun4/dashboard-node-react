@@ -16,7 +16,12 @@ export const AuthProvider = ({ children }) => {
         // In a real app, you might want to validate the token with the backend here
         const storedUser = localStorage.getItem('user');
         if (token && storedUser) {
-            setUser(JSON.parse(storedUser));
+            try {
+                setUser(JSON.parse(storedUser));
+            } catch (e) {
+                console.error("Error parsing user data:", e);
+                localStorage.removeItem('user');
+            }
         }
         setLoading(false);
     }, [token]);

@@ -407,6 +407,13 @@ h3 {
 table {
   width: 100%;
   border-collapse: collapse;
+  white-space: nowrap;
+  /* Prevent messy wrapping on small screens */
+}
+
+.table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 th {

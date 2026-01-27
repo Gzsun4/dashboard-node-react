@@ -187,70 +187,72 @@ const Income = () => {
                 </div>
 
                 <Card>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Fuente</th>
-                                <th>Categoría</th>
-                                <th>Fecha</th>
-                                <th className="text-right">Monto</th>
-                                <th className="text-right">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {loading ? (
-                                <tr><td colSpan="5" className="text-center p-4">Cargando...</td></tr>
-                            ) : filteredIncomes.length === 0 ? (
+                    <div className="table-container">
+                        <table className="w-full">
+                            <thead>
                                 <tr>
-                                    <td colSpan="5" className="text-center text-muted" style={{ padding: '2rem' }}>
-                                        No se encontraron ingresos {hasActiveFilters && 'con los filtros aplicados'}
-                                    </td>
+                                    <th>Fuente</th>
+                                    <th>Categoría</th>
+                                    <th>Fecha</th>
+                                    <th className="text-right">Monto</th>
+                                    <th className="text-right">Acciones</th>
                                 </tr>
-                            ) : (
-                                filteredIncomes.map((income) => (
-                                    <tr key={income._id}>
-                                        <td style={{ fontWeight: 600 }}>{income.source}</td>
-                                        <td>
-                                            <span style={{
-                                                padding: '0.25rem 0.75rem',
-                                                borderRadius: '99px',
-                                                fontSize: '0.85rem',
-                                                background: 'hsl(var(--accent-primary) / 0.15)',
-                                                color: 'hsl(var(--accent-primary))'
-                                            }}>
-                                                {income.category}
-                                            </span>
-                                        </td>
-                                        <td className="text-muted">{income.date}</td>
-                                        <td className="text-right text-success" style={{ fontWeight: 700 }}>
-                                            +S/ {income.amount.toFixed(2)}
-                                        </td>
-                                        <td className="text-right">
-                                            <div className="flex gap-2 justify-end">
-                                                {/* Edit disabled for now as backend doesn't support PUT yet in my previous step, kept it simple */}
-                                                <button
-                                                    onClick={() => handleDelete(income._id)}
-                                                    style={{
-                                                        background: 'rgba(255,255,255,0.1)',
-                                                        border: 'none',
-                                                        padding: '0.5rem',
-                                                        borderRadius: '0.375rem',
-                                                        cursor: 'pointer',
-                                                        color: 'hsl(var(--accent-danger))',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center'
-                                                    }}
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
+                            </thead>
+                            <tbody>
+                                {loading ? (
+                                    <tr><td colSpan="5" className="text-center p-4">Cargando...</td></tr>
+                                ) : filteredIncomes.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="5" className="text-center text-muted" style={{ padding: '2rem' }}>
+                                            No se encontraron ingresos {hasActiveFilters && 'con los filtros aplicados'}
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                                ) : (
+                                    filteredIncomes.map((income) => (
+                                        <tr key={income._id}>
+                                            <td style={{ fontWeight: 600 }}>{income.source}</td>
+                                            <td>
+                                                <span style={{
+                                                    padding: '0.25rem 0.75rem',
+                                                    borderRadius: '99px',
+                                                    fontSize: '0.85rem',
+                                                    background: 'hsl(var(--accent-primary) / 0.15)',
+                                                    color: 'hsl(var(--accent-primary))'
+                                                }}>
+                                                    {income.category}
+                                                </span>
+                                            </td>
+                                            <td className="text-muted">{income.date}</td>
+                                            <td className="text-right text-success" style={{ fontWeight: 700 }}>
+                                                +S/ {income.amount.toFixed(2)}
+                                            </td>
+                                            <td className="text-right">
+                                                <div className="flex gap-2 justify-end">
+                                                    {/* Edit disabled for now as backend doesn't support PUT yet in my previous step, kept it simple */}
+                                                    <button
+                                                        onClick={() => handleDelete(income._id)}
+                                                        style={{
+                                                            background: 'rgba(255,255,255,0.1)',
+                                                            border: 'none',
+                                                            padding: '0.5rem',
+                                                            borderRadius: '0.375rem',
+                                                            cursor: 'pointer',
+                                                            color: 'hsl(var(--accent-danger))',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center'
+                                                        }}
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </Card>
 
             </div>
