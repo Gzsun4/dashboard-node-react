@@ -65,7 +65,9 @@ app.listen(PORT, () => {
     cron.schedule('* * * * *', async () => {
         try {
             const now = new Date();
-            const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            // Convert to Peru time (UTC-5)
+            const peruTime = new Date(now.getTime() - (5 * 60 * 60 * 1000));
+            const currentTime = `${String(peruTime.getHours()).padStart(2, '0')}:${String(peruTime.getMinutes()).padStart(2, '0')}`;
 
             // Find all active reminders matching current time
             const reminders = await ReminderConfig.find({
@@ -73,12 +75,16 @@ app.listen(PORT, () => {
                 reminderTime: currentTime
             }).populate('user', 'name');
 
+            if (reminders.length > 0) {
+                console.log(`Checking reminders at Peru time: ${currentTime}, found ${reminders.length} reminder(s)`);
+            }
+
             for (const reminder of reminders) {
                 const message = `🔔 <b>Recordatorio</b>\n\n¡Hola ${reminder.user.name}!\n\nNo olvides registrar tus gastos e ingresos del día en tu dashboard financiero.\n\n💰 Mantén tus finanzas bajo control.`;
 
                 try {
                     await sendTelegramMessage(reminder.telegramChatId, message);
-                    console.log(`Reminder sent to user ${reminder.user.name} at ${currentTime}`);
+                    console.log(`Reminder sent to user ${reminder.user.name} at ${currentTime} Peru time`);
                 } catch (error) {
                     console.error(`Failed to send reminder to ${reminder.user.name}:`, error.message);
                 }

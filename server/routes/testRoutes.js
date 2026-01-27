@@ -29,11 +29,18 @@ router.get('/debug-reminders', async (req, res) => {
     try {
         const ReminderConfig = (await import('../models/ReminderConfig.js')).default;
         const reminders = await ReminderConfig.find({}).populate('user', 'name email');
+
+        const now = new Date();
+        const peruTime = new Date(now.getTime() - (5 * 60 * 60 * 1000));
+        const peruTimeFormatted = `${String(peruTime.getHours()).padStart(2, '0')}:${String(peruTime.getMinutes()).padStart(2, '0')}`;
+
         res.json({
             count: reminders.length,
             reminders: reminders,
-            currentServerTime: new Date().toISOString(),
-            currentServerTimeFormatted: `${String(new Date().getHours()).padStart(2, '0')}:${String(new Date().getMinutes()).padStart(2, '0')}`
+            currentServerTime: now.toISOString(),
+            currentServerTimeFormatted: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
+            currentPeruTime: peruTime.toISOString(),
+            currentPeruTimeFormatted: peruTimeFormatted
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -41,4 +48,3 @@ router.get('/debug-reminders', async (req, res) => {
 });
 
 export default router;
-

@@ -129,7 +129,7 @@ const Reminders = () => {
 
                             <div className="mb-4">
                                 <label className="text-sm text-secondary mb-2 block font-semibold">
-                                    Hora del Recordatorio
+                                    Hora del Recordatorio (Hora de Perú)
                                 </label>
                                 <input
                                     type="time"
@@ -138,6 +138,9 @@ const Reminders = () => {
                                     onChange={(e) => setConfig({ ...config, reminderTime: e.target.value })}
                                     required
                                 />
+                                <p className="text-xs text-secondary mt-1">
+                                    ⏰ Usa tu hora local de Perú (UTC-5)
+                                </p>
                             </div>
 
                             <div className="mb-6">
