@@ -53,7 +53,7 @@ const Sidebar = () => {
                         <Wallet color="white" size={24} />
                     </div>
                     <h1 className="logo-text">
-                        Gzsunnk
+                        Finanzas
                     </h1>
                 </div>
 
@@ -77,6 +77,7 @@ const Sidebar = () => {
                         <div className="user-info">
                             <p className="user-name">{user?.name || 'Usuario'}</p>
                             <p className="user-plan" style={{ fontSize: '0.7em', opacity: 0.7 }}>{user?.email}</p>
+                            <p style={{ fontSize: '0.65em', opacity: 0.5, marginTop: '4px', fontStyle: 'italic' }}>hecho por Gzsunnk</p>
                         </div>
                     </div>
 
