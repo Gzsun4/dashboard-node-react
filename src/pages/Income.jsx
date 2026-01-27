@@ -273,35 +273,72 @@ const Income = () => {
                             <p className="text-center text-muted p-4">No se encontraron ingresos</p>
                         ) : (
                             filteredIncomes.map((income) => (
-                                <div key={income._id} className="glass p-4 rounded-xl mb-3 flex items-center justify-between gap-3">
+                                <div
+                                    key={income._id}
+                                    className="glass p-3 rounded-xl mb-2"
+                                    style={{
+                                        display: 'flex',
+                                        flexDirection: 'row',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        gap: '12px'
+                                    }}
+                                >
                                     {/* Left: Info */}
-                                    <div className="min-w-0 flex-1">
-                                        <p className="font-bold text-white truncate mb-1">{income.source}</p>
-                                        <p className="text-xs text-secondary">{income.date}</p>
+                                    <div style={{ minWidth: 0, flex: 1 }}>
+                                        <p className="font-semibold text-white truncate" style={{ fontSize: '0.95rem', marginBottom: '2px' }}>
+                                            {income.source}
+                                        </p>
+                                        <p className="text-secondary truncate" style={{ fontSize: '0.75rem' }}>
+                                            {income.date}
+                                        </p>
                                     </div>
 
                                     {/* Right: Amount + Actions */}
-                                    <div className="flex items-center gap-2 shrink-0">
-                                        <p className="text-success font-bold text-base whitespace-nowrap mr-1">+S/ {income.amount.toFixed(0)}</p>
+                                    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                                        <p className="text-success font-bold" style={{ fontSize: '0.95rem', whiteSpace: 'nowrap', marginRight: '4px' }}>
+                                            +S/ {income.amount.toFixed(0)}
+                                        </p>
 
-                                        <div className="flex items-center">
-                                            <button
-                                                onClick={() => handleEdit(income)}
-                                                className="p-3 text-secondary active:scale-95 transition-all flex items-center justify-center"
-                                                style={{ minWidth: '44px', minHeight: '44px', background: 'transparent' }}
-                                                aria-label="Editar"
-                                            >
-                                                <Edit2 size={18} strokeWidth={1.5} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(income._id)}
-                                                className="p-3 text-danger active:scale-95 transition-all flex items-center justify-center"
-                                                style={{ minWidth: '44px', minHeight: '44px', background: 'transparent' }}
-                                                aria-label="Eliminar"
-                                            >
-                                                <Trash2 size={18} strokeWidth={1.5} />
-                                            </button>
-                                        </div>
+                                        <button
+                                            onClick={() => handleEdit(income)}
+                                            style={{
+                                                background: 'transparent',
+                                                border: 'none',
+                                                boxShadow: 'none',
+                                                padding: '8px',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                minWidth: '36px',
+                                                minHeight: '36px',
+                                                color: 'hsl(var(--accent-secondary))'
+                                            }}
+                                            aria-label="Editar"
+                                        >
+                                            <Edit2 size={20} strokeWidth={1.5} />
+                                        </button>
+
+                                        <button
+                                            onClick={() => handleDelete(income._id)}
+                                            style={{
+                                                background: 'transparent',
+                                                border: 'none',
+                                                boxShadow: 'none',
+                                                padding: '8px',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                minWidth: '36px',
+                                                minHeight: '36px',
+                                                color: 'hsl(var(--accent-danger))'
+                                            }}
+                                            aria-label="Eliminar"
+                                        >
+                                            <Trash2 size={20} strokeWidth={1.5} />
+                                        </button>
                                     </div>
                                 </div>
                             ))
