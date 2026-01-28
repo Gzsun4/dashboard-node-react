@@ -6,7 +6,7 @@ import MobileMenuButton from '../components/MobileMenuButton';
 import CustomPencilIcon from '../components/CustomPencilIcon';
 import CustomTrashIcon from '../components/CustomTrashIcon';
 import MobileHeader from '../components/MobileHeader';
-import StatsCarousel from '../components/StatsCarousel';
+import MobileStatsGrid from '../components/MobileStatsGrid';
 import MobileChartSection from '../components/MobileChartSection';
 
 const Income = () => {
@@ -206,7 +206,7 @@ const Income = () => {
                     label="Agregar"
                 />
 
-                <StatsCarousel stats={mobileStats} />
+                <MobileStatsGrid stats={mobileStats} />
 
                 <div className="page-header hidden-mobile">
                     <div className="flex justify-between items-center w-full">

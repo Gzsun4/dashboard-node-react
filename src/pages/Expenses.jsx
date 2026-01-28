@@ -7,7 +7,7 @@ import CustomPencilIcon from '../components/CustomPencilIcon';
 import CustomTrashIcon from '../components/CustomTrashIcon';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import MobileHeader from '../components/MobileHeader';
-import StatsCarousel from '../components/StatsCarousel';
+import MobileStatsGrid from '../components/MobileStatsGrid';
 import MobileChartSection from '../components/MobileChartSection';
 
 const Expenses = () => {
@@ -247,7 +247,7 @@ const Expenses = () => {
                     themeColor="#ff4d6d"
                 />
 
-                <StatsCarousel stats={mobileStats} />
+                <MobileStatsGrid stats={mobileStats} />
 
                 <div className="page-header hidden-mobile"> {/* Original header for desktop only */}
                     <div className="flex justify-between items-center w-full">
