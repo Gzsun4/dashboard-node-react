@@ -84,7 +84,7 @@ const Reminders = () => {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-20 items-start">
                     <Card className="transform transition-all duration-300 hover:shadow-lg border-t-4 border-t-blue-500">
                         <div className="mb-6">
                             <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
@@ -128,7 +128,7 @@ const Reminders = () => {
                                 type="submit"
                                 disabled={!hasChanges || isSaving}
                                 className={`btn w-full justify-center gap-2 shadow-lg transition-all duration-300 ${isSaving ? 'opacity-70 cursor-wait' :
-                                    hasChanges ? 'btn-primary translate-y-0' : 'btn-secondary opacity-50'
+                                        hasChanges ? 'btn-primary translate-y-0' : 'btn-secondary opacity-50'
                                     }`}
                             >
                                 {isSaving ? (
@@ -150,33 +150,52 @@ const Reminders = () => {
                         <div className="space-y-6">
                             <h3 className="text-lg font-bold text-blue-400">¿Cómo obtener tu ID?</h3>
 
-                            <ol className="space-y-4 relative border-l-2 border-blue-500/20 ml-2">
-                                <li className="pl-6 relative">
-                                    <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-blue-500 border-2 border-slate-900"></div>
-                                    <p className="font-semibold">Abre Telegram</p>
-                                    <p className="text-sm text-secondary">Entra a tu aplicación de mensajería.</p>
-                                </li>
-                                <li className="pl-6 relative">
-                                    <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-blue-500 border-2 border-slate-900"></div>
-                                    <p className="font-semibold">Busca @userinfobot</p>
-                                    <p className="text-sm text-secondary">
-                                        Escribe <code className="bg-slate-800 px-1 py-0.5 rounded text-blue-300">@userinfobot</code> en el buscador.
-                                    </p>
-                                </li>
-                                <li className="pl-6 relative">
-                                    <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-blue-500 border-2 border-slate-900"></div>
-                                    <p className="font-semibold">Inicia el bot</p>
-                                    <p className="text-sm text-secondary">Presiona "Iniciar" o escribe /start.</p>
-                                </li>
-                                <li className="pl-6 relative">
-                                    <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-blue-500 border-2 border-slate-900"></div>
-                                    <p className="font-semibold">Copia tu ID</p>
-                                    <p className="text-sm text-secondary">El bot te responderá con tu ID numérico. Cópialo y pégalo aquí.</p>
-                                </li>
-                            </ol>
+                            <div className="space-y-6 relative ml-2">
+                                {/* Vertical line only for connecting dots */}
+                                <div className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-blue-500/20"></div>
 
-                            <div className="mt-6 p-4 rounded-lg bg-blue-500/20 text-blue-200 text-sm border border-blue-500/30">
-                                💡 <strong>Tip:</strong> Una vez vinculado, podrás recibir recordatorios personalizados directamente en tu chat.
+                                <div className="relative flex gap-4 items-start">
+                                    <div className="relative z-10 flex-shrink-0 w-4 h-4 mt-1 rounded-full bg-blue-500 border-2 border-slate-900 shadow-[0_0_0_2px_rgba(59,130,246,0.2)]"></div>
+                                    <div>
+                                        <p className="font-semibold text-gray-100">Abre Telegram</p>
+                                        <p className="text-sm text-secondary mt-1">Entra a tu aplicación de mensajería.</p>
+                                    </div>
+                                </div>
+
+                                <div className="relative flex gap-4 items-start">
+                                    <div className="relative z-10 flex-shrink-0 w-4 h-4 mt-1 rounded-full bg-blue-500 border-2 border-slate-900 shadow-[0_0_0_2px_rgba(59,130,246,0.2)]"></div>
+                                    <div>
+                                        <p className="font-semibold text-gray-100">Busca @userinfobot</p>
+                                        <p className="text-sm text-secondary mt-1">
+                                            Escribe <code className="bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-mono text-xs">@userinfobot</code> en el buscador.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="relative flex gap-4 items-start">
+                                    <div className="relative z-10 flex-shrink-0 w-4 h-4 mt-1 rounded-full bg-blue-500 border-2 border-slate-900 shadow-[0_0_0_2px_rgba(59,130,246,0.2)]"></div>
+                                    <div>
+                                        <p className="font-semibold text-gray-100">Inicia el bot</p>
+                                        <p className="text-sm text-secondary mt-1">Presiona "Iniciar" o escribe <strong>/start</strong>.</p>
+                                    </div>
+                                </div>
+
+                                <div className="relative flex gap-4 items-start">
+                                    <div className="relative z-10 flex-shrink-0 w-4 h-4 mt-1 rounded-full bg-blue-500 border-2 border-slate-900 shadow-[0_0_0_2px_rgba(59,130,246,0.2)]"></div>
+                                    <div>
+                                        <p className="font-semibold text-gray-100">Copia tu ID</p>
+                                        <p className="text-sm text-secondary mt-1">El bot te responderá con tu ID numérico. Cópialo y pégalo aquí.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-8 p-4 rounded-lg bg-blue-500/10 border border-blue-500/20 text-sm">
+                                <div className="flex gap-3">
+                                    <span className="text-xl">💡</span>
+                                    <p className="text-blue-200/80 leading-relaxed">
+                                        <strong>Tip:</strong> Una vez vinculado, podrás recibir recordatorios personalizados directamente en tu chat.
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </Card>
