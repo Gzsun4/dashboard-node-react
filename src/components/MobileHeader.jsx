@@ -10,10 +10,13 @@ const MobileHeader = ({ title, onAddClick, themeColor = 'hsl(var(--accent-primar
                 position: 'sticky',
                 top: 0,
                 zIndex: 50,
-                backgroundColor: '#1b2028', // Dark background for contrast
-                backdropFilter: 'blur(10px)',
-                borderBottom: '1px solid rgba(255,255,255,0.05)',
-                marginBottom: '1.5rem'
+                backgroundColor: 'hsl(var(--bg-primary) / 0.8)', // Blend with background
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                borderBottom: 'none', // Remove harsh line
+                marginBottom: '1.5rem',
+                paddingTop: '10px', // Add safe area spacing
+                paddingBottom: '10px'
             }}
         >
             {/* Botón Menú (Izquierda) */}
@@ -34,20 +37,24 @@ const MobileHeader = ({ title, onAddClick, themeColor = 'hsl(var(--accent-primar
                 </h1>
             </div>
 
-            {/* Botón Agregar (Derecha) */}
-            <button
-                onClick={onAddClick}
-                className="btn-responsive-action"
-                style={{
-                    backgroundColor: themeColor,
-                    boxShadow: `0 4px 12px ${themeColor}50`, // 50 opacity hex
-                    border: 'none',
-                    zIndex: 10
-                }}
-            >
-                <Plus className="icon" size={20} strokeWidth={3} color="white" />
-                <span className="mobile-only-inline text-white" style={{ fontWeight: 700 }}>{label}</span>
-            </button>
+            {/* Botón Agregar (Derecha) o Spacer */}
+            {onAddClick ? (
+                <button
+                    onClick={onAddClick}
+                    className="btn-responsive-action"
+                    style={{
+                        backgroundColor: themeColor,
+                        boxShadow: `0 4px 12px ${themeColor}50`, // 50 opacity hex
+                        border: 'none',
+                        zIndex: 10
+                    }}
+                >
+                    <Plus className="icon" size={20} strokeWidth={3} color="white" />
+                    <span className="mobile-only-inline text-white" style={{ fontWeight: 700 }}>{label}</span>
+                </button>
+            ) : (
+                <div style={{ width: '40px', height: '40px' }}></div> // Spacer for balance
+            )}
         </div>
     );
 };
