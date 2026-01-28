@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
-import { Trash2, Shield, User, Key } from 'lucide-react';
+import { Trash2, Shield, User, Key, Menu } from 'lucide-react';
+import MobileMenuButton from '../components/MobileMenuButton';
 
 const AdminUsers = () => {
     const [users, setUsers] = useState([]);
@@ -99,9 +100,12 @@ const AdminUsers = () => {
         <>
             <div className="animate-fade-in">
                 <div className="page-header flex justify-between items-center">
-                    <div>
-                        <h1 className="page-title">Gestión de Usuarios</h1>
-                        <p className="page-subtitle">Administra los usuarios del sistema</p>
+                    <div className="flex items-center gap-2">
+                        <MobileMenuButton />
+                        <div>
+                            <h1 className="page-title">Gestión de Usuarios</h1>
+                            <p className="page-subtitle">Administra los usuarios del sistema</p>
+                        </div>
                     </div>
                     <div className="flex gap-3">
                         <button

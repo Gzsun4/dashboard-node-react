@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { HashRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
@@ -16,6 +16,11 @@ import { SocketProvider } from './context/SocketContext';
 import './App.css';
 
 function App() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
+  const closeSidebar = () => setIsSidebarOpen(false);
+
   return (
     <Router>
       <AuthProvider>
@@ -28,9 +33,9 @@ function App() {
               <Route element={<PrivateRoute />}>
                 <Route element={
                   <>
-                    <Sidebar />
+                    <Sidebar isOpen={isSidebarOpen} closeSidebar={closeSidebar} />
                     <main className="main-content">
-                      <Outlet />
+                      <Outlet context={{ toggleSidebar }} />
                     </main>
                   </>
                 }>

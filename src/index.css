@@ -1315,3 +1315,18 @@ input:checked+.toggle-slider:hover {
     display: none !important;
   }
 }
+
+.mobile-only {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: flex;
+  }
+
+  .page-header {
+    flex-direction: row !important;
+    align-items: center !important;
+  }
+}

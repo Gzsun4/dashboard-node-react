@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Card from '../components/Card';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Search, Filter, X, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Search, Filter, X, Edit2, Trash2, Menu } from 'lucide-react';
+import MobileMenuButton from '../components/MobileMenuButton';
 
 const Income = () => {
     const { token } = useAuth();
@@ -168,9 +169,12 @@ const Income = () => {
         <>
             <div className="animate-fade-in">
                 <div className="page-header flex justify-between items-center mb-6">
-                    <div>
-                        <h2 className="page-title">Ingresos</h2>
-                        <p className="page-subtitle hidden-mobile">Gestiona tus fuentes de ingresos.</p>
+                    <div className="flex items-center gap-2">
+                        <MobileMenuButton />
+                        <div>
+                            <h2 className="page-title">Ingresos</h2>
+                            <p className="page-subtitle hidden-mobile">Gestiona tus fuentes de ingresos.</p>
+                        </div>
                     </div>
                     <button className="btn btn-primary" onClick={() => setShowModal(true)}>
                         <Plus size={18} />

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Card from '../components/Card';
 import Toast from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
-import { Send, Hash, Save, ShieldCheck, CheckCircle } from 'lucide-react';
+import { Send, Hash, Save, ShieldCheck, CheckCircle, Menu } from 'lucide-react';
+import MobileMenuButton from '../components/MobileMenuButton';
 
 const Reminders = () => {
     const { token } = useAuth();
@@ -73,11 +74,16 @@ const Reminders = () => {
         <>
             <div className="animate-fade-in max-w-4xl mx-auto">
                 <div className="page-header mb-8 text-center sm:text-left">
-                    <div>
-                        <h2 className="page-title flex items-center justify-center sm:justify-start gap-3">
-                            <Send size={32} className="text-blue-500" />
-                            Integración Telegram
-                        </h2>
+                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2">
+                        <div className="w-full flex items-center justify-center sm:justify-start gap-2 relative">
+                            <div className="absolute left-0 sm:static">
+                                <MobileMenuButton />
+                            </div>
+                            <h2 className="page-title flex items-center gap-3">
+                                <Send size={32} className="text-blue-500" />
+                                Integración Telegram
+                            </h2>
+                        </div>
                         <p className="page-subtitle mt-2">
                             Vincula tu cuenta para interactuar con nuestro bot y recibir notificaciones.
                         </p>
@@ -128,7 +134,7 @@ const Reminders = () => {
                                 type="submit"
                                 disabled={!hasChanges || isSaving}
                                 className={`btn w-full py-4 justify-center gap-2 shadow-lg transition-all duration-300 ${isSaving ? 'opacity-70 cursor-wait' :
-                                        hasChanges ? 'btn-primary translate-y-0' : 'btn-secondary opacity-50'
+                                    hasChanges ? 'btn-primary translate-y-0' : 'btn-secondary opacity-50'
                                     }`}
                             >
                                 {isSaving ? (

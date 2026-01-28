@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Card from '../components/Card';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Search, Filter, X, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Search, Filter, X, Edit2, Trash2, Menu } from 'lucide-react';
+import MobileMenuButton from '../components/MobileMenuButton';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 const Expenses = () => {
@@ -198,9 +199,12 @@ const Expenses = () => {
         <>
             <div className="animate-fade-in">
                 <div className="page-header flex justify-between items-center mb-6">
-                    <div>
-                        <h2 className="page-title">Gastos</h2>
-                        <p className="page-subtitle hidden-mobile">Controla a dónde va tu dinero.</p>
+                    <div className="flex items-center gap-2">
+                        <MobileMenuButton />
+                        <div>
+                            <h2 className="page-title">Gastos</h2>
+                            <p className="page-subtitle hidden-mobile">Controla a dónde va tu dinero.</p>
+                        </div>
                     </div>
                     <button
                         className="btn text-white"

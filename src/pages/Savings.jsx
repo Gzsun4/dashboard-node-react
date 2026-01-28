@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Card from '../components/Card';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Target, Car, Home, Smartphone, X, Edit2, Trash2, History, DollarSign } from 'lucide-react';
+import { Plus, Target, Car, Home, Smartphone, X, Edit2, Trash2, History, DollarSign, Menu } from 'lucide-react';
+import MobileMenuButton from '../components/MobileMenuButton';
 
 const Savings = () => {
     const { token } = useAuth();
@@ -241,9 +242,12 @@ const Savings = () => {
         <>
             <div className="animate-fade-in">
                 <div className="page-header flex justify-between items-center mb-6">
-                    <div>
-                        <h2 className="page-title">Ahorros</h2>
-                        <p className="page-subtitle">Visualiza y alcanza tus metas financieras.</p>
+                    <div className="flex items-center gap-2">
+                        <MobileMenuButton />
+                        <div>
+                            <h2 className="page-title">Ahorros</h2>
+                            <p className="page-subtitle">Visualiza y alcanza tus metas financieras.</p>
+                        </div>
                     </div>
                     <button className="btn btn-primary" onClick={() => setShowModal(true)}>
                         <Plus size={18} /> Nueva Meta

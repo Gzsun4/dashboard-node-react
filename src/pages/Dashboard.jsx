@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Card from '../components/Card';
-import { DollarSign, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, ArrowDownRight, Menu } from 'lucide-react';
+import MobileMenuButton from '../components/MobileMenuButton';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import './Dashboard.css';
 
@@ -91,7 +92,12 @@ const Dashboard = () => {
     return (
         <div className="animate-fade-in">
             <div className="page-header">
-                <h2 className="page-title">Panel General</h2>
+                <div className="flex items-center gap-2 w-full">
+                    <MobileMenuButton />
+                    <div>
+                        <h2 className="page-title">Panel General</h2>
+                    </div>
+                </div>
                 <p className="page-subtitle">Bienvenido de nuevo, aquí tienes tu resumen financiero.</p>
             </div>
 

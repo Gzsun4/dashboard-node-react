@@ -22,10 +22,9 @@ const TelegramIcon = ({ className }) => (
     </svg>
 );
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, closeSidebar }) => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
-    const [isOpen, setIsOpen] = useState(false);
 
     const navItems = [
         { path: '/', label: 'Panel', icon: HomeIcon },
@@ -44,22 +43,12 @@ const Sidebar = () => {
         navigate('/login');
     };
 
-    const toggleSidebar = () => setIsOpen(!isOpen);
-
     return (
         <>
-            <button
-                className={`mobile-menu-toggle ${isOpen ? 'hidden' : ''}`}
-                onClick={toggleSidebar}
-                aria-label="Toggle menu"
-            >
-                <Menu size={24} />
-            </button>
-
             {isOpen && (
                 <div
                     className="sidebar-backdrop"
-                    onClick={() => setIsOpen(false)}
+                    onClick={closeSidebar}
                 ></div>
             )}
 
@@ -78,7 +67,7 @@ const Sidebar = () => {
                         <NavLink
                             key={item.path}
                             to={item.path}
-                            onClick={() => setIsOpen(false)}
+                            onClick={closeSidebar}
                             className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
                         >
                             <item.icon className="nav-icon" />
