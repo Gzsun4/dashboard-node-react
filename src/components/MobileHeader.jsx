@@ -4,7 +4,18 @@ import MobileMenuButton from './MobileMenuButton';
 
 const MobileHeader = ({ title, onAddClick, themeColor = 'hsl(var(--accent-primary))', label = 'Agregar' }) => {
     return (
-        <div className="mobile-header-layout hidden-desktop">
+        <div
+            className="mobile-header-layout hidden-desktop"
+            style={{
+                position: 'sticky',
+                top: 0,
+                zIndex: 50,
+                backgroundColor: '#1b2028', // Dark background for contrast
+                backdropFilter: 'blur(10px)',
+                borderBottom: '1px solid rgba(255,255,255,0.05)',
+                marginBottom: '1.5rem'
+            }}
+        >
             {/* Botón Menú (Izquierda) */}
             <MobileMenuButton />
 

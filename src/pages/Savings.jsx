@@ -255,9 +255,8 @@ const Savings = () => {
 
                 <MobileHeader
                     title="Ahorros"
-                    onAddClick={() => setShowModal(true)}
-                    themeColor="#10b981" // accent-success
-                    label="Nueva Meta"
+                    // Botón eliminado por solicitud
+                    themeColor="#10b981"
                 />
 
                 <StatsCarousel stats={mobileStats} />

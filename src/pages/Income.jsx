@@ -202,7 +202,7 @@ const Income = () => {
                 <MobileHeader
                     title="Ingresos"
                     onAddClick={() => setShowModal(true)}
-                    themeColor="#8b5cf6" // accent-primary approx
+                    themeColor="#10b981" // Cambiado a verde por solicitud
                     label="Agregar"
                 />
 
