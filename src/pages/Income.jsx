@@ -179,18 +179,19 @@ const Income = () => {
                         </div>
                     </div>
                     <button
-                        className="btn btn-primary"
+                        className="btn btn-primary flex items-center gap-1"
                         onClick={() => setShowModal(true)}
                         style={{
-                            padding: '0.5rem 0.75rem',
-                            fontSize: '0.875rem',
+                            padding: '0.4rem 0.7rem',
+                            fontSize: '0.8rem',
                             height: 'auto',
-                            minHeight: '32px'
+                            minHeight: '30px',
+                            lineHeight: '1'
                         }}
                     >
-                        <Plus size={16} />
+                        <Plus size={14} />
                         <span className="hidden-mobile">Nuevo Ingreso</span>
-                        <span className="hidden-desktop" style={{ fontSize: '0.8rem' }}>Agregar</span>
+                        <span className="hidden-desktop" style={{ fontSize: '0.75rem', fontWeight: 500 }}>Agregar</span>
                     </button>
                 </div>
 

@@ -20,7 +20,7 @@ const MobileMenuButton = () => {
                 background: 'transparent',
                 border: 'none',
                 cursor: 'pointer',
-                marginLeft: '-1.5rem', // Compense padding of main-content (1.5rem)
+                marginLeft: '-2rem', // More aggressive negative margin
                 marginRight: '0.5rem' // Add some space between button and title
             }}
         >
