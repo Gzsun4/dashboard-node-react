@@ -200,7 +200,7 @@ const Expenses = () => {
                 <div className="page-header flex justify-between items-center mb-6">
                     <div>
                         <h2 className="page-title">Gastos</h2>
-                        <p className="page-subtitle hidden lg:block">Controla a dónde va tu dinero.</p>
+                        <p className="page-subtitle hidden md:block">Controla a dónde va tu dinero.</p>
                     </div>
                     <button
                         className="btn text-white"
@@ -208,8 +208,8 @@ const Expenses = () => {
                         onClick={() => setShowModal(true)}
                     >
                         <Plus size={18} />
-                        <span className="hidden lg:inline">Nuevo Gasto</span>
-                        <span className="lg:hidden">Agregar</span>
+                        <span className="hidden md:inline">Nuevo Gasto</span>
+                        <span className="md:hidden">Agregar</span>
                     </button>
                 </div>
 
@@ -301,7 +301,7 @@ const Expenses = () => {
                     {/* Tabla de Gastos + Vista Móvil combinadas en una sola Tarjeta */}
                     <Card>
                         {/* Vista Desktop: Tabla */}
-                        <div className="hidden lg:block table-container">
+                        <div className="table-container">
                             <table>
                                 <thead>
                                     <tr>
@@ -384,7 +384,7 @@ const Expenses = () => {
                         </div>
 
                         {/* Vista Móvil: Lista de Tarjetas (Ahora dentro del Card contenedor) */}
-                        <div className="lg:hidden">
+                        <div className="mobile-card-view">
                             {loading ? (
                                 <p className="text-center p-4">Cargando...</p>
                             ) : filteredExpenses.length === 0 ? (
