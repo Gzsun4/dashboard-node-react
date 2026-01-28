@@ -15,7 +15,8 @@ const StatsCard = ({ title, value, icon, colorClass }) => {
                 justifyContent: 'center', // Center content vertically
                 textAlign: 'center', // Center text
                 borderRadius: '3rem',
-                background: 'hsl(var(--bg-secondary) / 0.7)'
+                background: 'hsl(var(--bg-secondary) / 0.7)',
+                whiteSpace: 'normal' // Override parent's nowrap to allow text wrapping/centering
             }}
         >
             <div className="flex justify-center items-center mb-2">
