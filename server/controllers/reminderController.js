@@ -1,5 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import User from '../models/User.js';
+import { sendTelegramMessage } from '../services/telegramService.js';
 
 // @desc    Get user's telegram config
 // @route   GET /api/reminders
@@ -31,6 +32,19 @@ const saveReminderConfig = asyncHandler(async (req, res) => {
     );
 
     if (updatedUser) {
+        // Send welcome message if telegramChatId is provided
+        if (telegramChatId) {
+            try {
+                await sendTelegramMessage(
+                    telegramChatId,
+                    "<b>¡Vinculación exitosa!</b> 🚀\n\nTu cuenta de Finanzas ha sido conectada correctamente. Aquí recibirás tus recordatorios y notificaciones."
+                );
+            } catch (error) {
+                console.error("Failed to send welcome message:", error);
+                // Don't fail the request if the message fails, just log it
+            }
+        }
+
         res.json({
             telegramChatId: updatedUser.telegramChatId
         });
