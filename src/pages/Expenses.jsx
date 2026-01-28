@@ -232,7 +232,7 @@ const Expenses = () => {
     };
 
     const mobileStats = [
-        { title: "Gasto Total", value: `S/ ${totalSpent.toFixed(2)}`, icon: <DollarSign className="text-green-500" />, color: "bg-green-500" },
+        { title: "Gasto Total", value: `S/ ${totalSpent.toFixed(2)}`, icon: <DollarSign className="text-white" />, color: "bg-red-500" },
         { title: "Categoría Top", value: topCategory, icon: <TrendingUp className="text-[#ff4d6d]" />, color: "bg-[#ff4d6d]" },
         { title: "Movimientos", value: expenses.length.toString(), icon: <PieIcon className="text-blue-500" />, color: "bg-blue-500" }
     ];

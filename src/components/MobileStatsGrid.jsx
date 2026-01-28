@@ -27,13 +27,25 @@ const MobileStatsGrid = ({ stats }) => {
     };
 
     return (
-        <div className="flex flex-col gap-3 mb-6 hidden-desktop mobile-stats-grid">
-
-            {/* Main Card (Top) */}
+        <div
+            className="hidden-desktop mobile-stats-grid"
+            style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem', // gap-3
+                marginBottom: '1.5rem', // mb-6
+                width: '100%'
+            }}
+        >
+            {/* Main Card (Top) - Full Width */}
             <div
-                className="w-full p-5 rounded-[2rem] relative overflow-hidden"
                 style={{
                     ...getBackgroundStyle(mainStat.color),
+                    width: '100%',
+                    padding: '1.25rem', // p-5
+                    borderRadius: '2rem', // rounded-[2rem]
+                    position: 'relative',
+                    overflow: 'hidden',
                     boxShadow: '0 10px 30px -10px rgba(0,0,0,0.3)',
                     minHeight: '140px',
                     display: 'flex',
@@ -41,48 +53,92 @@ const MobileStatsGrid = ({ stats }) => {
                     justifyContent: 'space-between'
                 }}
             >
-                <div className="flex justify-between items-start">
-                    <div className="p-2 rounded-full bg-white/20 backdrop-blur-sm">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div style={{
+                        padding: '0.5rem', // p-2
+                        borderRadius: '9999px', // rounded-full
+                        background: 'rgba(255,255,255,0.2)', // bg-white/20
+                        backdropFilter: 'blur(4px)', // backdrop-blur-sm
+                        display: 'inline-flex'
+                    }}>
                         {React.cloneElement(mainStat.icon, { size: 24, color: 'white' })}
                     </div>
-                    {/* Badge Decorativo opcional (ej. +12%) - Hardcodeado por ahora o pasado si existiera */}
-                    {/* <div className="px-3 py-1 rounded-full bg-white/20 text-xs font-bold backdrop-blur-sm">
-                        Total
-                    </div> */}
                 </div>
 
                 <div>
-                    <p className="text-white/80 text-sm font-medium mb-1">{mainStat.title}</p>
-                    <h2 className="text-white text-3xl font-bold tracking-tight">{mainStat.value}</h2>
+                    <p style={{
+                        color: 'rgba(255,255,255,0.8)',
+                        fontSize: '0.875rem', // text-sm
+                        fontWeight: 500,
+                        marginBottom: '0.25rem'
+                    }}>
+                        {mainStat.title}
+                    </p>
+                    <h2 style={{
+                        color: 'white',
+                        fontSize: '1.875rem', // text-3xl
+                        fontWeight: 700,
+                        letterSpacing: '-0.025em',
+                        lineHeight: '1',
+                        margin: 0
+                    }}>
+                        {mainStat.value}
+                    </h2>
                 </div>
             </div>
 
-            {/* Secondary Cards (Bottom Row) */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Secondary Cards (Bottom Row) - 2 Columns */}
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '0.75rem' // gap-3
+            }}>
                 {secondaryStats.map((stat, index) => (
                     <div
                         key={index}
-                        className="p-4 rounded-[1.5rem] bg-[hsl(var(--bg-secondary)/0.5)] border border-white/5 backdrop-blur-lg"
                         style={{
+                            padding: '1rem', // p-4
+                            borderRadius: '1.5rem', // rounded-[1.5rem]
+                            background: 'hsl(var(--bg-secondary) / 0.5)',
+                            border: '1px solid rgba(255,255,255,0.05)',
+                            backdropFilter: 'blur(16px)', // backdrop-blur-lg
                             display: 'flex',
                             flexDirection: 'column',
                             justifyContent: 'space-between',
                             minHeight: '120px'
                         }}
                     >
-                        <div className="mb-3">
+                        <div style={{ marginBottom: '0.75rem' }}>
                             <div
-                                className="p-2 rounded-xl inline-flex"
-                                style={{ background: 'rgba(255,255,255,0.05)' }}
+                                style={{
+                                    padding: '0.5rem',
+                                    borderRadius: '0.75rem', // rounded-xl
+                                    display: 'inline-flex',
+                                    background: 'rgba(255,255,255,0.05)'
+                                }}
                             >
-                                {/* El icono viene con clases de color texto, las preservamos */}
                                 {React.cloneElement(stat.icon, { size: 20 })}
                             </div>
                         </div>
 
                         <div>
-                            <p className="text-[hsl(var(--text-secondary))] text-xs font-medium mb-1">{stat.title}</p>
-                            <p className="text-white text-lg font-bold truncate leading-tight">
+                            <p style={{
+                                color: 'hsl(var(--text-secondary))',
+                                fontSize: '0.75rem', // text-xs
+                                fontWeight: 500,
+                                marginBottom: '0.25rem'
+                            }}>
+                                {stat.title}
+                            </p>
+                            <p style={{
+                                color: 'white',
+                                fontSize: '1.125rem', // text-lg
+                                fontWeight: 700,
+                                lineHeight: '1.25',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                            }}>
                                 {stat.value}
                             </p>
                         </div>
