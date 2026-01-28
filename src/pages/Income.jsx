@@ -430,29 +430,31 @@ const Income = () => {
                         </div>
 
                         {/* Filter Button */}
-                        <button
-                            className="btn glass w-full"
-                            onClick={() => {
-                                setShowBottomSheet(false);
-                                setShowFilterModal(true);
-                            }}
-                            style={{
-                                background: hasActiveFilters ? 'hsl(var(--accent-primary) / 0.2)' : undefined,
-                                borderColor: hasActiveFilters ? 'hsl(var(--accent-primary))' : undefined,
-                                justifyContent: 'center'
-                            }}
-                        >
-                            <Filter size={18} /> Filtrar {hasActiveFilters && `(${Object.values(activeFilters).filter(v => v).length})`}
-                        </button>
+                        <div className="flex gap-3 mt-4">
+                            {/* Filter Button */}
+                            <button
+                                className="btn glass flex-1"
+                                onClick={() => {
+                                    setShowBottomSheet(false);
+                                    setShowFilterModal(true);
+                                }}
+                                style={{
+                                    background: hasActiveFilters ? 'hsl(var(--accent-primary) / 0.2)' : undefined,
+                                    borderColor: hasActiveFilters ? 'hsl(var(--accent-primary))' : undefined,
+                                    justifyContent: 'center'
+                                }}
+                            >
+                                <Filter size={18} /> Filtrar {hasActiveFilters && `(${Object.values(activeFilters).filter(v => v).length})`}
+                            </button>
 
-                        {/* Close Button */}
-                        <button
-                            className="btn btn-primary w-full"
-                            onClick={() => setShowBottomSheet(false)}
-                            style={{ marginTop: '1rem' }}
-                        >
-                            Listo
-                        </button>
+                            {/* Close Button */}
+                            <button
+                                className="btn btn-primary flex-1"
+                                onClick={() => setShowBottomSheet(false)}
+                            >
+                                Listo
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
