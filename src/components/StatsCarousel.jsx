@@ -11,7 +11,10 @@ const StatsCarousel = ({ stats }) => {
                 paddingLeft: '1.25rem', // px-5
                 paddingRight: '1.25rem',
                 scrollbarWidth: 'none', // Firefox
-                msOverflowStyle: 'none' // IE/Edge
+                msOverflowStyle: 'none', // IE/Edge
+                display: 'flex',
+                flexWrap: 'nowrap',
+                whiteSpace: 'nowrap'
             }}
         >
             {stats.map((stat, index) => (

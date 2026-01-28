@@ -295,14 +295,6 @@ const Expenses = () => {
                     </button>
                 </div>
 
-                {/* Mobile Chart Section - Only shows on mobile */}
-                {mobileChartData.length > 0 && (
-                    <MobileChartSection
-                        data={mobileChartData}
-                        totalValue={totalSpent}
-                    />
-                )}
-
                 {/* Layout Grid: Gráfica a la izquierda, Tabla a la derecha */}
                 <div className="expenses-grid" style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '1.5rem', alignItems: 'start' }}>
                     {/* Gráfica de Gastos por Categoría */}

@@ -243,15 +243,6 @@ const Income = () => {
                     </button>
                 </div>
 
-                {/* Mobile Chart Section */}
-                {mobileChartData.length > 0 && (
-                    <MobileChartSection
-                        data={mobileChartData}
-                        totalValue={totalIncome}
-                        colors={['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444']}
-                    />
-                )}
-
                 <Card>
                     <div className="table-container">
                         <table className="w-full">
