@@ -24,28 +24,7 @@ router.get('/test-telegram/:chatId', async (req, res) => {
     }
 });
 
-// Debug route to see all reminders
-router.get('/debug-reminders', async (req, res) => {
-    try {
-        const ReminderConfig = (await import('../models/ReminderConfig.js')).default;
-        const reminders = await ReminderConfig.find({}).populate('user', 'name email');
 
-        const now = new Date();
-        const peruTime = new Date(now.getTime() - (5 * 60 * 60 * 1000));
-        const peruTimeFormatted = `${String(peruTime.getHours()).padStart(2, '0')}:${String(peruTime.getMinutes()).padStart(2, '0')}`;
-
-        res.json({
-            count: reminders.length,
-            reminders: reminders,
-            currentServerTime: now.toISOString(),
-            currentServerTimeFormatted: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
-            currentPeruTime: peruTime.toISOString(),
-            currentPeruTimeFormatted: peruTimeFormatted
-        });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
 
 // Debug route to check user linkage
 router.get('/check-user-link/:chatId', async (req, res) => {
