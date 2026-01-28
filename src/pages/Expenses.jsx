@@ -392,51 +392,70 @@ const Expenses = () => {
                                     {filteredExpenses.map((expense) => (
                                         <div
                                             key={expense._id}
-                                            className="glass p-4 rounded-2xl"
+                                            className="glass p-4 rounded-2xl mb-2"
                                             style={{
                                                 display: 'flex',
                                                 flexDirection: 'row',
                                                 justifyContent: 'space-between',
                                                 alignItems: 'center',
-                                                gap: '12px',
-                                                background: 'rgba(255, 255, 255, 0.03)',
-                                                border: '1px solid rgba(255, 255, 255, 0.05)'
+                                                gap: '12px'
                                             }}
                                         >
                                             {/* Left: Info */}
                                             <div style={{ minWidth: 0, flex: 1 }}>
-                                                <p className="font-bold text-white truncate" style={{ fontSize: '1rem', marginBottom: '4px' }}>
+                                                <p className="font-semibold text-white truncate" style={{ fontSize: '0.95rem', marginBottom: '2px' }}>
                                                     {expense.description}
                                                 </p>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-xs px-2 py-1 rounded-full bg-white/10 text-secondary">
-                                                        {expense.category}
-                                                    </span>
-                                                    <span className="text-secondary text-xs">
-                                                        {new Date(expense.date).toLocaleDateString()}
-                                                    </span>
-                                                </div>
+                                                <p className="text-secondary truncate" style={{ fontSize: '0.75rem' }}>
+                                                    {expense.date} • {expense.category}
+                                                </p>
                                             </div>
 
                                             {/* Right: Amount + Actions */}
-                                            <div className="flex flex-col items-end gap-2">
-                                                <p className="text-danger font-bold text-lg">
+                                            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                                                <p className="text-danger font-bold" style={{ fontSize: '0.95rem', whiteSpace: 'nowrap', marginRight: '4px' }}>
                                                     -S/ {expense.amount.toFixed(0)}
                                                 </p>
-                                                <div className="flex gap-1">
-                                                    <button
-                                                        onClick={() => handleEdit(expense)}
-                                                        className="p-2 rounded-lg hover:bg-white/10 text-secondary transition-colors"
-                                                    >
-                                                        <Edit2 size={18} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(expense._id)}
-                                                        className="p-2 rounded-lg hover:bg-white/10 text-danger transition-colors"
-                                                    >
-                                                        <Trash2 size={18} />
-                                                    </button>
-                                                </div>
+
+                                                <button
+                                                    onClick={() => handleEdit(expense)}
+                                                    style={{
+                                                        background: 'transparent',
+                                                        border: 'none',
+                                                        boxShadow: 'none',
+                                                        padding: '8px',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        minWidth: '36px',
+                                                        minHeight: '36px',
+                                                        color: 'hsl(var(--accent-secondary))'
+                                                    }}
+                                                    aria-label="Editar"
+                                                >
+                                                    <Edit2 size={20} strokeWidth={1.5} />
+                                                </button>
+
+                                                <button
+                                                    onClick={() => handleDelete(expense._id)}
+                                                    style={{
+                                                        background: 'transparent',
+                                                        border: 'none',
+                                                        boxShadow: 'none',
+                                                        padding: '8px',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        minWidth: '36px',
+                                                        minHeight: '36px',
+                                                        color: 'hsl(var(--accent-danger))'
+                                                    }}
+                                                    aria-label="Eliminar"
+                                                >
+                                                    <Trash2 size={20} strokeWidth={1.5} />
+                                                </button>
                                             </div>
                                         </div>
                                     ))}
