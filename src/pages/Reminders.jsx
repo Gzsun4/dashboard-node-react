@@ -48,7 +48,7 @@ const Reminders = () => {
 
             if (response.ok) {
                 setOriginalId(telegramChatId);
-                setToast({ message: '✅ ¡Telegram vinculado correctamente!', type: 'success' });
+                setToast({ message: 'Actualizado con éxito', type: 'success' });
             } else {
                 setToast({ message: '❌ Error al guardar', type: 'error' });
             }
@@ -84,7 +84,7 @@ const Reminders = () => {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
                     <Card className="transform transition-all duration-300 hover:shadow-lg border-t-4 border-t-blue-500">
                         <div className="mb-6">
                             <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
@@ -104,17 +104,12 @@ const Reminders = () => {
                                 <div className="relative">
                                     <input
                                         type="text"
-                                        className={`input-field w-full pl-10 transition-all duration-300 ${isLinked ? 'border-green-500/50 bg-green-500/5' : ''
+                                        className={`input-field w-full transition-all duration-300 ${isLinked ? 'border-green-500/50 bg-green-500/5' : ''
                                             }`}
                                         placeholder="Ej: 123456789"
                                         value={telegramChatId}
                                         onChange={(e) => setTelegramChatId(e.target.value.replace(/\D/g, ''))}
                                         required
-                                    />
-                                    <Hash
-                                        size={18}
-                                        className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors ${isLinked ? 'text-green-500' : 'text-gray-400'
-                                            }`}
                                     />
                                     {isLinked && (
                                         <CheckCircle
@@ -133,7 +128,7 @@ const Reminders = () => {
                                 type="submit"
                                 disabled={!hasChanges || isSaving}
                                 className={`btn w-full justify-center gap-2 shadow-lg transition-all duration-300 ${isSaving ? 'opacity-70 cursor-wait' :
-                                        hasChanges ? 'btn-primary translate-y-0' : 'btn-secondary opacity-50'
+                                    hasChanges ? 'btn-primary translate-y-0' : 'btn-secondary opacity-50'
                                     }`}
                             >
                                 {isSaving ? (
