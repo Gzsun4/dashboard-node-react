@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
-import { Trash2, Shield, User, Key, Menu } from 'lucide-react';
+import { Shield, User, Key, Menu } from 'lucide-react';
 import MobileMenuButton from '../components/MobileMenuButton';
+import CustomTrashIcon from '../components/CustomTrashIcon';
 
 const AdminUsers = () => {
     const [users, setUsers] = useState([]);
@@ -193,7 +194,7 @@ const AdminUsers = () => {
                                                             className="p-2 text-danger hover:bg-danger-soft rounded-lg transition-colors group"
                                                             title="Eliminar Usuario"
                                                         >
-                                                            <Trash2 size={18} />
+                                                            <CustomTrashIcon size={18} />
                                                         </button>
                                                     )}
                                                 </div>
@@ -250,7 +251,7 @@ const AdminUsers = () => {
                                                 className="p-3 text-danger active:scale-95 transition-all flex-center"
                                                 style={{ background: 'transparent', minWidth: '44px', minHeight: '44px' }}
                                             >
-                                                <Trash2 size={18} />
+                                                <CustomTrashIcon size={18} />
                                             </button>
                                         )}
                                     </div>

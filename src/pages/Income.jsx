@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import Card from '../components/Card';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Search, Filter, X, Edit2, Trash2, Menu } from 'lucide-react';
+import { Plus, Search, Filter, X, Menu } from 'lucide-react';
 import MobileMenuButton from '../components/MobileMenuButton';
+import CustomPencilIcon from '../components/CustomPencilIcon';
+import CustomTrashIcon from '../components/CustomTrashIcon';
 
 const Income = () => {
     const { token } = useAuth();
@@ -258,7 +260,7 @@ const Income = () => {
                                                             justifyContent: 'center'
                                                         }}
                                                     >
-                                                        <Edit2 size={16} />
+                                                        <CustomPencilIcon size={16} />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(income._id)}
@@ -274,7 +276,7 @@ const Income = () => {
                                                             justifyContent: 'center'
                                                         }}
                                                     >
-                                                        <Trash2 size={16} />
+                                                        <CustomTrashIcon size={16} />
                                                     </button>
                                                 </div>
                                             </td>
@@ -336,7 +338,7 @@ const Income = () => {
                                             }}
                                             aria-label="Editar"
                                         >
-                                            <Edit2 size={20} strokeWidth={1.5} />
+                                            <CustomPencilIcon size={20} strokeWidth={1.5} />
                                         </button>
 
                                         <button
@@ -356,7 +358,7 @@ const Income = () => {
                                             }}
                                             aria-label="Eliminar"
                                         >
-                                            <Trash2 size={20} strokeWidth={1.5} />
+                                            <CustomTrashIcon size={20} strokeWidth={1.5} />
                                         </button>
                                     </div>
                                 </div>
@@ -549,7 +551,7 @@ const Income = () => {
                                     Cancelar
                                 </button>
                                 <button type="submit" className="btn btn-primary">
-                                    {editingId ? <><Edit2 size={18} /> Actualizar</> : <><Plus size={18} /> Agregar</>}
+                                    {editingId ? <><CustomPencilIcon size={18} /> Actualizar</> : <><Plus size={18} /> Agregar</>}
                                 </button>
                             </div>
                         </form>

@@ -1,8 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Card from '../components/Card';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Search, Filter, X, Edit2, Trash2, Menu } from 'lucide-react';
+import { Plus, Search, Filter, X, Menu } from 'lucide-react';
 import MobileMenuButton from '../components/MobileMenuButton';
+import CustomPencilIcon from '../components/CustomPencilIcon';
+import CustomTrashIcon from '../components/CustomTrashIcon';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 const Expenses = () => {
@@ -360,7 +362,7 @@ const Expenses = () => {
                                                                 justifyContent: 'center'
                                                             }}
                                                         >
-                                                            <Edit2 size={16} />
+                                                            <CustomPencilIcon size={16} />
                                                         </button>
                                                         <button
                                                             onClick={() => handleDelete(expense._id)}
@@ -376,7 +378,7 @@ const Expenses = () => {
                                                                 justifyContent: 'center'
                                                             }}
                                                         >
-                                                            <Trash2 size={16} />
+                                                            <CustomTrashIcon size={16} />
                                                         </button>
                                                     </div>
                                                 </td>
@@ -440,7 +442,7 @@ const Expenses = () => {
                                                     }}
                                                     aria-label="Editar"
                                                 >
-                                                    <Edit2 size={20} strokeWidth={1.5} />
+                                                    <CustomPencilIcon size={20} strokeWidth={1.5} />
                                                 </button>
 
                                                 <button
@@ -460,7 +462,7 @@ const Expenses = () => {
                                                     }}
                                                     aria-label="Eliminar"
                                                 >
-                                                    <Trash2 size={20} strokeWidth={1.5} />
+                                                    <CustomTrashIcon size={20} strokeWidth={1.5} />
                                                 </button>
                                             </div>
                                         </div>

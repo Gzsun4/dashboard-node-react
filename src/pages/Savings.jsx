@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import Card from '../components/Card';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Target, Car, Home, Smartphone, X, Edit2, Trash2, History, DollarSign, Menu } from 'lucide-react';
+import { Plus, Target, Car, Home, Smartphone, X, History, DollarSign, Menu } from 'lucide-react';
 import MobileMenuButton from '../components/MobileMenuButton';
+import CustomPencilIcon from '../components/CustomPencilIcon';
+import CustomTrashIcon from '../components/CustomTrashIcon';
 
 const Savings = () => {
     const { token } = useAuth();
@@ -318,14 +320,14 @@ const Savings = () => {
                                                 className="btn-icon"
                                                 title="Editar"
                                             >
-                                                <Edit2 size={20} />
+                                                <CustomPencilIcon size={20} />
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(goal._id)}
                                                 className="btn-icon btn-icon-danger"
                                                 title="Eliminar"
                                             >
-                                                <Trash2 size={20} />
+                                                <CustomTrashIcon size={20} />
                                             </button>
                                         </div>
                                     </div>
@@ -465,7 +467,7 @@ const Savings = () => {
                                     Cancelar
                                 </button>
                                 <button type="submit" className="btn btn-primary">
-                                    {editingId ? <><Edit2 size={18} /> Actualizar</> : <><Plus size={18} /> Crear Meta</>}
+                                    {editingId ? <><CustomPencilIcon size={18} /> Actualizar</> : <><Plus size={18} /> Crear Meta</>}
                                 </button>
                             </div>
                         </form>
@@ -559,13 +561,13 @@ const Savings = () => {
                                                             onClick={() => handleEditHistory(originalIndex, entry)}
                                                             className="text-secondary p-1 hover:bg-white/10 rounded"
                                                         >
-                                                            <Edit2 size={14} />
+                                                            <CustomPencilIcon size={14} />
                                                         </button>
                                                         <button
                                                             onClick={() => handleDeleteHistory(originalIndex, entry.amount)}
                                                             className="text-danger p-1 hover:bg-white/10 rounded"
                                                         >
-                                                            <Trash2 size={14} />
+                                                            <CustomTrashIcon size={14} />
                                                         </button>
                                                     </>
                                                 )}
