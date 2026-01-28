@@ -7,36 +7,49 @@ const StatsCard = ({ title, value, icon, colorClass }) => {
             className="snap-center glass-card"
             style={{
                 minWidth: '10px',
-                padding: '1rem',
+                padding: '1.25rem 1rem', // More vertical padding, balanced horizontal
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '0.75rem',
-                justifyContent: 'space-between',
-                borderRadius: '3rem', // var(--radius-lg * 2)
+                gap: '0.5rem',
+                alignItems: 'center', // Center content horizontally
+                justifyContent: 'center', // Center content vertically
+                textAlign: 'center', // Center text
+                borderRadius: '3rem',
                 background: 'hsl(var(--bg-secondary) / 0.7)'
             }}
         >
-            <div className="flex justify-between items-start">
+            <div className="flex justify-center items-center mb-2">
                 <div
                     style={{
-                        padding: '0.625rem',
-                        borderRadius: '9999px',
+                        padding: '0.75rem',
+                        borderRadius: '50%', // Circle shape
                         display: 'inline-flex',
-                        background: `${colorClass}20`, // 20 opacity hex approximation if colorClass is hex
-                        // Si colorClass es una clase como 'bg-green-500', esto fallará sin tailwind.
-                        // Asumiremos que colorClass podría ser una clase o un color.
-                        // El usuario usaba 'bg-green-500/10'.
-                        // Adaptaré para que el componente padre pase el color real o estilo.
+                        background: `${colorClass}20`,
+                        color: colorClass
                     }}
                     className={colorClass && !colorClass.startsWith('#') ? colorClass : ''}
                 >
-                    {/* Si colorClass es hex, lo aplicamos al style. Si es clase, arriba. */}
-                    {React.cloneElement(icon, { size: 20 })}
+                    {React.cloneElement(icon, { size: 22 })}
                 </div>
             </div>
-            <div>
-                <p className="text-muted" style={{ fontSize: '0.75rem', fontWeight: 500, marginBottom: '0.25rem' }}>{title}</p>
-                <h3 className="text-white truncate" style={{ fontSize: '1.25rem', fontWeight: 700 }}>{value}</h3>
+            <div className="flex flex-col items-center justify-center w-full">
+                <p className="text-muted" style={{
+                    fontSize: '0.7rem',
+                    fontWeight: 500,
+                    marginBottom: '0.25rem',
+                    lineHeight: '1.1',
+                    opacity: 0.8
+                }}>
+                    {title}
+                </p>
+                <h3 className="text-white" style={{
+                    fontSize: '1.1rem',
+                    fontWeight: 700,
+                    lineHeight: '1.2',
+                    wordBreak: 'break-word' // Prevent overflow
+                }}>
+                    {value}
+                </h3>
             </div>
         </div>
     );
