@@ -210,12 +210,18 @@ const Expenses = () => {
                     </div>
                     <button
                         className="btn text-white"
-                        style={{ background: 'linear-gradient(135deg, hsl(var(--accent-danger)), #ff6b6b)' }}
+                        style={{
+                            background: 'linear-gradient(135deg, hsl(var(--accent-danger)), #ff6b6b)',
+                            padding: '0.5rem 0.75rem',
+                            fontSize: '0.875rem',
+                            height: 'auto',
+                            minHeight: '32px'
+                        }}
                         onClick={() => setShowModal(true)}
                     >
-                        <Plus size={18} />
+                        <Plus size={16} />
                         <span className="hidden-mobile">Nuevo Gasto</span>
-                        <span className="hidden-desktop">Agregar</span>
+                        <span className="hidden-desktop" style={{ fontSize: '0.8rem' }}>Agregar</span>
                     </button>
                 </div>
 

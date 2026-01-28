@@ -178,10 +178,19 @@ const Income = () => {
                             <p className="page-subtitle hidden-mobile">Gestiona tus fuentes de ingresos.</p>
                         </div>
                     </div>
-                    <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-                        <Plus size={18} />
+                    <button
+                        className="btn btn-primary"
+                        onClick={() => setShowModal(true)}
+                        style={{
+                            padding: '0.5rem 0.75rem',
+                            fontSize: '0.875rem',
+                            height: 'auto',
+                            minHeight: '32px'
+                        }}
+                    >
+                        <Plus size={16} />
                         <span className="hidden-mobile">Nuevo Ingreso</span>
-                        <span className="hidden-desktop">Agregar</span>
+                        <span className="hidden-desktop" style={{ fontSize: '0.8rem' }}>Agregar</span>
                     </button>
                 </div>
 
