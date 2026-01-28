@@ -231,12 +231,12 @@ const Expenses = () => {
                 </div>
 
                 {/* Layout Grid: Gráfica a la izquierda, Tabla a la derecha */}
-                <div className="expenses-grid" style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '1.5rem', alignItems: 'start' }}>
+                <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 items-start">
                     {/* Gráfica de Gastos por Categoría */}
                     {chartData.length > 0 && (
-                        <Card style={{ position: 'sticky', top: '2rem' }}>
-                            <h3 className="mb-4" style={{ fontSize: '1.1rem', fontWeight: 700 }}>Gastos por Categoría</h3>
-                            <div className="chart-height-mobile" style={{ width: '100%', height: '280px' }}>
+                        <Card className="sticky top-8">
+                            <h3 className="mb-4 text-lg font-bold">Gastos por Categoría</h3>
+                            <div className="w-full h-[280px]">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie
@@ -268,9 +268,9 @@ const Expenses = () => {
                             </div>
 
                             {/* Resumen de totales */}
-                            <div className="mt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem' }}>
+                            <div className="mt-4 border-t border-white/10 pt-4">
                                 {chartData.map((item, index) => (
-                                    <div key={index} className="flex justify-between mb-2" style={{ fontSize: '0.85rem' }}>
+                                    <div key={index} className="flex justify-between mb-2 text-sm">
                                         <div className="flex items-center gap-2">
                                             <div style={{
                                                 width: '10px',
@@ -281,14 +281,10 @@ const Expenses = () => {
                                             }}></div>
                                             <span className="text-secondary">{item.name}</span>
                                         </div>
-                                        <span className="text-white" style={{ fontWeight: 600 }}>S/ {item.value.toFixed(2)}</span>
+                                        <span className="text-white font-semibold">S/ {item.value.toFixed(2)}</span>
                                     </div>
                                 ))}
-                                <div className="flex justify-between mt-3 pt-3" style={{
-                                    borderTop: '1px solid rgba(255,255,255,0.1)',
-                                    fontSize: '0.95rem',
-                                    fontWeight: 700
-                                }}>
+                                <div className="flex justify-between mt-3 pt-3 border-t border-white/10 text-base font-bold">
                                     <span>Total</span>
                                     <span className="text-danger">S/ {totalExpenses.toFixed(2)}</span>
                                 </div>
@@ -296,90 +292,92 @@ const Expenses = () => {
                         </Card>
                     )}
 
-                    {/* Tabla de Gastos */}
-                    <Card>
-                        <div className="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Descripción</th>
-                                        <th>Categoría</th>
-                                        <th>Fecha</th>
-                                        <th className="text-right">Monto</th>
-                                        <th className="text-right">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {loading ? (
-                                        <tr><td colSpan="5" className="text-center p-4">Cargando...</td></tr>
-                                    ) : filteredExpenses.length === 0 ? (
+                    {/* Tabla de Gastos - Hidden on mobile, visible on lg screens */}
+                    <div className="hidden lg:block">
+                        <Card>
+                            <div className="table-container">
+                                <table>
+                                    <thead>
                                         <tr>
-                                            <td colSpan="5" className="text-center text-muted" style={{ padding: '2rem' }}>
-                                                No se encontraron gastos {hasActiveFilters && 'con los filtros aplicados'}
-                                            </td>
+                                            <th>Descripción</th>
+                                            <th>Categoría</th>
+                                            <th>Fecha</th>
+                                            <th className="text-right">Monto</th>
+                                            <th className="text-right">Acciones</th>
                                         </tr>
-                                    ) : (
-                                        filteredExpenses.map((expense) => (
-                                            <tr key={expense._id}>
-                                                <td style={{ fontWeight: 600 }}>{expense.description}</td>
-                                                <td>
-                                                    <span style={{
-                                                        padding: '0.25rem 0.75rem',
-                                                        borderRadius: '99px',
-                                                        fontSize: '0.85rem',
-                                                        background: 'hsl(var(--accent-danger) / 0.15)',
-                                                        color: 'hsl(var(--accent-danger))'
-                                                    }}>
-                                                        {expense.category}
-                                                    </span>
-                                                </td>
-                                                <td className="text-muted">{expense.date}</td>
-                                                <td className="text-right text-danger" style={{ fontWeight: 700 }}>
-                                                    -S/ {expense.amount.toFixed(2)}
-                                                </td>
-                                                <td className="text-right">
-                                                    <div className="flex gap-2 justify-end">
-                                                        <button
-                                                            onClick={() => handleEdit(expense)}
-                                                            style={{
-                                                                background: 'rgba(255,255,255,0.1)',
-                                                                border: 'none',
-                                                                padding: '0.5rem',
-                                                                borderRadius: '0.375rem',
-                                                                cursor: 'pointer',
-                                                                color: 'white',
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                justifyContent: 'center'
-                                                            }}
-                                                        >
-                                                            <Edit2 size={16} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDelete(expense._id)}
-                                                            style={{
-                                                                background: 'rgba(255,255,255,0.1)',
-                                                                border: 'none',
-                                                                padding: '0.5rem',
-                                                                borderRadius: '0.375rem',
-                                                                cursor: 'pointer',
-                                                                color: 'hsl(var(--accent-secondary))',
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                justifyContent: 'center'
-                                                            }}
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
-                                                    </div>
+                                    </thead>
+                                    <tbody>
+                                        {loading ? (
+                                            <tr><td colSpan="5" className="text-center p-4">Cargando...</td></tr>
+                                        ) : filteredExpenses.length === 0 ? (
+                                            <tr>
+                                                <td colSpan="5" className="text-center text-muted" style={{ padding: '2rem' }}>
+                                                    No se encontraron gastos {hasActiveFilters && 'con los filtros aplicados'}
                                                 </td>
                                             </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </Card>
+                                        ) : (
+                                            filteredExpenses.map((expense) => (
+                                                <tr key={expense._id}>
+                                                    <td style={{ fontWeight: 600 }}>{expense.description}</td>
+                                                    <td>
+                                                        <span style={{
+                                                            padding: '0.25rem 0.75rem',
+                                                            borderRadius: '99px',
+                                                            fontSize: '0.85rem',
+                                                            background: 'hsl(var(--accent-danger) / 0.15)',
+                                                            color: 'hsl(var(--accent-danger))'
+                                                        }}>
+                                                            {expense.category}
+                                                        </span>
+                                                    </td>
+                                                    <td className="text-muted">{expense.date}</td>
+                                                    <td className="text-right text-danger" style={{ fontWeight: 700 }}>
+                                                        -S/ {expense.amount.toFixed(2)}
+                                                    </td>
+                                                    <td className="text-right">
+                                                        <div className="flex gap-2 justify-end">
+                                                            <button
+                                                                onClick={() => handleEdit(expense)}
+                                                                style={{
+                                                                    background: 'rgba(255,255,255,0.1)',
+                                                                    border: 'none',
+                                                                    padding: '0.5rem',
+                                                                    borderRadius: '0.375rem',
+                                                                    cursor: 'pointer',
+                                                                    color: 'white',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center'
+                                                                }}
+                                                            >
+                                                                <Edit2 size={16} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDelete(expense._id)}
+                                                                style={{
+                                                                    background: 'rgba(255,255,255,0.1)',
+                                                                    border: 'none',
+                                                                    padding: '0.5rem',
+                                                                    borderRadius: '0.375rem',
+                                                                    cursor: 'pointer',
+                                                                    color: 'hsl(var(--accent-secondary))',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center'
+                                                                }}
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </Card>
+                    </div>
 
                     {/* Mobile Card View for Expenses */}
                     <div className="mobile-card-view lg:hidden">
