@@ -220,7 +220,8 @@ const Expenses = () => {
                         onClick={() => setShowModal(true)}
                     >
                         <Plus className="icon" />
-                        <span>Nuevo Gasto</span>
+                        <span className="hidden-mobile">Nuevo Gasto</span>
+                        <span className="mobile-only-inline" style={{ display: 'none' }}>Agregar</span>
                     </button>
                 </div>
 

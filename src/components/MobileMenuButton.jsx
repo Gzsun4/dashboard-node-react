@@ -22,9 +22,8 @@ const MobileMenuButton = () => {
                 cursor: 'pointer',
                 padding: 0,
                 width: '40px',
-                height: '40px',
-                minWidth: '40px', // Evitar compresión
-                marginLeft: '-1.5rem' // Mantener leve margen negativo para contrarrestar padding contenedor
+                height: '36px', // Mismo alto que botón de acción
+                marginLeft: '-8px' // Margen ligero para compensar padding natural del icono
             }}
         >
             <Menu size={24} />

@@ -183,7 +183,8 @@ const Income = () => {
                         onClick={() => setShowModal(true)}
                     >
                         <Plus className="icon" />
-                        <span>Nuevo Ingreso</span>
+                        <span className="hidden-mobile">Nuevo Ingreso</span>
+                        <span className="mobile-only-inline" style={{ display: 'none' }}>Agregar</span>
                     </button>
                 </div>
 

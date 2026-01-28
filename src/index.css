@@ -71,34 +71,49 @@ html {
 /* Mobile Overrides */
 @media (max-width: 768px) {
   .btn-responsive-action {
-    padding: 0 !important;
-    width: 40px !important;
-    height: 40px !important;
-    min-height: 40px !important;
-    min-width: 40px !important;
-    border-radius: 12px !important;
-    /* Mismo estilo que glass buttons */
+    padding: 0.5rem 0.8rem !important;
+    /* Recuperar padding horizontal */
+    width: auto !important;
+    /* Dejar que crezca para el texto */
+    height: 36px !important;
+    min-height: 36px !important;
+    min-width: auto !important;
+    border-radius: 8px !important;
+    gap: 4px !important;
   }
 
   .btn-responsive-action .icon {
-    width: 20px !important;
-    height: 20px !important;
+    width: 16px !important;
+    height: 16px !important;
     margin: 0 !important;
   }
 
   .btn-responsive-action span {
     display: none !important;
+    /* Ocultar texto desktop por defecto en móvil */
+  }
+
+  .btn-responsive-action .mobile-only-inline {
+    display: inline !important;
+    /* Mostrar texto "Agregar" solo en móvil */
+    font-size: 0.8rem;
   }
 
   /* Layout de Cabecera Móvil 3 Columnas */
   .mobile-header-layout {
     display: flex !important;
     align-items: center !important;
+    /* Centrado vertical crítico */
     justify-content: space-between !important;
     flex-direction: row !important;
     width: 100% !important;
-    gap: 0 !important;
-    margin-bottom: 1.5rem !important;
+    gap: 8px !important;
+    /* Pequeño gap para seguridad */
+    margin-bottom: 2rem !important;
+    height: 48px !important;
+    /* Altura fija para alineación consistente */
+    position: relative;
+    /* Para posicionamiento absoluto si fuera necesario, pero flex es mejor */
   }
 
   .mobile-title-center {
@@ -106,13 +121,21 @@ html {
     display: flex;
     justify-content: center;
     align-items: center;
+    /* Centrado vertical del texto */
     text-align: center;
+    height: 100%;
+    /* Llenar altura del header */
+    transform: translateY(-2px);
+    /* Pequeño ajuste visual óptico si se ve muy abajo */
   }
 
   .mobile-title-center .page-title {
-    font-size: 1.5rem !important;
+    font-size: 1.3rem !important;
+    /* Tamaño legible pero no invasivo */
     margin: 0 !important;
     white-space: nowrap;
+    line-height: 1 !important;
+    padding: 0 !important;
   }
 
   .mobile-title-center .page-subtitle {
