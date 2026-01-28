@@ -14,9 +14,13 @@ const MobileHeader = ({ title, onAddClick, themeColor = 'hsl(var(--accent-primar
                 backdropFilter: 'blur(12px)',
                 WebkitBackdropFilter: 'blur(12px)',
                 borderBottom: 'none', // Remove harsh line
-                marginBottom: '1.5rem',
-                paddingTop: '10px', // Add safe area spacing
-                paddingBottom: '10px'
+                // Layout Fix: Force full width to escape parent padding
+                marginLeft: '-1.5rem',
+                marginRight: '-1.5rem',
+                marginTop: '-2rem', // Pull to very top
+                width: 'calc(100% + 3rem)',
+                padding: '10px 1rem', // 1rem padding places button closer to left edge
+                boxSizing: 'border-box'
             }}
         >
             {/* Botón Menú (Izquierda) */}
