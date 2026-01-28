@@ -9,12 +9,11 @@ const MobileMenuButton = () => {
 
     return (
         <button
-            className="btn-ghost mobile-only mr-3"
+            className="btn-ghost mobile-only hidden-desktop mr-2"
             onClick={toggleSidebar}
             aria-label="Abrir menú"
             style={{
                 padding: '0.5rem',
-                display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: 'white',

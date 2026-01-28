@@ -73,20 +73,21 @@ const Reminders = () => {
     return (
         <>
             <div className="animate-fade-in max-w-4xl mx-auto">
-                <div className="page-header mb-8 text-center sm:text-left">
-                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2">
-                        <div className="w-full flex items-center justify-center sm:justify-start gap-2 relative">
-                            <div className="absolute left-0 sm:static">
-                                <MobileMenuButton />
-                            </div>
+                <div className="page-header mb-8">
+                    <div className="flex items-center gap-2">
+                        <MobileMenuButton />
+                        <div>
                             <h2 className="page-title flex items-center gap-3">
                                 <Send size={32} className="text-blue-500" />
                                 Integración Telegram
                             </h2>
+                            <p className="page-subtitle mt-2 hidden-desktop">
+                                Vincula tu cuenta.
+                            </p>
+                            <p className="page-subtitle mt-2 hidden-mobile">
+                                Vincula tu cuenta para interactuar con nuestro bot y recibir notificaciones.
+                            </p>
                         </div>
-                        <p className="page-subtitle mt-2">
-                            Vincula tu cuenta para interactuar con nuestro bot y recibir notificaciones.
-                        </p>
                     </div>
                 </div>
 
