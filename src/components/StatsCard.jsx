@@ -6,13 +6,13 @@ const StatsCard = ({ title, value, icon, colorClass }) => {
         <div
             className="snap-center glass-card"
             style={{
-                minWidth: '160px',
+                minWidth: '10px',
                 padding: '1rem',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '0.75rem',
                 justifyContent: 'space-between',
-                borderRadius: '1rem', // var(--radius-md)
+                borderRadius: '3rem', // var(--radius-lg * 2)
                 background: 'hsl(var(--bg-secondary) / 0.7)'
             }}
         >
