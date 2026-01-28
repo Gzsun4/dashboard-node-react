@@ -170,28 +170,20 @@ const Income = () => {
     return (
         <>
             <div className="animate-fade-in">
-                <div className="page-header flex justify-between items-center mb-6">
-                    <div className="flex items-center gap-2">
-                        <MobileMenuButton />
-                        <div>
-                            <h2 className="page-title">Ingresos</h2>
-                            <p className="page-subtitle hidden-mobile">Gestiona tus fuentes de ingresos.</p>
-                        </div>
+                <div className="page-header mobile-header-layout">
+                    <MobileMenuButton />
+
+                    <div className="mobile-title-center">
+                        <h2 className="page-title">Ingresos</h2>
+                        <p className="page-subtitle hidden-mobile">Gestiona tus fuentes de ingresos.</p>
                     </div>
+
                     <button
-                        className="btn btn-primary flex items-center gap-1"
+                        className="btn btn-primary btn-responsive-action"
                         onClick={() => setShowModal(true)}
-                        style={{
-                            padding: '0.4rem 0.7rem',
-                            fontSize: '0.8rem',
-                            height: 'auto',
-                            minHeight: '30px',
-                            lineHeight: '1'
-                        }}
                     >
-                        <Plus size={14} />
-                        <span className="hidden-mobile">Nuevo Ingreso</span>
-                        <span className="hidden-desktop" style={{ fontSize: '0.75rem', fontWeight: 500 }}>Agregar</span>
+                        <Plus className="icon" />
+                        <span>Nuevo Ingreso</span>
                     </button>
                 </div>
 

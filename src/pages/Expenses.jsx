@@ -200,29 +200,27 @@ const Expenses = () => {
     return (
         <>
             <div className="animate-fade-in">
-                <div className="page-header flex justify-between items-center mb-6">
-                    <div className="flex items-center gap-2">
-                        <MobileMenuButton />
-                        <div>
-                            <h2 className="page-title">Gastos</h2>
-                            <p className="page-subtitle hidden-mobile">Controla a dónde va tu dinero.</p>
-                        </div>
+                <div className="page-header mobile-header-layout">
+                    {/* Columna Izquierda: Menú */}
+                    <MobileMenuButton />
+
+                    {/* Columna Central: Título */}
+                    <div className="mobile-title-center">
+                        <h2 className="page-title">Gastos</h2>
+                        <p className="page-subtitle hidden-mobile">Controla a dónde va tu dinero.</p>
                     </div>
+
+                    {/* Columna Derecha: Agregar */}
                     <button
-                        className="btn text-white flex items-center gap-1"
+                        className="btn btn-responsive-action text-white"
                         style={{
                             background: 'linear-gradient(135deg, hsl(var(--accent-danger)), #ff6b6b)',
-                            padding: '0.4rem 0.7rem',
-                            fontSize: '0.8rem',
-                            height: 'auto',
-                            minHeight: '30px',
-                            lineHeight: '1'
+                            border: 'none'
                         }}
                         onClick={() => setShowModal(true)}
                     >
-                        <Plus size={14} />
-                        <span className="hidden-mobile">Nuevo Gasto</span>
-                        <span className="hidden-desktop" style={{ fontSize: '0.75rem', fontWeight: 500 }}>Agregar</span>
+                        <Plus className="icon" />
+                        <span>Nuevo Gasto</span>
                     </button>
                 </div>
 

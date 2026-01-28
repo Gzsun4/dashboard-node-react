@@ -243,17 +243,20 @@ const Savings = () => {
     return (
         <>
             <div className="animate-fade-in">
-                <div className="page-header flex justify-between items-center mb-6">
-                    <div className="flex items-center gap-2">
-                        <MobileMenuButton />
-                        <div>
-                            <h2 className="page-title">Ahorros</h2>
-                            <p className="page-subtitle">Visualiza y alcanza tus metas financieras.</p>
-                        </div>
+                <div className="page-header mobile-header-layout">
+                    <MobileMenuButton />
+
+                    <div className="mobile-title-center">
+                        <h2 className="page-title">Ahorros</h2>
+                        <p className="page-subtitle hidden-mobile">Visualiza y alcanza tus metas financieras.</p>
                     </div>
-                    <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-                        <Plus size={18} /> Nueva Meta
-                    </button>
+
+                    {/* Spacer invisible para centrar título en móvil */}
+                    <div className="mobile-spacer hidden-desktop"></div>
+
+                    {/* Botón original oculto o eliminado si se desea quitar funcionalidad de nueva meta visualmente por ahora, 
+                        o mantener solo en desktop. El usuario pidió 'quitar el boton'. Lo eliminaré por completo. */}
+                    <div className="hidden-mobile" style={{ width: '40px' }}></div>
                 </div>
 
                 <div className="savings-grid">

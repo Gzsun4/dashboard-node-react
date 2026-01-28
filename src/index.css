@@ -40,6 +40,98 @@ html {
   /* Scale everything to 125% */
 }
 
+/* ========================================
+   RESPONSIVE HEADER & BUTTON UTILITIES
+   ======================================== */
+
+/* Botón de Acción Responsivo (Agregar) */
+/* Desktop por defecto (o min-width) */
+.btn-responsive-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  height: auto;
+  min-height: 44px;
+  width: auto;
+}
+
+.btn-responsive-action .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-responsive-action span {
+  display: inline;
+}
+
+/* Mobile Overrides */
+@media (max-width: 768px) {
+  .btn-responsive-action {
+    padding: 0 !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    min-width: 40px !important;
+    border-radius: 12px !important;
+    /* Mismo estilo que glass buttons */
+  }
+
+  .btn-responsive-action .icon {
+    width: 20px !important;
+    height: 20px !important;
+    margin: 0 !important;
+  }
+
+  .btn-responsive-action span {
+    display: none !important;
+  }
+
+  /* Layout de Cabecera Móvil 3 Columnas */
+  .mobile-header-layout {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-direction: row !important;
+    width: 100% !important;
+    gap: 0 !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .mobile-title-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .mobile-title-center .page-title {
+    font-size: 1.5rem !important;
+    margin: 0 !important;
+    white-space: nowrap;
+  }
+
+  .mobile-title-center .page-subtitle {
+    display: none !important;
+    /* Ocultar subtítulo en móvil en este layout */
+  }
+
+  /* Spacer para equilibrar cuando no hay botón derecho */
+  .mobile-spacer {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* Ajuste para contenedor padre en móvil */
+  .page-header {
+    align-items: center !important;
+  }
+}
+
 body {
   font-family: var(--font-sans);
   background-color: hsl(var(--bg-primary));

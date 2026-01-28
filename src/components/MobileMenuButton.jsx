@@ -13,15 +13,18 @@ const MobileMenuButton = () => {
             onClick={toggleSidebar}
             aria-label="Abrir menú"
             style={{
-                padding: '0.5rem 0.5rem 0.5rem 0', // Remove left padding from button itself
+                display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: 'white',
                 background: 'transparent',
                 border: 'none',
                 cursor: 'pointer',
-                marginLeft: '-2rem', // More aggressive negative margin
-                marginRight: '0.5rem' // Add some space between button and title
+                padding: 0,
+                width: '40px',
+                height: '40px',
+                minWidth: '40px', // Evitar compresión
+                marginLeft: '-1.5rem' // Mantener leve margen negativo para contrarrestar padding contenedor
             }}
         >
             <Menu size={24} />
