@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import Card from '../components/Card';
 import { useAuth } from '../context/AuthContext';
+import { useCurrency } from '../context/CurrencyContext';
 import { Plus, Target, Car, Home, Smartphone, X, History, DollarSign, TrendingUp, Menu } from 'lucide-react';
 import MobileMenuButton from '../components/MobileMenuButton';
 import CustomPencilIcon from '../components/CustomPencilIcon';
 import CustomTrashIcon from '../components/CustomTrashIcon';
 import MobileHeader from '../components/MobileHeader';
-import StatsCarousel from '../components/StatsCarousel';
+import MobileStatsGrid from '../components/MobileStatsGrid';
 
 const Savings = () => {
     const { token } = useAuth();
+    const { symbol } = useCurrency();
     const [goals, setGoals] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -244,8 +246,8 @@ const Savings = () => {
     const progressTotal = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;
 
     const mobileStats = [
-        { title: "Ahorro Total", value: `S/ ${totalSaved.toLocaleString()}`, icon: <DollarSign className="text-green-500" />, color: "bg-green-500" },
-        { title: "Meta Global", value: `S/ ${totalTarget.toLocaleString()}`, icon: <Target className="text-blue-500" />, color: "bg-blue-500" },
+        { title: "Ahorro Total", value: `${symbol} ${totalSaved.toLocaleString()}`, icon: <DollarSign className="text-white" />, color: "bg-purple-600" },
+        { title: "Meta Global", value: `${symbol} ${totalTarget.toLocaleString()}`, icon: <Target className="text-blue-500" />, color: "bg-blue-500" },
         { title: "Progreso", value: `${progressTotal.toFixed(1)}%`, icon: <TrendingUp className="text-purple-500" />, color: "bg-purple-500" }
     ];
 
@@ -256,10 +258,10 @@ const Savings = () => {
                 <MobileHeader
                     title="Ahorros"
                     // Botón eliminado por solicitud
-                    themeColor="#10b981"
+                    themeColor="#9333ea"
                 />
 
-                <StatsCarousel stats={mobileStats} />
+                <MobileStatsGrid stats={mobileStats} />
 
                 <div className="page-header hidden-mobile">
                     <div className="flex justify-between items-center w-full">
@@ -299,13 +301,13 @@ const Savings = () => {
                                         </div>
                                         <div className="text-right">
                                             <p className="text-sm text-muted">Meta</p>
-                                            <p style={{ fontWeight: 700, fontSize: '1.2rem' }}>S/ {goal.target.toLocaleString()}</p>
+                                            <p style={{ fontWeight: 700, fontSize: '1.2rem' }}>{symbol} {goal.target.toLocaleString()}</p>
                                         </div>
                                     </div>
 
                                     <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>{goal.name}</h3>
                                     <p className="text-secondary mb-6">
-                                        S/ {goal.current.toLocaleString()} <span style={{ fontSize: '0.875rem' }}>acumulados</span>
+                                        {symbol} {goal.current.toLocaleString()} <span style={{ fontSize: '0.875rem' }}>acumulados</span>
                                     </p>
 
                                     <div className="w-full rounded-full overflow-hidden mb-2" style={{ background: 'rgba(255,255,255,0.1)', height: '0.75rem' }}>
@@ -316,7 +318,7 @@ const Savings = () => {
                                     </div>
                                     <div className="flex justify-between text-sm mb-4">
                                         <span className="text-white" style={{ fontWeight: 600 }}>{progress.toFixed(0)}%</span>
-                                        <span className="text-muted">Faltan S/ {(goal.target - goal.current).toLocaleString()}</span>
+                                        <span className="text-muted">Faltan {symbol} {(goal.target - goal.current).toLocaleString()}</span>
                                     </div>
 
                                     <div className="goal-actions">
@@ -329,7 +331,7 @@ const Savings = () => {
                                                 boxShadow: '0 4px 12px rgba(34, 197, 94, 0.4)'
                                             }}
                                         >
-                                            <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>S/.</span>
+                                            <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{symbol}</span>
                                             <span>Depositar</span>
                                         </button>
                                         <div className="goal-secondary-actions">
@@ -581,7 +583,7 @@ const Savings = () => {
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <p className="text-success font-bold">+S/ {entry.amount.toFixed(2)}</p>
+                                                        <p className="text-success font-bold">+{symbol} {entry.amount.toFixed(2)}</p>
                                                         <button
                                                             onClick={() => handleEditHistory(originalIndex, entry)}
                                                             className="text-secondary p-1 hover:bg-white/10 rounded"

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useCurrency } from '../context/CurrencyContext';
 import Card from '../components/Card';
 import { DollarSign, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, ArrowDownRight, Menu } from 'lucide-react';
 import MobileMenuButton from '../components/MobileMenuButton';
@@ -9,6 +10,7 @@ import './Dashboard.css';
 
 const Dashboard = () => {
     const { token } = useAuth();
+    const { symbol } = useCurrency();
     const [stats, setStats] = useState({
         totalIncome: 0,
         totalExpenses: 0,
@@ -111,7 +113,7 @@ const Dashboard = () => {
                     <div className="stat-card-header">
                         <div>
                             <p className="stat-label">Balance Total</p>
-                            <h3 className="stat-value">S/ {stats.balance.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
+                            <h3 className="stat-value">{symbol} {stats.balance.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
                         </div>
                         <div className="stat-icon" style={{ background: 'hsl(var(--accent-primary) / 0.2)', color: 'hsl(var(--accent-primary))' }}>
                             <DollarSign size={20} />
@@ -127,7 +129,7 @@ const Dashboard = () => {
                     <div className="stat-card-header">
                         <div>
                             <p className="stat-label">Ingresos</p>
-                            <h3 className="stat-value">S/ {stats.totalIncome.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
+                            <h3 className="stat-value">{symbol} {stats.totalIncome.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
                         </div>
                         <div className="stat-icon" style={{ background: 'hsl(var(--accent-success) / 0.2)', color: 'hsl(var(--accent-success))' }}>
                             <TrendingUp size={20} />
@@ -143,7 +145,7 @@ const Dashboard = () => {
                     <div className="stat-card-header">
                         <div>
                             <p className="stat-label">Gastos</p>
-                            <h3 className="stat-value">S/ {stats.totalExpenses.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
+                            <h3 className="stat-value">{symbol} {stats.totalExpenses.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
                         </div>
                         <div className="stat-icon" style={{ background: 'hsl(var(--accent-danger) / 0.2)', color: 'hsl(var(--accent-danger))' }}>
                             <TrendingDown size={20} />
@@ -159,7 +161,7 @@ const Dashboard = () => {
                     <div className="stat-card-header">
                         <div>
                             <p className="stat-label">Ahorros</p>
-                            <h3 className="stat-value">S/ {stats.totalSavings.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
+                            <h3 className="stat-value">{symbol} {stats.totalSavings.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
                         </div>
                         <div className="stat-icon" style={{ background: 'hsl(var(--accent-secondary) / 0.2)', color: 'hsl(var(--accent-secondary))' }}>
                             <PiggyBank size={20} />
@@ -188,6 +190,7 @@ const Dashboard = () => {
                                         borderRadius: '0.5rem',
                                         color: 'white'
                                     }}
+                                    formatter={(value) => `${symbol} ${value.toLocaleString('es-PE', { minimumFractionDigits: 2 })}`}
                                 />
                                 <Bar dataKey="income" fill="hsl(var(--accent-success))" radius={[8, 8, 0, 0]} />
                                 <Bar dataKey="expense" fill="hsl(var(--accent-danger))" radius={[8, 8, 0, 0]} />
@@ -230,7 +233,7 @@ const Dashboard = () => {
                                             whiteSpace: 'nowrap',
                                             marginLeft: '0.5rem'
                                         }}>
-                                            {transaction.type === 'income' ? '+' : '-'}S/ {transaction.amount.toFixed(2)}
+                                            {transaction.type === 'income' ? '+' : '-'}{symbol} {transaction.amount.toFixed(2)}
                                         </p>
                                     </div>
                                 </div>

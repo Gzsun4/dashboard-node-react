@@ -3,7 +3,8 @@ const router = express.Router();
 import {
     getIncomes, createIncome, updateIncome, deleteIncome,
     getExpenses, createExpense, updateExpense, deleteExpense,
-    getGoals, createGoal, updateGoal, deleteGoal
+    getGoals, createGoal, updateGoal, deleteGoal,
+    getDebts, createDebt, updateDebt, deleteDebt
 } from '../controllers/dataController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -16,5 +17,8 @@ router.route('/expenses/:id').put(protect, updateExpense).delete(protect, delete
 
 router.route('/goals').get(protect, getGoals).post(protect, createGoal);
 router.route('/goals/:id').put(protect, updateGoal).delete(protect, deleteGoal);
+
+router.route('/debts').get(protect, getDebts).post(protect, createDebt);
+router.route('/debts/:id').put(protect, updateDebt).delete(protect, deleteDebt);
 
 export default router;

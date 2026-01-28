@@ -2,6 +2,7 @@ import asyncHandler from 'express-async-handler';
 import Income from '../models/Income.js';
 import Expense from '../models/Expense.js';
 import Goal from '../models/Goal.js';
+import Debt from '../models/Debt.js';
 
 // --- INCOMES ---
 const getIncomes = asyncHandler(async (req, res) => {
@@ -106,8 +107,43 @@ const deleteGoal = asyncHandler(async (req, res) => {
     res.status(200).json({ id: req.params.id });
 });
 
+// --- DEBTS ---
+const getDebts = asyncHandler(async (req, res) => {
+    const debts = await Debt.find({ user: req.user.id });
+    res.json(debts);
+});
+
+const createDebt = asyncHandler(async (req, res) => {
+    const { name, target, current, color, deadline } = req.body;
+    if (!name || !target) {
+        res.status(400);
+        throw new Error('Please add required fields');
+    }
+    const debt = await Debt.create({
+        name, target, current, color, deadline, user: req.user.id
+    });
+    res.status(200).json(debt);
+});
+
+const updateDebt = asyncHandler(async (req, res) => {
+    const debt = await Debt.findById(req.params.id);
+    if (!debt) { res.status(404); throw new Error('Debt not found'); }
+    if (debt.user.toString() !== req.user.id) { res.status(401); throw new Error('User not authorized'); }
+    const updatedDebt = await Debt.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.status(200).json(updatedDebt);
+});
+
+const deleteDebt = asyncHandler(async (req, res) => {
+    const debt = await Debt.findById(req.params.id);
+    if (!debt) { res.status(404); throw new Error('Debt not found'); }
+    if (debt.user.toString() !== req.user.id) { res.status(401); throw new Error('User not authorized'); }
+    await debt.deleteOne();
+    res.status(200).json({ id: req.params.id });
+});
+
 export {
     getIncomes, createIncome, updateIncome, deleteIncome,
     getExpenses, createExpense, updateExpense, deleteExpense,
-    getGoals, createGoal, updateGoal, deleteGoal
+    getGoals, createGoal, updateGoal, deleteGoal,
+    getDebts, createDebt, updateDebt, deleteDebt
 };

@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Card from '../components/Card';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Search, Filter, X, Menu, DollarSign, TrendingUp, PieChart as PieIcon, Coffee, Car, Zap, Film, ShoppingBag, HeartPulse } from 'lucide-react';
+import { useCurrency } from '../context/CurrencyContext';
+import { Plus, Search, Filter, X, Menu, DollarSign, TrendingUp, PieChart as PieIcon, Coffee, Car, Zap, Film, ShoppingBag, HeartPulse, Edit2 } from 'lucide-react';
 import MobileMenuButton from '../components/MobileMenuButton';
 import CustomPencilIcon from '../components/CustomPencilIcon';
 import CustomTrashIcon from '../components/CustomTrashIcon';
@@ -9,9 +10,12 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import MobileHeader from '../components/MobileHeader';
 import MobileStatsGrid from '../components/MobileStatsGrid';
 import MobileChartSection from '../components/MobileChartSection';
+import TransactionItem from '../components/TransactionItem';
+import TransactionList from '../components/TransactionList';
 
 const Expenses = () => {
     const { token } = useAuth();
+    const { symbol } = useCurrency();
     const [expenses, setExpenses] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -176,7 +180,7 @@ const Expenses = () => {
         }
 
         return matches;
-    });
+    }).sort((a, b) => new Date(b.date) - new Date(a.date));
 
     // Calcular datos para la gráfica
     const chartData = useMemo(() => {
@@ -232,7 +236,7 @@ const Expenses = () => {
     };
 
     const mobileStats = [
-        { title: "Gasto Total", value: `S/ ${totalSpent.toFixed(2)}`, icon: <DollarSign className="text-white" />, color: "bg-red-500" },
+        { title: "Gasto Total", value: `${symbol} ${totalSpent.toFixed(2)}`, icon: <DollarSign className="text-white" />, color: "bg-red-500" },
         { title: "Categoría Top", value: topCategory, icon: <TrendingUp className="text-[#ff4d6d]" />, color: "bg-[#ff4d6d]" },
         { title: "Movimientos", value: expenses.length.toString(), icon: <PieIcon className="text-blue-500" />, color: "bg-blue-500" }
     ];
@@ -296,10 +300,11 @@ const Expenses = () => {
                 </div>
 
                 {/* Layout Grid: Gráfica a la izquierda, Tabla a la derecha */}
+                {/* Layout Grid: Gráfica a la izquierda, Tabla a la derecha */}
                 <div className="expenses-grid" style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '1.5rem', alignItems: 'start' }}>
                     {/* Gráfica de Gastos por Categoría */}
                     {chartData.length > 0 && (
-                        <Card style={{ position: 'sticky', top: '2rem' }}>
+                        <Card>
                             <h3 className="mb-4" style={{ fontSize: '1.1rem', fontWeight: 700 }}>Gastos por Categoría</h3>
                             <div className="chart-height-mobile" style={{ width: '100%', height: '280px' }}>
                                 <ResponsiveContainer width="100%" height="100%">
@@ -319,7 +324,7 @@ const Expenses = () => {
                                             ))}
                                         </Pie>
                                         <Tooltip
-                                            formatter={(value) => `S/ ${value.toFixed(2)}`}
+                                            formatter={(value) => `${symbol} ${value.toFixed(2)}`}
                                             contentStyle={{
                                                 backgroundColor: 'rgba(30, 35, 55, 0.95)',
                                                 border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -346,7 +351,7 @@ const Expenses = () => {
                                             }}></div>
                                             <span className="text-secondary">{item.name}</span>
                                         </div>
-                                        <span className="text-white" style={{ fontWeight: 600 }}>S/ {item.value.toFixed(2)}</span>
+                                        <span className="text-white" style={{ fontWeight: 600 }}>{symbol} {item.value.toFixed(2)}</span>
                                     </div>
                                 ))}
                                 <div className="flex justify-between mt-3 pt-3" style={{
@@ -355,175 +360,32 @@ const Expenses = () => {
                                     fontWeight: 700
                                 }}>
                                     <span>Total</span>
-                                    <span className="text-danger">S/ {totalExpenses.toFixed(2)}</span>
+                                    <span className="text-danger">{symbol} {totalExpenses.toFixed(2)}</span>
                                 </div>
                             </div>
                         </Card>
-                    )}
+                    )
+                    }
 
                     {/* Tabla de Gastos + Vista Móvil combinadas en una sola Tarjeta */}
                     <Card>
-                        {/* Vista Desktop: Tabla */}
-                        <div className="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Descripción</th>
-                                        <th>Categoría</th>
-                                        <th>Fecha</th>
-                                        <th className="text-right">Monto</th>
-                                        <th className="text-right">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {loading ? (
-                                        <tr><td colSpan="5" className="text-center p-4">Cargando...</td></tr>
-                                    ) : filteredExpenses.length === 0 ? (
-                                        <tr>
-                                            <td colSpan="5" className="text-center text-muted" style={{ padding: '2rem' }}>
-                                                No se encontraron gastos {hasActiveFilters && 'con los filtros aplicados'}
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        filteredExpenses.map((expense) => (
-                                            <tr key={expense._id}>
-                                                <td style={{ fontWeight: 600 }}>{expense.description}</td>
-                                                <td>
-                                                    <span style={{
-                                                        padding: '0.25rem 0.75rem',
-                                                        borderRadius: '99px',
-                                                        fontSize: '0.85rem',
-                                                        background: 'hsl(var(--accent-danger) / 0.15)',
-                                                        color: 'hsl(var(--accent-danger))'
-                                                    }}>
-                                                        {expense.category}
-                                                    </span>
-                                                </td>
-                                                <td className="text-muted">{expense.date}</td>
-                                                <td className="text-right text-danger" style={{ fontWeight: 700 }}>
-                                                    -S/ {expense.amount.toFixed(2)}
-                                                </td>
-                                                <td className="text-right">
-                                                    <div className="flex gap-2 justify-end">
-                                                        <button
-                                                            onClick={() => handleEdit(expense)}
-                                                            style={{
-                                                                background: 'rgba(255,255,255,0.1)',
-                                                                border: 'none',
-                                                                padding: '0.5rem',
-                                                                borderRadius: '0.375rem',
-                                                                cursor: 'pointer',
-                                                                color: 'white',
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                justifyContent: 'center'
-                                                            }}
-                                                        >
-                                                            <CustomPencilIcon size={16} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDelete(expense._id)}
-                                                            style={{
-                                                                background: 'rgba(255,255,255,0.1)',
-                                                                border: 'none',
-                                                                padding: '0.5rem',
-                                                                borderRadius: '0.375rem',
-                                                                cursor: 'pointer',
-                                                                color: 'hsl(var(--accent-secondary))',
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                justifyContent: 'center'
-                                                            }}
-                                                        >
-                                                            <CustomTrashIcon size={16} />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                        <h3 className="mb-4 hidden-mobile" style={{ fontSize: '1.2rem' }}>Historial de Gastos</h3>
 
-                        {/* Vista Móvil: Lista de Tarjetas (Ahora dentro del Card contenedor) */}
-                        <div className="mobile-card-view">
+                        <div className="transaction-list">
                             {loading ? (
                                 <p className="text-center p-4">Cargando...</p>
                             ) : filteredExpenses.length === 0 ? (
-                                <p className="text-center text-muted p-4">No se encontraron gastos</p>
+                                <p className="text-center text-muted p-4">
+                                    No se encontraron gastos {hasActiveFilters && 'con los filtros aplicados'}
+                                </p>
                             ) : (
-                                <div className="flex flex-col gap-3">
-                                    {filteredExpenses.map((expense) => (
-                                        <div
-                                            key={expense._id}
-                                            className="glass p-4 rounded-2xl mb-2"
-                                            style={{
-                                                display: 'flex',
-                                                flexDirection: 'row',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center',
-                                                gap: '12px'
-                                            }}
-                                        >
-                                            {/* Left: Info */}
-                                            <div style={{ minWidth: 0, flex: 1 }}>
-                                                <p className="font-semibold text-white truncate" style={{ fontSize: '0.95rem', marginBottom: '2px' }}>
-                                                    {expense.description}
-                                                </p>
-                                                <p className="text-secondary truncate" style={{ fontSize: '0.75rem' }}>
-                                                    {expense.date} • {expense.category}
-                                                </p>
-                                            </div>
-
-                                            {/* Right: Amount + Actions */}
-                                            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-                                                <p className="text-danger font-bold" style={{ fontSize: '0.95rem', whiteSpace: 'nowrap', marginRight: '4px' }}>
-                                                    -S/ {expense.amount.toFixed(0)}
-                                                </p>
-
-                                                <button
-                                                    onClick={() => handleEdit(expense)}
-                                                    style={{
-                                                        background: 'transparent',
-                                                        border: 'none',
-                                                        boxShadow: 'none',
-                                                        padding: '8px',
-                                                        cursor: 'pointer',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        minWidth: '36px',
-                                                        minHeight: '36px',
-                                                        color: 'hsl(var(--accent-secondary))'
-                                                    }}
-                                                    aria-label="Editar"
-                                                >
-                                                    <CustomPencilIcon size={20} strokeWidth={1.5} />
-                                                </button>
-
-                                                <button
-                                                    onClick={() => handleDelete(expense._id)}
-                                                    style={{
-                                                        background: 'transparent',
-                                                        border: 'none',
-                                                        boxShadow: 'none',
-                                                        padding: '8px',
-                                                        cursor: 'pointer',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        minWidth: '36px',
-                                                        minHeight: '36px',
-                                                        color: 'hsl(var(--accent-danger))'
-                                                    }}
-                                                    aria-label="Eliminar"
-                                                >
-                                                    <CustomTrashIcon size={20} strokeWidth={1.5} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
+                                <div className="space-y-4">
+                                    <TransactionList
+                                        transactions={filteredExpenses}
+                                        onEdit={handleEdit}
+                                        onDelete={handleDelete}
+                                        type="expense"
+                                    />
                                 </div>
                             )}
                         </div>

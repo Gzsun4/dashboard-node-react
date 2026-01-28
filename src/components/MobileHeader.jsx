@@ -10,7 +10,7 @@ const MobileHeader = ({ title, onAddClick, themeColor = 'hsl(var(--accent-primar
                 position: 'sticky',
                 top: 0,
                 zIndex: 50,
-                backgroundColor: 'hsl(var(--bg-primary) / 0.8)', // Blend with background
+                backgroundColor: 'rgba(15, 15, 22, 0.95)', // Increased opacity as requested
                 backdropFilter: 'blur(12px)',
                 WebkitBackdropFilter: 'blur(12px)',
                 borderBottom: 'none', // Remove harsh line

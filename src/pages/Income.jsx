@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Card from '../components/Card';
 import { useAuth } from '../context/AuthContext';
+import { useCurrency } from '../context/CurrencyContext';
 import { Plus, Search, Filter, X, Menu, DollarSign, TrendingUp, PieChart as PieIcon, Briefcase, Lightbulb, Wallet, Activity } from 'lucide-react';
 import MobileMenuButton from '../components/MobileMenuButton';
 import CustomPencilIcon from '../components/CustomPencilIcon';
@@ -8,9 +9,12 @@ import CustomTrashIcon from '../components/CustomTrashIcon';
 import MobileHeader from '../components/MobileHeader';
 import MobileStatsGrid from '../components/MobileStatsGrid';
 import MobileChartSection from '../components/MobileChartSection';
+import TransactionItem from '../components/TransactionItem';
+import TransactionList from '../components/TransactionList';
 
 const Income = () => {
     const { token } = useAuth();
+    const { symbol } = useCurrency();
     const [incomes, setIncomes] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -166,7 +170,7 @@ const Income = () => {
         }
 
         return matches;
-    });
+    }).sort((a, b) => new Date(b.date) - new Date(a.date));
 
     const hasActiveFilters = activeFilters.category || activeFilters.dateFrom || activeFilters.dateTo;
 
@@ -190,7 +194,7 @@ const Income = () => {
     }, [mobileChartData]);
 
     const mobileStats = [
-        { title: "Ingreso Total", value: `S/ ${totalIncome.toFixed(2)}`, icon: <DollarSign className="text-green-500" />, color: "bg-green-500" },
+        { title: "Ingreso Total", value: `${symbol} ${totalIncome.toFixed(2)}`, icon: <DollarSign className="text-green-500" />, color: "bg-green-500" },
         { title: "Fuente Top", value: topCategory, icon: <TrendingUp className="text-blue-500" />, color: "bg-blue-500" },
         { title: "Movimientos", value: incomes.length.toString(), icon: <PieIcon className="text-purple-500" />, color: "bg-purple-500" }
     ];
@@ -242,166 +246,26 @@ const Income = () => {
                         <Filter size={18} /> Filtrar {hasActiveFilters && `(${Object.values(activeFilters).filter(v => v).length})`}
                     </button>
                 </div>
-
+                {/* Tabla de Ingresos + Vista Móvil combinadas en una sola Tarjeta */}
                 <Card>
-                    <div className="table-container">
-                        <table className="w-full">
-                            <thead>
-                                <tr>
-                                    <th>Fuente</th>
-                                    <th>Categoría</th>
-                                    <th>Fecha</th>
-                                    <th className="text-right">Monto</th>
-                                    <th className="text-right">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {loading ? (
-                                    <tr><td colSpan="5" className="text-center p-4">Cargando...</td></tr>
-                                ) : filteredIncomes.length === 0 ? (
-                                    <tr>
-                                        <td colSpan="5" className="text-center text-muted" style={{ padding: '2rem' }}>
-                                            No se encontraron ingresos {hasActiveFilters && 'con los filtros aplicados'}
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    filteredIncomes.map((income) => (
-                                        <tr key={income._id}>
-                                            <td style={{ fontWeight: 600 }}>{income.source}</td>
-                                            <td>
-                                                <span style={{
-                                                    padding: '0.25rem 0.75rem',
-                                                    borderRadius: '99px',
-                                                    fontSize: '0.85rem',
-                                                    background: 'hsl(var(--accent-primary) / 0.15)',
-                                                    color: 'hsl(var(--accent-primary))'
-                                                }}>
-                                                    {income.category}
-                                                </span>
-                                            </td>
-                                            <td className="text-muted">{income.date}</td>
-                                            <td className="text-right text-success" style={{ fontWeight: 700 }}>
-                                                +S/ {income.amount.toFixed(2)}
-                                            </td>
-                                            <td className="text-right">
-                                                <div className="flex gap-2 justify-end">
-                                                    <button
-                                                        onClick={() => handleEdit(income)}
-                                                        style={{
-                                                            background: 'rgba(255,255,255,0.1)',
-                                                            border: 'none',
-                                                            padding: '0.5rem',
-                                                            borderRadius: '0.375rem',
-                                                            cursor: 'pointer',
-                                                            color: 'white',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center'
-                                                        }}
-                                                    >
-                                                        <CustomPencilIcon size={16} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(income._id)}
-                                                        style={{
-                                                            background: 'rgba(255,255,255,0.1)',
-                                                            border: 'none',
-                                                            padding: '0.5rem',
-                                                            borderRadius: '0.375rem',
-                                                            cursor: 'pointer',
-                                                            color: 'hsl(var(--accent-danger))',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center'
-                                                        }}
-                                                    >
-                                                        <CustomTrashIcon size={16} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                    {/* Mobile Card View */}
-                    <div className="mobile-card-view">
+                    <h3 className="mb-4 hidden-mobile" style={{ fontSize: '1.2rem' }}>Historial de Ingresos</h3>
+
+                    <div className="transaction-list">
                         {loading ? (
                             <p className="text-center p-4">Cargando...</p>
                         ) : filteredIncomes.length === 0 ? (
-                            <p className="text-center text-muted p-4">No se encontraron ingresos</p>
+                            <p className="text-center text-muted p-4">
+                                No se encontraron ingresos {hasActiveFilters && 'con los filtros aplicados'}
+                            </p>
                         ) : (
-                            filteredIncomes.map((income) => (
-                                <div
-                                    key={income._id}
-                                    className="glass p-3 rounded-xl mb-2"
-                                    style={{
-                                        display: 'flex',
-                                        flexDirection: 'row',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        gap: '12px'
-                                    }}
-                                >
-                                    {/* Left: Info */}
-                                    <div style={{ minWidth: 0, flex: 1 }}>
-                                        <p className="font-semibold text-white truncate" style={{ fontSize: '0.95rem', marginBottom: '2px' }}>
-                                            {income.source}
-                                        </p>
-                                        <p className="text-secondary truncate" style={{ fontSize: '0.75rem' }}>
-                                            {income.date}
-                                        </p>
-                                    </div>
-
-                                    {/* Right: Amount + Actions */}
-                                    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-                                        <p className="text-success font-bold" style={{ fontSize: '0.95rem', whiteSpace: 'nowrap', marginRight: '4px' }}>
-                                            +S/ {income.amount.toFixed(0)}
-                                        </p>
-
-                                        <button
-                                            onClick={() => handleEdit(income)}
-                                            style={{
-                                                background: 'transparent',
-                                                border: 'none',
-                                                boxShadow: 'none',
-                                                padding: '8px',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                minWidth: '36px',
-                                                minHeight: '36px',
-                                                color: 'hsl(var(--accent-secondary))'
-                                            }}
-                                            aria-label="Editar"
-                                        >
-                                            <CustomPencilIcon size={20} strokeWidth={1.5} />
-                                        </button>
-
-                                        <button
-                                            onClick={() => handleDelete(income._id)}
-                                            style={{
-                                                background: 'transparent',
-                                                border: 'none',
-                                                boxShadow: 'none',
-                                                padding: '8px',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                minWidth: '36px',
-                                                minHeight: '36px',
-                                                color: 'hsl(var(--accent-danger))'
-                                            }}
-                                            aria-label="Eliminar"
-                                        >
-                                            <CustomTrashIcon size={20} strokeWidth={1.5} />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))
+                            <div className="space-y-4">
+                                <TransactionList
+                                    transactions={filteredIncomes}
+                                    onEdit={handleEdit}
+                                    onDelete={handleDelete}
+                                    type="income"
+                                />
+                            </div>
                         )}
                     </div>
                 </Card>

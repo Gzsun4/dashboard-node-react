@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, TrendingUp, TrendingDown, PiggyBank, Wallet, Users, LogOut, Menu, Bell } from 'lucide-react';
+import { useCurrency } from '../context/CurrencyContext';
+import { LayoutDashboard, TrendingUp, TrendingDown, PiggyBank, Wallet, Users, LogOut, Menu, Bell, Repeat, CreditCard } from 'lucide-react';
 import './Sidebar.css';
 
 const HomeIcon = ({ className }) => (
@@ -24,6 +25,7 @@ const TelegramIcon = ({ className }) => (
 
 const Sidebar = ({ isOpen, closeSidebar }) => {
     const { user, logout } = useAuth();
+    const { currency, toggleCurrency } = useCurrency();
     const navigate = useNavigate();
 
     const navItems = [
@@ -31,6 +33,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
         { path: '/income', label: 'Ingresos', icon: TrendingUp },
         { path: '/expenses', label: 'Gastos', icon: TrendingDown },
         { path: '/savings', label: 'Ahorros', icon: PiggyBank },
+        { path: '/debts', label: 'Deudas', icon: CreditCard },
         { path: '/reminders', label: 'Telegram', icon: TelegramIcon },
     ];
 
@@ -77,43 +80,96 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                 </nav>
 
                 <div className="sidebar-footer">
-                    <a
-                        href="https://www.instagram.com/cd_jeesus/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                            fontSize: '0.75em',
-                            opacity: 0.6,
-                            textAlign: 'center',
-                            marginBottom: '1rem',
-                            fontStyle: 'italic',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '6px',
-                            textDecoration: 'none',
-                            color: 'inherit',
-                            transition: 'opacity 0.2s'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-                        onMouseLeave={(e) => e.currentTarget.style.opacity = '0.6'}
-                    >
-                        <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
+                    {/* Footer Actions: Instagram (Left) & Currency Toggle (Right) */}
+                    <div style={{ padding: '0 1rem 1rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <a
+                            href="https://www.instagram.com/cd_jeesus/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                                fontSize: '0.75em',
+                                opacity: 0.6,
+                                fontStyle: 'italic',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                textDecoration: 'none',
+                                color: 'inherit',
+                                transition: 'opacity 0.2s'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.6'}
                         >
-                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-                        </svg>
-                        <span>@cd_jeesus</span>
-                    </a>
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
+                                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                            </svg>
+                            <span>@cd_jeesus</span>
+                        </a>
+
+                        <div
+                            onClick={toggleCurrency}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                padding: '2px',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                borderRadius: '99px',
+                                background: 'rgba(0,0,0,0.3)',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                width: 'fit-content',
+                                height: 'fit-content'
+                            }}
+                        >
+                            <div style={{
+                                padding: '2px 4px',
+                                borderRadius: '99px',
+                                background: currency === 'PEN' ? 'hsl(var(--accent-primary))' : 'transparent',
+                                color: currency === 'PEN' ? 'white' : 'rgba(255,255,255,0.5)',
+                                fontWeight: currency === 'PEN' ? 700 : 500,
+                                fontSize: '0.7rem',
+                                minWidth: '18px',
+                                width: '22px',
+                                height: '22px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                lineHeight: 1,
+                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                            }}>
+                                S/
+                            </div>
+                            <div style={{
+                                padding: '2px 4px',
+                                borderRadius: '99px',
+                                background: currency === 'USD' ? 'hsl(var(--accent-primary))' : 'transparent',
+                                color: currency === 'USD' ? 'white' : 'rgba(255,255,255,0.5)',
+                                fontWeight: currency === 'USD' ? 700 : 500,
+                                fontSize: '0.7rem',
+                                minWidth: '18px',
+                                width: '22px',
+                                height: '22px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                lineHeight: 1,
+                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                            }}>
+                                $
+                            </div>
+                        </div>
+                    </div>
 
                     <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem' }}>
                         <div className="user-profile-container">

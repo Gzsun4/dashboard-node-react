@@ -204,6 +204,8 @@
         width: 280px;
         box-shadow: none;
         padding: 2rem 1.5rem 1.5rem 1.5rem;
+        background: hsl(var(--bg-primary));
+        z-index: 1001;
     }
 
     .sidebar.open {

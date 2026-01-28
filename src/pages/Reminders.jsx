@@ -94,9 +94,9 @@ const Reminders = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-24 items-start">
-                    <Card className="transform transition-all duration-300 hover:shadow-lg border-t-4 border-t-blue-500 p-8 sm:p-10">
-                        <div className="mb-8">
-                            <h3 className="text-2xl font-bold mb-3 flex items-center gap-3">
+                    <Card className="transform transition-all duration-300 hover:shadow-lg border-t-4 border-t-blue-500 p-10 sm:p-14">
+                        <div className="mb-12">
+                            <h3 className="text-2xl font-bold mb-4 flex items-center gap-3">
                                 <Hash className="text-primary" size={28} />
                                 Configurar ID
                             </h3>
@@ -105,9 +105,9 @@ const Reminders = () => {
                             </p>
                         </div>
 
-                        <form onSubmit={handleSave}>
-                            <div className="mb-8 relative group">
-                                <label className="text-sm text-secondary mb-3 block font-semibold uppercase tracking-wider">
+                        <form onSubmit={handleSave} className="flex flex-col gap-16">
+                            <div className="flex flex-col gap-14">
+                                <label className="text-sm text-secondary block font-semibold uppercase tracking-wider">
                                     Telegram Chat ID
                                 </label>
                                 <div className="relative">
@@ -120,14 +120,8 @@ const Reminders = () => {
                                         onChange={(e) => setTelegramChatId(e.target.value.replace(/\D/g, ''))}
                                         required
                                     />
-                                    {isLinked && (
-                                        <CheckCircle
-                                            size={20}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-green-500 animate-pulse"
-                                        />
-                                    )}
                                 </div>
-                                <p className="text-xs text-secondary mt-3 flex items-center gap-1.5">
+                                <p className="text-xs text-secondary flex items-center gap-1.5 pl-1">
                                     <ShieldCheck size={14} />
                                     Solo números permitidos
                                 </p>
