@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import Card from '../components/Card';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Target, Car, Home, Smartphone, X, History, DollarSign, Menu } from 'lucide-react';
+import { Plus, Target, Car, Home, Smartphone, X, History, DollarSign, TrendingUp, Menu } from 'lucide-react';
 import MobileMenuButton from '../components/MobileMenuButton';
 import CustomPencilIcon from '../components/CustomPencilIcon';
 import CustomTrashIcon from '../components/CustomTrashIcon';
+import MobileHeader from '../components/MobileHeader';
+import StatsCarousel from '../components/StatsCarousel';
 
 const Savings = () => {
     const { token } = useAuth();
@@ -21,9 +23,6 @@ const Savings = () => {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
-            // Map icon string to component if needed, or just use generic for now
-            // data.icon will be undefined or simple string. Let's rely on mapping if I save string.
-            // For now let's just use generic Target icon if not specified
             setGoals(data);
             setLoading(false);
         } catch (error) {
@@ -240,23 +239,47 @@ const Savings = () => {
         }
     };
 
+    const totalSaved = goals.reduce((acc, curr) => acc + curr.current, 0);
+    const totalTarget = goals.reduce((acc, curr) => acc + curr.target, 0);
+    const progressTotal = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;
+
+    const mobileStats = [
+        { title: "Ahorro Total", value: `S/ ${totalSaved.toLocaleString()}`, icon: <DollarSign className="text-green-500" />, color: "bg-green-500" },
+        { title: "Meta Global", value: `S/ ${totalTarget.toLocaleString()}`, icon: <Target className="text-blue-500" />, color: "bg-blue-500" },
+        { title: "Progreso", value: `${progressTotal.toFixed(1)}%`, icon: <TrendingUp className="text-purple-500" />, color: "bg-purple-500" }
+    ];
+
     return (
         <>
             <div className="animate-fade-in">
-                <div className="page-header mobile-header-layout">
-                    <MobileMenuButton />
 
-                    <div className="mobile-title-center">
-                        <h2 className="page-title">Ahorros</h2>
-                        <p className="page-subtitle hidden-mobile">Visualiza y alcanza tus metas financieras.</p>
+                <MobileHeader
+                    title="Ahorros"
+                    onAddClick={() => setShowModal(true)}
+                    themeColor="#10b981" // accent-success
+                    label="Nueva Meta"
+                />
+
+                <StatsCarousel stats={mobileStats} />
+
+                <div className="page-header hidden-mobile">
+                    <div className="flex justify-between items-center w-full">
+                        <div>
+                            <h2 className="page-title">Ahorros</h2>
+                            <p className="page-subtitle">Visualiza y alcanza tus metas financieras.</p>
+                        </div>
+                        <button
+                            className="glass-card flex items-center gap-2 px-4 py-2 text-white hover:bg-white/5 transition-colors"
+                            style={{
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                cursor: 'pointer'
+                            }}
+                            onClick={() => setShowModal(true)}
+                        >
+                            <Plus size={18} />
+                            <span>Nueva Meta</span>
+                        </button>
                     </div>
-
-                    {/* Spacer invisible para centrar título en móvil */}
-                    <div className="mobile-spacer hidden-desktop"></div>
-
-                    {/* Botón original oculto o eliminado si se desea quitar funcionalidad de nueva meta visualmente por ahora, 
-                        o mantener solo en desktop. El usuario pidió 'quitar el boton'. Lo eliminaré por completo. */}
-                    <div className="hidden-mobile" style={{ width: '40px' }}></div>
                 </div>
 
                 <div className="savings-grid">

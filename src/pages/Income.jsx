@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Card from '../components/Card';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Search, Filter, X, Menu } from 'lucide-react';
+import { Plus, Search, Filter, X, Menu, DollarSign, TrendingUp, PieChart as PieIcon, Briefcase, Lightbulb, Wallet, Activity } from 'lucide-react';
 import MobileMenuButton from '../components/MobileMenuButton';
 import CustomPencilIcon from '../components/CustomPencilIcon';
 import CustomTrashIcon from '../components/CustomTrashIcon';
+import MobileHeader from '../components/MobileHeader';
+import StatsCarousel from '../components/StatsCarousel';
+import MobileChartSection from '../components/MobileChartSection';
 
 const Income = () => {
     const { token } = useAuth();
@@ -167,25 +170,58 @@ const Income = () => {
 
     const hasActiveFilters = activeFilters.category || activeFilters.dateFrom || activeFilters.dateTo;
 
+    // --- Mobile Stats Logic ---
+    const totalIncome = useMemo(() => incomes.reduce((acc, curr) => acc + curr.amount, 0), [incomes]);
+
+    // categoryData for MobileChartSection
+    const mobileChartData = useMemo(() => {
+        const data = {};
+        incomes.forEach(inc => {
+            data[inc.category] = (data[inc.category] || 0) + inc.amount;
+        });
+        return Object.entries(data)
+            .map(([name, value]) => ({ name, value }))
+            .sort((a, b) => b.value - a.value);
+    }, [incomes]);
+
+    const topCategory = useMemo(() => {
+        if (mobileChartData.length === 0) return 'Ninguna';
+        return mobileChartData[0].name;
+    }, [mobileChartData]);
+
+    const mobileStats = [
+        { title: "Ingreso Total", value: `S/ ${totalIncome.toFixed(2)}`, icon: <DollarSign className="text-green-500" />, color: "bg-green-500" },
+        { title: "Fuente Top", value: topCategory, icon: <TrendingUp className="text-blue-500" />, color: "bg-blue-500" },
+        { title: "Movimientos", value: incomes.length.toString(), icon: <PieIcon className="text-purple-500" />, color: "bg-purple-500" }
+    ];
+
     return (
         <>
             <div className="animate-fade-in">
-                <div className="page-header mobile-header-layout">
-                    <MobileMenuButton />
 
-                    <div className="mobile-title-center">
-                        <h2 className="page-title">Ingresos</h2>
-                        <p className="page-subtitle hidden-mobile">Gestiona tus fuentes de ingresos.</p>
+                <MobileHeader
+                    title="Ingresos"
+                    onAddClick={() => setShowModal(true)}
+                    themeColor="#8b5cf6" // accent-primary approx
+                    label="Agregar"
+                />
+
+                <StatsCarousel stats={mobileStats} />
+
+                <div className="page-header hidden-mobile">
+                    <div className="flex justify-between items-center w-full">
+                        <div>
+                            <h2 className="page-title">Ingresos</h2>
+                            <p className="page-subtitle">Gestiona tus fuentes de ingresos.</p>
+                        </div>
+                        <button
+                            className="btn btn-primary btn-responsive-action"
+                            onClick={() => setShowModal(true)}
+                        >
+                            <Plus className="icon" />
+                            <span className="hidden-mobile">Nuevo Ingreso</span>
+                        </button>
                     </div>
-
-                    <button
-                        className="btn btn-primary btn-responsive-action"
-                        onClick={() => setShowModal(true)}
-                    >
-                        <Plus className="icon" />
-                        <span className="hidden-mobile">Nuevo Ingreso</span>
-                        <span className="mobile-only-inline" style={{ display: 'none' }}>Agregar</span>
-                    </button>
                 </div>
 
                 <div className="mb-6 flex gap-4 search-filter-container">
@@ -206,6 +242,15 @@ const Income = () => {
                         <Filter size={18} /> Filtrar {hasActiveFilters && `(${Object.values(activeFilters).filter(v => v).length})`}
                     </button>
                 </div>
+
+                {/* Mobile Chart Section */}
+                {mobileChartData.length > 0 && (
+                    <MobileChartSection
+                        data={mobileChartData}
+                        totalValue={totalIncome}
+                        colors={['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444']}
+                    />
+                )}
 
                 <Card>
                     <div className="table-container">

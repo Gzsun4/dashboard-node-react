@@ -1,11 +1,14 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Card from '../components/Card';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Search, Filter, X, Menu } from 'lucide-react';
+import { Plus, Search, Filter, X, Menu, DollarSign, TrendingUp, PieChart as PieIcon, Coffee, Car, Zap, Film, ShoppingBag, HeartPulse } from 'lucide-react';
 import MobileMenuButton from '../components/MobileMenuButton';
 import CustomPencilIcon from '../components/CustomPencilIcon';
 import CustomTrashIcon from '../components/CustomTrashIcon';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import MobileHeader from '../components/MobileHeader';
+import StatsCarousel from '../components/StatsCarousel';
+import MobileChartSection from '../components/MobileChartSection';
 
 const Expenses = () => {
     const { token } = useAuth();
@@ -197,32 +200,73 @@ const Expenses = () => {
     const hasActiveFilters = activeFilters.category || activeFilters.dateFrom || activeFilters.dateTo;
     const totalExpenses = chartData.reduce((sum, item) => sum + item.value, 0);
 
+    // --- Mobile Stats Logic ---
+    const totalSpent = useMemo(() => expenses.reduce((acc, curr) => acc + curr.amount, 0), [expenses]);
+
+    // categoryData for MobileChartSection (reuse chartData logic but ensure format matches)
+    const mobileChartData = useMemo(() => {
+        const data = {};
+        expenses.forEach(exp => {
+            data[exp.category] = (data[exp.category] || 0) + exp.amount;
+        });
+        return Object.entries(data)
+            .map(([name, value]) => ({ name, value }))
+            .sort((a, b) => b.value - a.value);
+    }, [expenses]);
+
+    const topCategory = useMemo(() => {
+        if (mobileChartData.length === 0) return 'Ninguna';
+        return mobileChartData[0].name;
+    }, [mobileChartData]);
+
+    const getCategoryIcon = (cat) => {
+        switch (cat) {
+            case 'Comida': return <Coffee size={18} className="text-yellow-400" />;
+            case 'Transporte': return <Car size={18} className="text-blue-400" />;
+            case 'Servicios': return <Zap size={18} className="text-purple-400" />;
+            case 'Entretenimiento': return <Film size={18} className="text-red-400" />;
+            case 'Suscripciones': return <ShoppingBag size={18} className="text-pink-400" />;
+            case 'Salud': return <HeartPulse size={18} className="text-green-400" />;
+            default: return <DollarSign size={18} className="text-gray-400" />;
+        }
+    };
+
+    const mobileStats = [
+        { title: "Gasto Total", value: `S/ ${totalSpent.toFixed(2)}`, icon: <DollarSign className="text-green-500" />, color: "bg-green-500" },
+        { title: "Categoría Top", value: topCategory, icon: <TrendingUp className="text-[#ff4d6d]" />, color: "bg-[#ff4d6d]" },
+        { title: "Movimientos", value: expenses.length.toString(), icon: <PieIcon className="text-blue-500" />, color: "bg-blue-500" }
+    ];
+
     return (
         <>
             <div className="animate-fade-in">
-                <div className="page-header mobile-header-layout">
-                    {/* Columna Izquierda: Menú */}
-                    <MobileMenuButton />
 
-                    {/* Columna Central: Título */}
-                    <div className="mobile-title-center">
-                        <h2 className="page-title">Gastos</h2>
-                        <p className="page-subtitle hidden-mobile">Controla a dónde va tu dinero.</p>
+                <MobileHeader
+                    title="Gastos"
+                    onAddClick={() => setShowModal(true)}
+                    themeColor="#ff4d6d"
+                />
+
+                <StatsCarousel stats={mobileStats} />
+
+                <div className="page-header hidden-mobile"> {/* Original header for desktop only */}
+                    <div className="flex justify-between items-center w-full">
+                        <div>
+                            <h2 className="page-title">Gastos</h2>
+                            <p className="page-subtitle">Controla a dónde va tu dinero.</p>
+                        </div>
+                        <button
+                            className="btn btn-responsive-action text-white"
+                            style={{
+                                background: 'linear-gradient(135deg, hsl(var(--accent-danger)), #ff6b6b)',
+                                border: 'none'
+                            }}
+                            onClick={() => setShowModal(true)}
+                        >
+                            <Plus className="icon" />
+                            <span className="hidden-mobile">Nuevo Gasto</span>
+                        </button>
                     </div>
-
-                    {/* Columna Derecha: Agregar */}
-                    <button
-                        className="btn btn-responsive-action text-white"
-                        style={{
-                            background: 'linear-gradient(135deg, hsl(var(--accent-danger)), #ff6b6b)',
-                            border: 'none'
-                        }}
-                        onClick={() => setShowModal(true)}
-                    >
-                        <Plus className="icon" />
-                        <span className="hidden-mobile">Nuevo Gasto</span>
-                        <span className="mobile-only-inline" style={{ display: 'none' }}>Agregar</span>
-                    </button>
                 </div>
 
                 <div className="mb-6 flex gap-4 search-filter-container">
@@ -230,7 +274,14 @@ const Expenses = () => {
                         <div className="absolute" style={{ left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--text-muted))' }}>
                             <Search size={18} />
                         </div>
-                        <input type="text" placeholder="Buscar gastos..." className="input-field" style={{ paddingLeft: '2.5rem' }} />
+                        <input
+                            type="text"
+                            placeholder="Buscar gastos..."
+                            className="input-field"
+                            style={{ paddingLeft: '2.5rem' }}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
                     </div>
                     <button
                         className="btn glass btn-mobile-full"
@@ -243,6 +294,14 @@ const Expenses = () => {
                         <Filter size={18} /> Filtrar {hasActiveFilters && `(${Object.values(activeFilters).filter(v => v).length})`}
                     </button>
                 </div>
+
+                {/* Mobile Chart Section - Only shows on mobile */}
+                {mobileChartData.length > 0 && (
+                    <MobileChartSection
+                        data={mobileChartData}
+                        totalValue={totalSpent}
+                    />
+                )}
 
                 {/* Layout Grid: Gráfica a la izquierda, Tabla a la derecha */}
                 <div className="expenses-grid" style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '1.5rem', alignItems: 'start' }}>
