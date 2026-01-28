@@ -6,17 +6,33 @@ import { useAuth } from '../context/AuthContext';
 import { LayoutDashboard, TrendingUp, TrendingDown, PiggyBank, Wallet, Users, LogOut, Menu, Bell } from 'lucide-react';
 import './Sidebar.css';
 
+const HomeIcon = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+        <path d="M5 12l-2 0l9 -9l9 9l-2 0" />
+        <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+        <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+    </svg>
+);
+
+const TelegramIcon = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+        <path d="M15 10l-4 4l6 6l4 -16l-18 7l4 2l2 6l3 -4" />
+    </svg>
+);
+
 const Sidebar = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
 
     const navItems = [
-        { path: '/', label: 'Panel', icon: LayoutDashboard },
+        { path: '/', label: 'Panel', icon: HomeIcon },
         { path: '/income', label: 'Ingresos', icon: TrendingUp },
         { path: '/expenses', label: 'Gastos', icon: TrendingDown },
         { path: '/savings', label: 'Ahorros', icon: PiggyBank },
-        { path: '/reminders', label: 'Recordatorio', icon: Bell },
+        { path: '/reminders', label: 'Telegram', icon: TelegramIcon },
     ];
 
     if (user && user.role === 'Admin') {
