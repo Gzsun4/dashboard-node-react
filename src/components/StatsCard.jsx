@@ -33,21 +33,27 @@ const StatsCard = ({ title, value, icon, colorClass }) => {
                     {React.cloneElement(icon, { size: 22 })}
                 </div>
             </div>
-            <div className="flex flex-col items-center justify-center w-full">
+            <div className="flex flex-col items-center justify-center w-full" style={{ width: '100%', overflow: 'hidden' }}>
                 <p className="text-muted" style={{
-                    fontSize: '0.7rem',
+                    fontSize: '0.65rem', // Reduced from 0.7rem
                     fontWeight: 500,
                     marginBottom: '0.25rem',
                     lineHeight: '1.1',
-                    opacity: 0.8
+                    opacity: 0.8,
+                    whiteSpace: 'nowrap', // Keep title on one line if possible
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    width: '100%'
                 }}>
                     {title}
                 </p>
                 <h3 className="text-white" style={{
-                    fontSize: '1.1rem',
+                    fontSize: '0.9rem', // Reduced from 1.1rem
                     fontWeight: 700,
                     lineHeight: '1.2',
-                    wordBreak: 'break-word' // Prevent overflow
+                    wordBreak: 'break-word',
+                    overflowWrap: 'break-word',
+                    width: '100%'
                 }}>
                     {value}
                 </h3>
