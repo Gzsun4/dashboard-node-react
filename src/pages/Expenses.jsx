@@ -200,7 +200,7 @@ const Expenses = () => {
                 <div className="page-header flex justify-between items-center mb-6">
                     <div>
                         <h2 className="page-title">Gastos</h2>
-                        <p className="page-subtitle hidden md:block">Controla a dónde va tu dinero.</p>
+                        <p className="page-subtitle hidden-mobile">Controla a dónde va tu dinero.</p>
                     </div>
                     <button
                         className="btn text-white"
@@ -208,8 +208,8 @@ const Expenses = () => {
                         onClick={() => setShowModal(true)}
                     >
                         <Plus size={18} />
-                        <span className="hidden md:inline">Nuevo Gasto</span>
-                        <span className="md:hidden">Agregar</span>
+                        <span className="hidden-mobile">Nuevo Gasto</span>
+                        <span className="hidden-desktop">Agregar</span>
                     </button>
                 </div>
 

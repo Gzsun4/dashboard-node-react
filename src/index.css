@@ -1291,3 +1291,22 @@ input:checked+.toggle-slider:hover {
   border-radius: 2px;
   margin: 0 auto 1rem auto;
 }
+/* ========================================
+   RESPONSIVE VISIBILITY UTILITIES
+   ======================================== */
+.hidden {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    .hidden-mobile {
+        display: none !important;
+    }
+}
+
+@media (min-width: 769px) {
+    .hidden-desktop {
+        display: none !important;
+    }
+}
+
