@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { Shield, User, Key, Menu } from 'lucide-react';
 import MobileMenuButton from '../components/MobileMenuButton';
+import MobileHeader from '../components/MobileHeader';
 import CustomTrashIcon from '../components/CustomTrashIcon';
 
 const AdminUsers = () => {
@@ -100,9 +101,15 @@ const AdminUsers = () => {
     return (
         <>
             <div className="animate-fade-in">
-                <div className="page-header flex justify-between items-center">
+                <MobileHeader
+                    title="Usuarios"
+                    onAddClick={() => setShowModal(true)}
+                    themeColor="#8b5cf6"
+                    label="Nuevo"
+                />
+
+                <div className="page-header flex justify-between items-center hidden-mobile">
                     <div className="flex items-center gap-2">
-                        <MobileMenuButton />
                         <div>
                             <h1 className="page-title">Gestión de Usuarios</h1>
                             <p className="page-subtitle">Administra los usuarios del sistema</p>

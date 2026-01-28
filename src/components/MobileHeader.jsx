@@ -2,10 +2,10 @@ import React from 'react';
 import { Menu, Plus } from 'lucide-react';
 import MobileMenuButton from './MobileMenuButton';
 
-const MobileHeader = ({ title, onAddClick, themeColor = 'hsl(var(--accent-primary))', label = 'Agregar' }) => {
+const MobileHeader = ({ title, onAddClick, themeColor = 'hsl(var(--accent-primary))', label = 'Agregar', style = {} }) => {
     return (
         <div
-            className="mobile-header-layout hidden-desktop"
+            className="page-header hidden-desktop"
             style={{
                 position: 'sticky',
                 top: 0,
@@ -14,13 +14,15 @@ const MobileHeader = ({ title, onAddClick, themeColor = 'hsl(var(--accent-primar
                 backdropFilter: 'blur(12px)',
                 WebkitBackdropFilter: 'blur(12px)',
                 borderBottom: 'none', // Remove harsh line
+                marginBottom: '1.5rem',
                 // Layout Fix: Force full width to escape parent padding
                 marginLeft: '-1.5rem',
                 marginRight: '-1.5rem',
                 marginTop: '-2rem', // Pull to very top
                 width: 'calc(100% + 3rem)',
                 padding: '10px 1rem', // 1rem padding places button closer to left edge
-                boxSizing: 'border-box'
+                boxSizing: 'border-box',
+                ...style // Allow overriding/extending styles
             }}
         >
             {/* Botón Menú (Izquierda) */}
