@@ -170,10 +170,12 @@ const Income = () => {
                 <div className="page-header flex justify-between items-center mb-6">
                     <div>
                         <h2 className="page-title">Ingresos</h2>
-                        <p className="page-subtitle">Gestiona tus fuentes de ingresos.</p>
+                        <p className="page-subtitle hidden-mobile">Gestiona tus fuentes de ingresos.</p>
                     </div>
                     <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-                        <Plus size={18} /> Nuevo Ingreso
+                        <Plus size={18} />
+                        <span className="hidden-mobile">Nuevo Ingreso</span>
+                        <span className="hidden-desktop">Agregar</span>
                     </button>
                 </div>
 
