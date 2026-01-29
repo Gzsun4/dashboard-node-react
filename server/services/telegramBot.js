@@ -32,8 +32,10 @@ const CATEGORY_MAP = {
     'Inversiones': ['intereses', 'dividendo', 'retorno']
 };
 
-const INCOME_TRIGGERS = ['ingreso', 'gane', 'recibi', 'cobre', 'sueldo', 'depositaren', 'abono', 'pago'];
-const REMINDER_TRIGGERS = ['alerta', 'recordatorio', 'avisame', 'acuerdame', 'recuerdame', 'alarma', 'programame', 'avisar', 'hazme acuerdo', 'hazme acordar'];
+const INCOME_TRIGGERS = ['ingreso', 'gane', 'recibi', 'cobre', 'sueldo', 'depositaren', 'abono', 'pago', 'recibí', 'gané'];
+const DEBT_TRIGGERS = ['debo', 'deuda', 'preste', 'prestamo', 'le debo', 'debo pagar', 'presté', 'préstamo', 'deber'];
+const SAVINGS_TRIGGERS = ['ahorre', 'ahorro', 'guarde', 'ahorré', 'guardé', 'para mi meta', 'para mi ahorro'];
+const REMINDER_TRIGGERS = ['alerta', 'recordatorio', 'avisame', 'acuerdame', 'recuerdame', 'alarma', 'programame', 'avisar', 'hazme acuerdo', 'hazme acordar', 'avísame', 'acuérdame', 'recuérdame', 'prográmame'];
 
 // --- FUNCIONES DE AYUDA (NLP) ---
 
@@ -52,10 +54,27 @@ const detectCategory = (text) => {
 const parseSmartMessage = (text) => {
     const normalized = normalizeText(text);
 
-    // 1. Detectar Tipo (Gasto/Ingreso)
+    // 1. Detectar Tipo (Gasto/Ingreso/Deuda/Ahorro)
     let type = 'expense'; // Default
-    if (INCOME_TRIGGERS.some(trigger => normalized.includes(trigger))) {
+    let isAmbiguous = false;
+
+    const hasIncomeTrigger = INCOME_TRIGGERS.some(trigger => normalized.includes(trigger));
+    const hasDebtTrigger = DEBT_TRIGGERS.some(trigger => normalized.includes(trigger));
+    const hasSavingsTrigger = SAVINGS_TRIGGERS.some(trigger => normalized.includes(trigger));
+
+    if (hasIncomeTrigger) {
         type = 'income';
+    } else if (hasDebtTrigger) {
+        type = 'debt';
+    } else if (hasSavingsTrigger) {
+        type = 'goal';
+    } else {
+        // Si no tiene disparadores claros pero tiene monto y descripción, es ambiguo
+        // Excepto si la descripción coincide con una categoría de gasto clara (ej. "Pizza 20")
+        const category = detectCategory(text);
+        if (!category) {
+            isAmbiguous = true;
+        }
     }
 
     // 2. Detectar Monto (Números enteros o decimales)
@@ -102,7 +121,7 @@ const parseSmartMessage = (text) => {
 
     description = description.charAt(0).toUpperCase() + description.slice(1);
 
-    return { type, amount, category, description, date: dateStr };
+    return { type, isAmbiguous, amount, category, description, date: dateStr };
 };
 
 const parseReminder = (text) => {
@@ -233,6 +252,33 @@ export const initializeBot = () => {
 
                 userStates[chatId] = { action: action.replace('EDIT_', 'WAITING_'), txId: id };
                 await bot.sendMessage(chatId, prompt);
+            } else if (action === 'CONFIRM_AS') {
+                const [_, type, idx] = data.split(':');
+                const pending = userStates[chatId]?.pendingData;
+                if (pending) {
+                    pending.type = type.toLowerCase();
+                    await processSmartTransaction(null, user, chatId, pending);
+                }
+            } else if (action === 'DEBT_REMIND') {
+                const [_, days] = data.split(':');
+                const debtName = userStates[chatId]?.lastDebtName;
+                if (debtName) {
+                    const scheduledTime = new Date();
+                    scheduledTime.setDate(scheduledTime.getDate() + parseInt(days));
+                    scheduledTime.setHours(10, 0, 0, 0); // Recordatorio a las 10 am
+
+                    await OneTimeReminder.create({
+                        user: user._id,
+                        chatId,
+                        description: `🔔 Pagar deuda: ${debtName}`,
+                        scheduledAt: scheduledTime
+                    });
+                    await bot.editMessageText(`✅ Recordatorio programado para dentro de ${days} día(s).`, { chat_id: chatId, message_id: msg.message_id });
+                }
+                delete userStates[chatId];
+            } else if (action === 'NO_REMIND') {
+                await bot.editMessageText('👍 Entendido, sin recordatorios.', { chat_id: chatId, message_id: msg.message_id });
+                delete userStates[chatId];
             }
 
             bot.answerCallbackQuery(callbackQuery.id);
@@ -317,29 +363,45 @@ const handleMessage = async (msg) => {
 
     // 5. Transacciones Inteligentes
     if (/\d/.test(text)) {
-        await processSmartTransaction(text, user, chatId);
+        const parsed = parseSmartMessage(text);
+        if (parsed.isAmbiguous && parsed.amount) {
+            userStates[chatId] = { pendingData: parsed };
+            const keyboard = {
+                inline_keyboard: [
+                    [{ text: '💸 Gasto Normal', callback_data: `CONFIRM_AS:EXPENSE` }],
+                    [{ text: '🚩 Deuda Pendiente', callback_data: `CONFIRM_AS:DEBT` }],
+                    [{ text: '❌ Cancelar', callback_data: 'CANCEL_EDIT' }]
+                ]
+            };
+            return bot.sendMessage(chatId, `❓ <b>¿Qué registramos, ${user.name.split(' ')[0]}?</b>\nDetecté <b>S/. ${parsed.amount.toFixed(2)}</b> para <i>"${parsed.description}"</i>.\n\n¿Es un gasto que ya pagaste o una deuda pendiente?`, { parse_mode: 'HTML', reply_markup: keyboard });
+        }
+        await processSmartTransaction(text, user, chatId, parsed);
     } else {
         await bot.sendMessage(chatId, '🤔 No entendí. Intenta: "Taxi 15" o "Alerta en 10 min".', { parse_mode: 'HTML' });
     }
 };
 
 const sendMenu = async (chatId, userName) => {
+    const firstName = userName.split(' ')[0];
     const menu = `
-🤖 <b>PANEL DE CONTROL</b> 📊
-Hola <b>${userName}</b>!
+🤖 <b>ASISTENTE PERSONAL</b>
 
-💸 <b>FINANZAS</b>
-• <i>"Taxi 15"</i> → Gasto
-• <i>"Gane 50"</i> → Ingreso
+Dime qué registramos hoy, <b>${firstName}</b>:
 
-🔔 <b>RECORDATORIOS</b> (¡Nuevo!)
-• <i>"Alerta en 10 min sacar basura"</i>
-• <i>"Recordatorio a las 6 pm reunión"</i>
-• <i>"Hazme acuerdo en 1 hora llamar"</i>
+💸 <b>DINERO DEL DÍA</b>
+• <i>"Almuerzo 15"</i> o <i>"Venta 30"</i>
 
-✏️ <b>HERRAMIENTAS</b>
-• <b>/editar</b> - Corregir errores
-• <b>Deshacer</b> - Borrar último
+� <b>AHORROS O DEUDAS</b>
+• <i>"Ahorre 50 soles para viaje"</i>
+• <i>"Debo 20 en la tienda"</i>
+• <i>"Le preste 100 a Juan"</i>
+
+⏰ <b>RECORDATORIOS</b>
+• <i>"Avísame en 1 hora pagar luz"</i>
+• <i>"Alerta a las 6 pm reunión"</i>
+
+👇 <b>ACCIONES RÁPIDAS</b>
+/balance  |  /editar  |  /deshacer
 `;
     await bot.sendMessage(chatId, menu, { parse_mode: 'HTML' });
 };
@@ -374,8 +436,8 @@ const processReminderRequest = async (text, user, chatId) => {
     }
 };
 
-const processSmartTransaction = async (text, user, chatId) => {
-    const { type, amount, category, description, date } = parseSmartMessage(text);
+const processSmartTransaction = async (text, user, chatId, preParsed = null) => {
+    const { type, amount, category, description, date } = preParsed || parseSmartMessage(text);
 
     if (!amount) {
         return bot.sendMessage(chatId, '⚠️ Falta el monto. Ej: "Taxi 15"', { parse_mode: 'HTML' });
@@ -384,10 +446,38 @@ const processSmartTransaction = async (text, user, chatId) => {
     try {
         if (type === 'expense') {
             await Expense.create({ user: user._id, description, amount, category, date });
-            await bot.sendMessage(chatId, `✅ <b>Gasto Registrado</b> (${date})\n\n💸 <b>-${amount.toFixed(2)}</b> (${category})\n📝 ${description}`, { parse_mode: 'HTML' });
-        } else {
+            await bot.sendMessage(chatId, `✅ <b>Gasto Registrado</b>\n\n� <b>-S/. ${amount.toFixed(2)}</b>\n📝 ${description}\n📂 ${category}\n� ${date}`, { parse_mode: 'HTML' });
+        } else if (type === 'income') {
             await Income.create({ user: user._id, source: description, amount, category, date });
-            await bot.sendMessage(chatId, `✅ <b>Ingreso Registrado</b> (${date})\n\n💰 <b>+${amount.toFixed(2)}</b> (${category})\n📝 ${description}`, { parse_mode: 'HTML' });
+            await bot.sendMessage(chatId, `✅ <b>Ingreso Registrado</b>\n\n💰 <b>+S/. ${amount.toFixed(2)}</b>\n📝 ${description}\n📂 ${category}\n📅 ${date}`, { parse_mode: 'HTML' });
+        } else if (type === 'debt') {
+            const Debt = (await import('../models/Debt.js')).default;
+            await Debt.create({ user: user._id, name: description, target: amount, current: 0, date });
+
+            userStates[chatId] = { lastDebtName: description };
+            const keyboard = {
+                inline_keyboard: [
+                    [{ text: '⏰ Mañana', callback_data: 'DEBT_REMIND:1' }, { text: '⏰ En 3 días', callback_data: 'DEBT_REMIND:3' }],
+                    [{ text: '⏰ En una semana', callback_data: 'DEBT_REMIND:7' }],
+                    [{ text: '❌ No recordar', callback_data: 'NO_REMIND' }]
+                ]
+            };
+
+            await bot.sendMessage(chatId, `🚩 <b>Nueva Deuda Detectada</b>\n\n👤 <b>${description}</b>\n💰 <b>Monto: S/. ${amount.toFixed(2)}</b>\n🏷 Estado: Pendiente\n\n💡 <i>Dime "Abonar a ${description} 10" cuando hagas un pago.</i>\n\n<b>¿Quieres que te lo recuerde?</b>`, { parse_mode: 'HTML', reply_markup: keyboard });
+        } else if (type === 'goal') {
+            const Goal = (await import('../models/Goal.js')).default;
+            // Buscar meta que coincida con la descripción o usar 'Ahorro General'
+            let goal = await Goal.findOne({ user: user._id, name: new RegExp(description, 'i') });
+            if (!goal) goal = await Goal.findOne({ user: user._id }); // Usar la primera si no encuentra coincidencia
+
+            if (goal) {
+                goal.current += amount;
+                goal.history.push({ amount, date, note: 'Desde Telegram' });
+                await goal.save();
+                await bot.sendMessage(chatId, `🎯 <b>¡Ahorro Registrado!</b>\n\n� <b>+S/. ${amount.toFixed(2)}</b> para <b>${goal.name}</b>\n\n📈 <i>Progreso: S/. ${goal.current} / S/. ${goal.target}</i>`, { parse_mode: 'HTML' });
+            } else {
+                await bot.sendMessage(chatId, `⚠️ No encontré una meta de ahorro llamada "${description}". Regístrala primero en la web.`, { parse_mode: 'HTML' });
+            }
         }
     } catch (error) {
         console.error(error);
