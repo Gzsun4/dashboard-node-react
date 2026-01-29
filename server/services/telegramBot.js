@@ -391,7 +391,7 @@ Dime qué registramos hoy, <b>${firstName}</b>:
 💸 <b>DINERO DEL DÍA</b>
 • <i>"Almuerzo 15"</i> o <i>"Venta 30"</i>
 
-� <b>AHORROS O DEUDAS</b>
+�📒 <b>AHORROS O DEUDAS</b>
 • <i>"Ahorre 50 soles para viaje"</i>
 • <i>"Debo 20 en la tienda"</i>
 • <i>"Le preste 100 a Juan"</i>
