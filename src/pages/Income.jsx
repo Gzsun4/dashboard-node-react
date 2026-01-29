@@ -42,7 +42,7 @@ const Income = () => {
     const [editingId, setEditingId] = useState(null);
     const [newIncome, setNewIncome] = useState({
         source: '',
-        date: '',
+        date: new Date().toLocaleDateString('en-CA'),
         amount: '',
         category: ''
     });
@@ -97,7 +97,7 @@ const Income = () => {
 
         setShowModal(false);
         setEditingId(null);
-        setNewIncome({ source: '', date: '', amount: '', category: '' });
+        setNewIncome({ source: '', date: new Date().toLocaleDateString('en-CA'), amount: '', category: '' });
     };
 
     const handleEdit = (income) => {
@@ -128,7 +128,7 @@ const Income = () => {
     const handleCloseModal = () => {
         setShowModal(false);
         setEditingId(null);
-        setNewIncome({ source: '', date: '', amount: '', category: '' });
+        setNewIncome({ source: '', date: new Date().toLocaleDateString('en-CA'), amount: '', category: '' });
     };
 
     const handleApplyFilters = () => {

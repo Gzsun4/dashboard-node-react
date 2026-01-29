@@ -63,14 +63,21 @@ const parseSmartMessage = (text) => {
     const amount = amountMatch ? parseFloat(amountMatch[0]) : null;
 
     // 3. Detectar Fecha (Ayer/Hoy/Anteayer)
-    let date = new Date();
+    // Usamos la hora de Perú para evitar desfases con el servidor (ej. Render en UTC)
+    const nowInPeru = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Lima" }));
+    let date = new Date(nowInPeru);
 
     if (normalized.includes('ayer') && !normalized.includes('anteayer')) {
         date.setDate(date.getDate() - 1);
     } else if (normalized.includes('anteayer') || normalized.includes('antier')) {
         date.setDate(date.getDate() - 2);
     }
-    const dateStr = date.toISOString().split('T')[0];
+
+    // Formato YYYY-MM-DD local a la fecha calculada
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
 
     // 4. Detectar Categoría
     let category = detectCategory(text);

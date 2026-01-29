@@ -25,11 +25,19 @@ export const formatDateFriendly = (dateString, timeString = null) => {
     // For now, I will format the DATE part nicely to "Hoy" / "Ayer".
     // If there is no time info in the DB, I will just show the date.
 
-    // Let's assume standard date construction
-    const date = new Date(dateString);
+    let date;
+    if (dateString.includes('T') || dateString.includes(':')) {
+        // Full ISO or with time, parse normally
+        date = new Date(dateString);
+    } else {
+        // Just YYYY-MM-DD, parse as local to avoid UTC shift
+        const [year, month, day] = dateString.split('-').map(Number);
+        date = new Date(year, month - 1, day);
+    }
+
     const now = new Date();
 
-    // Reset hours to compare just dates
+    // Reset hours to compare just dates (using local time)
     const d = new Date(date); d.setHours(0, 0, 0, 0);
     const n = new Date(now); n.setHours(0, 0, 0, 0);
 

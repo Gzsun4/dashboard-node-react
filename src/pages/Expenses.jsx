@@ -43,7 +43,7 @@ const Expenses = () => {
     const [editingId, setEditingId] = useState(null);
     const [newExpense, setNewExpense] = useState({
         description: '',
-        date: '',
+        date: new Date().toLocaleDateString('en-CA'),
         amount: '',
         category: ''
     });
@@ -108,7 +108,7 @@ const Expenses = () => {
 
         setShowModal(false);
         setEditingId(null);
-        setNewExpense({ description: '', date: '', amount: '', category: '' });
+        setNewExpense({ description: '', date: new Date().toLocaleDateString('en-CA'), amount: '', category: '' });
     };
 
     const handleEdit = (expense) => {
@@ -138,7 +138,7 @@ const Expenses = () => {
     const handleCloseModal = () => {
         setShowModal(false);
         setEditingId(null);
-        setNewExpense({ description: '', date: '', amount: '', category: '' });
+        setNewExpense({ description: '', date: new Date().toLocaleDateString('en-CA'), amount: '', category: '' });
     };
 
     const handleApplyFilters = () => {
