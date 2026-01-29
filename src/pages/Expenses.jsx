@@ -572,13 +572,7 @@ const Expenses = () => {
                                 </div>
 
                                 <div className="flex gap-3 justify-end">
-                                    <button
-                                        type="button"
-                                        className="btn glass"
-                                        onClick={handleCloseModal}
-                                    >
-                                        Cancelar
-                                    </button>
+
                                     <button
                                         type="submit"
                                         className="btn text-white"

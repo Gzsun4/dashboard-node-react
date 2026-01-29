@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Card = ({ children, className = '', style = {} }) => {
+const Card = ({ children, className = '', style = {}, ...props }) => {
     return (
         <div
             className={`glass-card p-4 rounded-2xl ${className}`}
@@ -11,6 +11,7 @@ const Card = ({ children, className = '', style = {} }) => {
                 boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
                 ...style
             }}
+            {...props}
         >
             {children}
         </div>

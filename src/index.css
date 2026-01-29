@@ -1552,3 +1552,262 @@ input:checked+.toggle-slider:hover {
     height: 16px;
   }
 }
+
+/* ========================================
+   TELEGRAM UI (Shared Components)
+   ======================================== */
+
+/* Title & Text */
+.telegram-title {
+  font-size: 1.5rem;
+  /* Mobile default */
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.telegram-desc {
+  color: #94a3b8;
+  margin-bottom: 2rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Inputs */
+.telegram-input-group {
+  background: #0B101A;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  /* Slightly clearer border */
+  border-radius: 16px;
+  /* More rounded */
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  transition: all 0.2s;
+}
+
+.telegram-input-group:focus-within {
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2);
+}
+
+.telegram-input {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1.1rem;
+  width: 100%;
+  margin-left: 0.75rem;
+  outline: none;
+  font-family: monospace;
+}
+
+/* Buttons */
+.telegram-btn-primary {
+  background: #3b82f6 !important;
+  /* Blue fallback */
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%) !important;
+  /* Blue Gradient */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 1rem;
+  border-radius: 12px;
+  font-weight: 600;
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  margin-top: 1.5rem;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.telegram-btn-primary:hover {
+  background: #2563eb !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+}
+
+.telegram-btn-primary:active {
+  transform: translateY(0);
+}
+
+.telegram-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #1f2937;
+  box-shadow: none;
+}
+
+/* Steps (Timeline) */
+.telegram-step-item {
+  display: flex;
+  gap: 1.25rem;
+  /* Increased gap */
+  margin-bottom: 2rem;
+  position: relative;
+  align-items: flex-start;
+}
+
+.telegram-step-icon {
+  width: 44px;
+  height: 44px;
+  /* Larger icon circle */
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+  z-index: 2;
+  /* Ensure above line */
+  position: relative;
+}
+
+.telegram-step-item:hover .telegram-step-icon {
+  border-color: rgba(99, 102, 241, 0.5);
+  color: white;
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.telegram-lines {
+  position: absolute;
+  left: 22px;
+  /* Centered with 44px icon */
+  top: 44px;
+  bottom: -35px;
+  /* Extend further down */
+  width: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  /* More visible line */
+  z-index: 1;
+}
+
+.telegram-step-item:last-child .telegram-lines {
+  display: none;
+}
+
+.telegram-step-title {
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.telegram-step-desc {
+  color: #64748b;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.telegram-highlight {
+  background: rgba(99, 102, 241, 0.1);
+  color: #818cf8;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+/* ========================================
+   TELEGRAM PC UI (Desktop Layout)
+   ======================================== */
+@media (min-width: 1024px) {
+  .telegram-container {
+    display: flex;
+    background: #0B101A;
+    border-radius: 20px;
+    overflow: hidden;
+    max-width: 900px;
+    margin: 0 auto;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    min-height: 500px;
+  }
+
+  .telegram-left-panel {
+    flex: 1;
+    padding: 3rem;
+    background: #0f1420;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+  }
+
+  .telegram-right-panel {
+    flex: 1;
+    padding: 3rem;
+    background: #0B101A;
+    border-left: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /* PC Specific Overrides */
+  .telegram-title {
+    font-size: 2rem;
+  }
+
+  .telegram-step-item {
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .telegram-step-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .telegram-lines {
+    left: 24px;
+    top: 48px;
+  }
+}
+
+/* Modal Styles - Restored for Dark Theme */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  background: #0f1420;
+  /* Dark Navy/Black opaque */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Specific override for glass-card when used as modal content */
+.glass-card.modal-content {
+  background: #0f1420 !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

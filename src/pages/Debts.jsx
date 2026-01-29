@@ -7,12 +7,14 @@ import MobileHeader from '../components/MobileHeader';
 import MobileStatsGrid from '../components/MobileStatsGrid';
 import CustomPencilIcon from '../components/CustomPencilIcon';
 import CustomTrashIcon from '../components/CustomTrashIcon';
+import Toast from '../components/Toast';
 
 const Debts = () => {
     const { token } = useAuth();
     const { symbol } = useCurrency();
     const [debts, setDebts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [toast, setToast] = useState({ show: false, message: '', type: 'error' });
 
     // Mock/Fetch logic - Replace with actual endpoint if available
     useEffect(() => {
@@ -70,10 +72,22 @@ const Debts = () => {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             };
+            const target = parseFloat(newDebt.totalAmount); // Mapping total to target
+            const current = parseFloat(newDebt.paidAmount || 0); // Mapping paid to current
+
+            if (current > target) {
+                setToast({
+                    show: true,
+                    message: `El monto pagado no puede ser mayor al total de la deuda (${symbol} ${target.toLocaleString()})`,
+                    type: 'error'
+                });
+                return;
+            }
+
             const body = JSON.stringify({
                 name: newDebt.name,
-                target: parseFloat(newDebt.totalAmount), // Mapping total to target
-                current: parseFloat(newDebt.paidAmount || 0), // Mapping paid to current
+                target: target,
+                current: current,
                 color: iconOptions[selectedIcon].color,
                 deadline: newDebt.deadline,
                 type: 'debt' // Flag to distinguish if reusing same schema
@@ -126,8 +140,11 @@ const Debts = () => {
         setSelectedIcon(0);
     };
 
+    const [showHistoryModal, setShowHistoryModal] = useState(false);
+
     const handleEdit = (debt) => {
         setEditingId(debt._id);
+        setSelectedDebt(debt); // Set for history/delete context
         setNewDebt({
             name: debt.name,
             totalAmount: debt.target.toString(),
@@ -138,20 +155,21 @@ const Debts = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("¿Estás seguro de eliminar esta deuda?")) return;
-
-        // Optimistic delete
-        setDebts(debts.filter(d => d._id !== id));
-
+        if (!confirm('¿Estás seguro de eliminar esta deuda?')) return;
         try {
-            await fetch(`/api/data/debts/${id}`, {
+            const response = await fetch(`/api/data/debts/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+
+            if (response.ok) {
+                setDebts(debts.filter(d => d._id !== id));
+                setToast({ show: true, message: 'Deuda eliminada', type: 'success' });
+            } else {
+                setToast({ show: true, message: 'Error al eliminar', type: 'error' });
+            }
         } catch (error) {
-            console.error("Error deleting debt", error);
-            // Optionally revert
-            fetchDebts();
+            setToast({ show: true, message: 'Error de conexión', type: 'error' });
         }
     };
 
@@ -167,30 +185,48 @@ const Debts = () => {
         const amount = parseFloat(amountToPay);
         if (isNaN(amount) || amount <= 0) return;
 
+        const remaining = selectedDebt.target - selectedDebt.current;
+        if (amount > remaining) {
+            setToast({
+                show: true,
+                message: `No puedes abonar más de la deuda restante (${symbol} ${remaining.toFixed(2)})`,
+                type: 'error'
+            });
+            return;
+        }
+
+        const newHistory = [...(selectedDebt.history || []), {
+            amount: amount,
+            date: new Date().toLocaleDateString(),
+            note: 'Abono'
+        }];
+
         const updatedDebt = {
             ...selectedDebt,
-            current: selectedDebt.current + amount
+            current: selectedDebt.current + amount,
+            history: newHistory
         };
 
-        setDebts(debts.map(d => d._id === selectedDebt._id ? updatedDebt : d));
-
         try {
-            await fetch(`/api/data/debts/${selectedDebt._id}`, {
+            const response = await fetch(`/api/data/debts/${selectedDebt._id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ current: updatedDebt.current }) // Only sending updated current amount
+                body: JSON.stringify(updatedDebt)
             });
-        } catch (error) {
-            console.error("Error updating payment", error);
-            fetchDebts(); // Revert on error
-        }
 
-        setShowPayModal(false);
-        setAmountToPay('');
-        setSelectedDebt(null);
+            if (response.ok) {
+                setDebts(debts.map(d => d._id === selectedDebt._id ? updatedDebt : d));
+                setToast({ show: true, message: 'Abono realizado exitosamente', type: 'success' });
+                setShowPayModal(false);
+            } else {
+                setToast({ show: true, message: 'Error al realizar el abono', type: 'error' });
+            }
+        } catch (error) {
+            setToast({ show: true, message: 'Error de conexión', type: 'error' });
+        }
     };
 
     const openPayModal = (debt) => {
@@ -199,18 +235,27 @@ const Debts = () => {
         setShowPayModal(true);
     };
 
-    const totalDebts = debts.reduce((acc, curr) => acc + (curr.target - curr.current), 0);
+    // Calculate totals
+    const totalDebts = debts.reduce((acc, curr) => acc + curr.target, 0);
     const totalPaid = debts.reduce((acc, curr) => acc + curr.current, 0);
+    const totalPending = totalDebts - totalPaid;
 
     // Stats for Bento/Header
     const mobileStats = [
-        { title: "Deuda Restante", value: `${symbol} ${totalDebts.toLocaleString()}`, icon: <AlertCircle className="text-white" />, color: "bg-red-600" },
+        { title: "Deuda Restante", value: `${symbol} ${totalPending.toLocaleString()}`, icon: <AlertCircle className="text-white" />, color: "bg-red-600" },
         { title: "Total Pagado", value: `${symbol} ${totalPaid.toLocaleString()}`, icon: <CreditCard className="text-blue-500" />, color: "bg-blue-600" },
         { title: "Deudas Activas", value: debts.length.toString(), icon: <TrendingUp className="text-purple-500" />, color: "bg-purple-600" }
     ];
 
     return (
         <>
+            {toast.show && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast({ ...toast, show: false })}
+                />
+            )}
             <div className="animate-fade-in">
                 <MobileHeader
                     title="Deudas"
@@ -225,24 +270,23 @@ const Debts = () => {
                             <h2 className="page-title">Deudas</h2>
                             <p className="page-subtitle">Gestiona y elimina tus deudas.</p>
                         </div>
-                        <button
-                            className="glass-card flex items-center gap-2 px-4 py-2 text-white hover:bg-white/5 transition-colors"
-                            style={{ border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' }}
-                            onClick={() => setShowModal(true)}
-                        >
-                            <Plus size={18} />
-                            <span>Nueva Deuda</span>
-                        </button>
+
                     </div>
                 </div>
 
                 <div className="savings-grid"> {/* Reusing grid class or create new debts-grid */}
                     {loading ? <p>Cargando...</p> : debts.length === 0 ? <p className="text-muted text-center py-8">No tienes deudas registradas. ¡Bien hecho!</p> : debts.map((debt) => {
                         const progress = (debt.current / debt.target) * 100; // Paid percentage
+                        const isPaid = progress >= 100;
                         const DebtIcon = CreditCard;
 
                         return (
-                            <Card key={debt._id} className="relative">
+                            <Card
+                                key={debt._id}
+                                className="relative"
+                                onClick={() => handleEdit(debt)}
+                                style={{ cursor: 'pointer' }}
+                            >
                                 <div className="absolute top-0 right-0 p-4" style={{ opacity: 0.1 }}>
                                     <DebtIcon size={100} color={debt.color || 'red'} />
                                 </div>
@@ -275,25 +319,37 @@ const Debts = () => {
                                     </div>
 
                                     <div className="goal-actions">
-                                        <button
-                                            onClick={() => openPayModal(debt)}
-                                            className="btn-add-money"
-                                            style={{
-                                                background: 'linear-gradient(135deg, hsl(350, 70%, 55%), hsl(350, 70%, 45%))', // Reddish gradient
-                                                boxShadow: '0 4px 12px rgba(239, 68, 68, 0.4)'
-                                            }}
-                                        >
-                                            <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{symbol}</span>
-                                            <span>Abonar</span>
-                                        </button>
-                                        <div className="goal-secondary-actions">
-                                            <button onClick={() => handleEdit(debt)} className="btn-icon">
-                                                <CustomPencilIcon size={20} />
+                                        {isPaid ? (
+                                            <div
+                                                className="btn-add-money user-select-none"
+                                                style={{
+                                                    background: 'rgba(255, 255, 255, 0.05)',
+                                                    boxShadow: 'none',
+                                                    color: 'hsl(var(--accent-success))',
+                                                    cursor: 'default',
+                                                    textAlign: 'center',
+                                                    display: 'flex',
+                                                    justifyContent: 'center',
+                                                    alignItems: 'center',
+                                                    fontWeight: 'bold',
+                                                    fontSize: '1.1rem'
+                                                }}
+                                            >
+                                                Saldado
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); openPayModal(debt); }}
+                                                className="btn-add-money"
+                                                style={{
+                                                    background: 'linear-gradient(135deg, hsl(350, 70%, 55%), hsl(350, 70%, 45%))', // Reddish gradient
+                                                    boxShadow: '0 4px 12px rgba(239, 68, 68, 0.4)'
+                                                }}
+                                            >
+                                                <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{symbol}</span>
+                                                <span>Abonar</span>
                                             </button>
-                                            <button onClick={() => handleDelete(debt._id)} className="btn-icon btn-icon-danger">
-                                                <CustomTrashIcon size={20} />
-                                            </button>
-                                        </div>
+                                        )}
                                     </div>
                                 </div>
                             </Card>
@@ -306,73 +362,162 @@ const Debts = () => {
                             border: '2px dashed rgba(255,255,255,0.2)',
                             background: 'transparent',
                             minHeight: '200px',
-                            width: '100%',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center'
                         }}
-                        onClick={() => setShowModal(true)}
+                        onClick={() => {
+                            setEditingId(null);
+                            setNewDebt({ name: '', totalAmount: '', paidAmount: '', deadline: '' });
+                            setShowModal(true);
+                        }}
                     >
-                        <div className="w-12 h-12 rounded-full mb-4 flex-center" style={{ background: 'rgba(255,255,255,0.1)' }}>
-                            <Plus size={24} className="text-secondary" />
+                        <div className="p-4 rounded-full bg-danger-soft mb-3" style={{ background: 'rgba(239, 68, 68, 0.1)' }}>
+                            <Plus size={32} className="text-danger" style={{ color: '#ef4444' }} />
                         </div>
-                        <p className="text-secondary" style={{ fontWeight: 600 }}>Registrar Nueva Deuda</p>
+                        <h3 className="text-lg mb-1">Nueva Deuda</h3>
+                        <p className="text-sm text-muted">Registra una nueva deuda</p>
                     </button>
                 </div>
             </div>
 
-            {/* Modal Crear/Editar Deuda */}
+            {/* Modal Nueva/Editar Deuda */}
             {showModal && (
-                <div className="modal-backdrop" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.7)', zIndex: 1000 }}>
-                    <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '500px', position: 'relative' }}>
-                        <button onClick={handleCloseModal} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}>
+                <div className="modal-backdrop">
+                    <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '400px', position: 'relative' }}>
+                        <button
+                            onClick={() => setShowModal(false)}
+                            style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}
+                        >
                             <X size={24} />
                         </button>
-
-                        <h3 className="mb-6">{editingId ? 'Editar Deuda' : 'Registrar Nueva Deuda'}</h3>
-
+                        <h3 className="mb-6 text-center">{editingId ? 'Editar Deuda' : 'Nueva Deuda'}</h3>
                         <form onSubmit={handleSubmit}>
                             <div className="mb-4">
-                                <label className="text-sm text-secondary block mb-2">Concepto de la Deuda</label>
-                                <input type="text" className="input-field" placeholder="Ej: Tarjeta de Crédito, Préstamo Personal" value={newDebt.name} onChange={(e) => setNewDebt({ ...newDebt, name: e.target.value })} required />
+                                <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
+                                    Nombre de la deuda
+                                </label>
+                                <input type="text" className="input-field" placeholder="Ej. Tarjeta Crédito" value={newDebt.name} onChange={(e) => setNewDebt({ ...newDebt, name: e.target.value })} required />
                             </div>
-
                             <div className="mb-4">
-                                <label className="text-sm text-secondary block mb-2">Monto Total a Pagar</label>
+                                <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
+                                    Monto Total
+                                </label>
                                 <input type="number" step="0.01" className="input-field" placeholder="0.00" value={newDebt.totalAmount} onChange={(e) => setNewDebt({ ...newDebt, totalAmount: e.target.value })} required />
                             </div>
-
+                            {/* Icon Selection could be added here similar to Savings */}
                             <div className="mb-6">
-                                <label className="text-sm text-secondary block mb-2">Monto Ya Pagado (Opcional)</label>
+                                <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
+                                    {editingId ? 'Monto Pagado Actual' : 'Monto Pagado Inicial'}
+                                </label>
                                 <input type="number" step="0.01" className="input-field" placeholder="0.00" value={newDebt.paidAmount} onChange={(e) => setNewDebt({ ...newDebt, paidAmount: e.target.value })} />
                             </div>
 
-                            <button type="submit" className="btn btn-primary w-full">
-                                {editingId ? 'Actualizar Deuda' : 'Registrar Deuda'}
-                            </button>
+                            <div className="flex flex-col gap-3">
+                                {editingId && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowHistoryModal(true)}
+                                        className="btn w-full flex justify-center items-center gap-2"
+                                        style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white' }}
+                                    >
+                                        <History size={18} /> Historial
+                                    </button>
+                                )}
+
+                                <div className="flex gap-3">
+                                    {editingId && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                handleDelete(editingId);
+                                                setShowModal(false);
+                                            }}
+                                            className="btn flex-1 flex justify-center items-center gap-2"
+                                            style={{ background: 'rgba(220, 38, 38, 0.2)', color: '#fca5a5', border: '1px solid rgba(220, 38, 38, 0.5)' }}
+                                        >
+                                            <CustomTrashIcon size={18} /> Eliminar
+                                        </button>
+                                    )}
+                                    <button type="submit" className={`btn btn-primary flex justify-center items-center ${editingId ? 'flex-1' : 'w-full'}`}>
+                                        {editingId ? 'Actualizar' : 'Registrar Deuda'}
+                                    </button>
+                                </div>
+                            </div>
                         </form>
-                    </div>
-                </div>
+                    </div >
+                </div >
             )}
 
             {/* Modal Abonar */}
-            {showPayModal && (
-                <div className="modal-backdrop" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.7)', zIndex: 1000 }}>
-                    <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '400px', position: 'relative' }}>
-                        <button onClick={() => setShowPayModal(false)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}>
-                            <X size={24} />
-                        </button>
-                        <h3 className="mb-6">Abonar a {selectedDebt?.name}</h3>
-                        <form onSubmit={handlePayment}>
-                            <div className="mb-6">
-                                <label className="text-sm text-secondary mb-2 block">Monto a abonar</label>
-                                <input type="number" step="0.01" className="input-field" placeholder="0.00" value={amountToPay} onChange={(e) => setAmountToPay(e.target.value)} autoFocus required />
-                            </div>
-                            <button type="submit" className="btn btn-primary w-full justify-center" style={{ background: 'hsl(var(--accent-danger))' }}>
-                                <DollarSign size={18} /> Confirmar Abono
+            {
+                showPayModal && (
+                    <div className="modal-backdrop">
+                        <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '400px', position: 'relative' }}>
+                            <button
+                                onClick={() => setShowPayModal(false)}
+                                style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}
+                            >
+                                <X size={24} />
                             </button>
-                        </form>
+                            <h3 className="mb-6">Abonar a {selectedDebt?.name}</h3>
+                            <form onSubmit={handlePayment}>
+                                <div className="mb-6">
+                                    <label className="text-sm text-secondary mb-2 block">Monto a abonar</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        className="input-field"
+                                        placeholder="0.00"
+                                        value={amountToPay}
+                                        onChange={(e) => setAmountToPay(e.target.value)}
+                                        autoFocus
+                                        required
+                                    />
+                                </div>
+                                <button type="submit" className="btn btn-primary w-full justify-center" style={{ background: 'linear-gradient(135deg, hsl(350, 70%, 55%), hsl(350, 70%, 45%))' }}>
+                                    <DollarSign size={18} /> Confirmar Abono
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
+
+            {/* Modal Historial */}
+            {
+                showHistoryModal && (
+                    <div className="modal-backdrop">
+                        <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '400px', position: 'relative' }}>
+                            <button
+                                onClick={() => setShowHistoryModal(false)}
+                                style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}
+                            >
+                                <X size={24} />
+                            </button>
+                            <h3 className="mb-6">Historial: {selectedDebt?.name}</h3>
+                            <div className="flex flex-col gap-3" style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '5px' }}>
+                                {selectedDebt?.history && selectedDebt.history.slice().reverse().length > 0 ? (
+                                    selectedDebt.history.slice().reverse().map((entry, i) => (
+                                        <div key={i} className="flex justify-between items-center p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                                            <div>
+                                                <p className="font-bold text-white">{symbol} {entry.amount.toLocaleString()}</p>
+                                                <p className="text-xs text-secondary">{entry.date}</p>
+                                            </div>
+                                            <div className="text-sm text-muted">
+                                                {entry.note || 'Abono'}
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-center text-muted">No hay historial de abonos.</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
         </>
     );
 };

@@ -448,13 +448,7 @@ const Income = () => {
                             </div>
 
                             <div className="flex gap-3 justify-end">
-                                <button
-                                    type="button"
-                                    className="btn glass"
-                                    onClick={handleCloseModal}
-                                >
-                                    Cancelar
-                                </button>
+
                                 <button type="submit" className="btn btn-primary">
                                     {editingId ? <><CustomPencilIcon size={18} /> Actualizar</> : <><Plus size={18} /> Agregar</>}
                                 </button>
