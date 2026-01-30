@@ -50,6 +50,7 @@ const TransactionItem = ({ data, onEdit, onDelete, type = 'expense' }) => {
 
     return (
         <div
+            onClick={() => onEdit(data)}
             className="transaction-item glass-card transaction-item-grid"
             style={{
                 padding: '1rem',
@@ -58,8 +59,12 @@ const TransactionItem = ({ data, onEdit, onDelete, type = 'expense' }) => {
                 border: '1px solid rgba(255, 255, 255, 0.05)',
                 background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
                 position: 'relative',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                cursor: 'pointer', // Added cursor pointer
+                transition: 'transform 0.2s, background 0.2s',
             }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)'}
         >
             {/* Icon Box */}
             <div
@@ -92,10 +97,8 @@ const TransactionItem = ({ data, onEdit, onDelete, type = 'expense' }) => {
                     {data.description || data.source}
                 </h4>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                    {/* Only show Category on Desktop or if we want it. User image shows "Ventas • 2026-..." */}
                     <span className="truncate">{data.category}</span>
                     <span style={{ color: 'var(--text-muted)' }}>•</span>
-                    {/* Use the new friendly date format */}
                     <span className="truncate">{formatDateFriendly(data.date)}</span>
                 </div>
             </div>
@@ -110,39 +113,7 @@ const TransactionItem = ({ data, onEdit, onDelete, type = 'expense' }) => {
                 }}>
                     {isIncome ? '+' : '-'}{symbol} {data.amount.toFixed(2)}
                 </div>
-
-                <div className="transaction-actions" style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button
-                        onClick={() => onEdit(data)}
-                        className="action-btn"
-                        style={{
-                            padding: '8px',
-                            borderRadius: '8px',
-                            background: 'rgba(255,255,255,0.05)',
-                            border: 'none',
-                            color: 'white',
-                            cursor: 'pointer',
-                            transition: 'background 0.2s'
-                        }}
-                    >
-                        <CustomPencilIcon size={18} />
-                    </button>
-                    <button
-                        onClick={() => onDelete(data._id)}
-                        className="action-btn"
-                        style={{
-                            padding: '8px',
-                            borderRadius: '8px',
-                            background: 'rgba(239, 68, 68, 0.1)',
-                            border: 'none',
-                            color: '#ef4444',
-                            cursor: 'pointer',
-                            transition: 'background 0.2s'
-                        }}
-                    >
-                        <CustomTrashIcon size={18} />
-                    </button>
-                </div>
+                {/* Actions removed from here */}
             </div>
 
         </div>

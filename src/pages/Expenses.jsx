@@ -571,7 +571,25 @@ const Expenses = () => {
                                     />
                                 </div>
 
-                                <div className="flex gap-3 justify-end">
+                                <div className="flex gap-3 justify-end w-full">
+                                    {editingId && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                handleDelete(editingId);
+                                                setShowModal(false); // Close modal
+                                            }}
+                                            className="btn"
+                                            style={{
+                                                background: 'rgba(239, 68, 68, 0.2)',
+                                                border: '1px solid rgba(239, 68, 68, 0.5)',
+                                                color: '#fca5a5',
+                                                marginRight: 'auto' // Push other button to right
+                                            }}
+                                        >
+                                            <CustomTrashIcon size={18} />
+                                        </button>
+                                    )}
 
                                     <button
                                         type="submit"

@@ -447,8 +447,25 @@ const Income = () => {
                                 />
                             </div>
 
-                            <div className="flex gap-3 justify-end">
-
+                            <div className="flex gap-3 justify-end w-full">
+                                {editingId && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            handleDelete(editingId);
+                                            setShowModal(false);
+                                        }}
+                                        className="btn"
+                                        style={{
+                                            background: 'rgba(239, 68, 68, 0.2)',
+                                            border: '1px solid rgba(239, 68, 68, 0.5)',
+                                            color: '#fca5a5',
+                                            marginRight: 'auto'
+                                        }}
+                                    >
+                                        <CustomTrashIcon size={18} />
+                                    </button>
+                                )}
                                 <button type="submit" className="btn btn-primary">
                                     {editingId ? <><CustomPencilIcon size={18} /> Actualizar</> : <><Plus size={18} /> Agregar</>}
                                 </button>
