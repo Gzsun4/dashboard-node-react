@@ -1,4 +1,4 @@
-# 🚀 App Financiera con IA
+# 🚀 App Financiera 
 
 ### Sobre el proyecto
 Este proyecto es especial. Fue diseñado y construido completamente por alguien que no viene del mundo de la programación, sino de la economía.
