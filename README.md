@@ -1,7 +1,6 @@
 # 🚀 App Financiera 
-
 ### Sobre el proyecto
-Este proyecto es especial. Fue diseñado y construido completamente por alguien que no viene del mundo de la programación, sino de la economía.
+Fue diseñado y construido completamente por alguien que no viene del mundo de la programación, sino de la economía.
 Utilizando la potencia de la inteligencia artificial (**Antigravity**) y mis conocimientos básicos, logré levantar esta aplicación desde cero.
 ### 🤖 Características Destacadas: Bot de Telegram
 Una de las funcionalidades más potentes es su **ecosistema conectado**.
