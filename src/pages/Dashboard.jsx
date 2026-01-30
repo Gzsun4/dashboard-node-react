@@ -48,7 +48,14 @@ const Dashboard = () => {
                 const allTransactions = [
                     ...incomes.map(i => ({ ...i, type: 'income', description: i.source, createdAt: i.createdAt })),
                     ...expenses.map(e => ({ ...e, type: 'expense', description: e.description, createdAt: e.createdAt }))
-                ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                ].sort((a, b) => {
+                    // 1. Sort by Date (descending)
+                    if (b.date !== a.date) {
+                        return b.date.localeCompare(a.date);
+                    }
+                    // 2. Tie-breaker: Sort by Creation Time (newest uploaded first)
+                    return new Date(b.createdAt) - new Date(a.createdAt);
+                });
 
                 setTransactions(allTransactions.slice(0, 10));
 
@@ -282,9 +289,20 @@ const Dashboard = () => {
                                                 {transaction.description}
                                             </p>
                                             <p className="text-secondary" style={{ fontSize: '0.75rem' }}>
-                                                {/* Fix: Parse date parts to avoid timezone issues with single string date */}
                                                 {transaction.category} • {(() => {
                                                     const [y, m, d] = transaction.date.split('-');
+                                                    const date = new Date(y, m - 1, d);
+                                                    const today = new Date();
+                                                    const yesterday = new Date();
+                                                    yesterday.setDate(today.getDate() - 1);
+
+                                                    // Reset time for comparison
+                                                    today.setHours(0, 0, 0, 0);
+                                                    yesterday.setHours(0, 0, 0, 0);
+                                                    date.setHours(0, 0, 0, 0);
+
+                                                    if (date.getTime() === today.getTime()) return 'Hoy';
+                                                    if (date.getTime() === yesterday.getTime()) return 'Ayer';
                                                     return `${d}/${m}/${y}`;
                                                 })()}
                                             </p>
