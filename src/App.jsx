@@ -16,19 +16,52 @@ import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import { CurrencyProvider } from './context/CurrencyContext';
 import './App.css';
-
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
 
   const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
   const closeSidebar = () => setIsSidebarOpen(false);
+
+  // Minimum swipe distance
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    // Swipe Left to Close
+    if (isLeftSwipe && isSidebarOpen) {
+      closeSidebar();
+    }
+
+    // Swipe Right to Open (restricted to left edge region for better UX)
+    if (isRightSwipe && !isSidebarOpen && touchStart < 150) {
+      setIsSidebarOpen(true);
+    }
+  };
 
   return (
     <Router>
       <AuthProvider>
         <SocketProvider>
           <CurrencyProvider>
-            <div className="app-container">
+            <div
+              className="app-container"
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
+            >
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />

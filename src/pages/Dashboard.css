@@ -1,75 +1,155 @@
 .dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
     gap: 1.5rem;
     margin-bottom: 2rem;
 }
 
 @media (max-width: 768px) {
     .dashboard-grid {
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        /* Smaller gap on mobile */
+    }
+
+    /* Mobile Text Adjustments */
+    .bento-value {
+        font-size: 2rem !important;
+        /* Smaller big number */
+    }
+
+    .bento-value.small {
+        font-size: 1.5rem !important;
+        /* Smaller card numbers */
+    }
+
+    .bento-label {
+        font-size: 0.75rem !important;
+    }
+
+    .bento-card {
+        padding: 1rem !important;
+        /* Tighter padding on mobile */
+        min-height: 150px !important;
+    }
+
+    .large-wallet-icon {
+        right: -30px;
+        bottom: -30px;
     }
 }
 
-.stat-card-header {
+/* Bento Grid Item Spans */
+.bento-card-large {
+    grid-column: span 2;
+}
+
+.bento-card-small {
+    grid-column: span 1;
+}
+
+/* Base Card Styles Override for Bento */
+.bento-card {
+    background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    position: relative;
+    overflow: hidden;
+    padding: 1.5rem !important;
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    align-items: flex-start;
+    min-height: 180px;
+}
+
+/* Large Card Specifics */
+.balance-section {
+    position: relative;
+    z-index: 1;
+}
+
+.large-wallet-icon {
+    position: absolute;
+    right: -20px;
+    bottom: -20px;
+    opacity: 0.05;
+    transform: rotate(-15deg);
+    transition: transform 0.3s ease;
+}
+
+.bento-card:hover .large-wallet-icon {
+    transform: rotate(0deg) scale(1.1);
+    opacity: 0.1;
+}
+
+/* Typography Overrides */
+.bento-label {
+    color: #94a3b8;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+.bento-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: white;
     margin-bottom: 1rem;
+    letter-spacing: -0.02em;
 }
 
-.stat-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.1);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.glass-card:hover .stat-icon {
-    transform: rotate(10deg) scale(1.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.stat-value {
+.bento-value.small {
     font-size: 1.75rem;
-    font-weight: 700;
-    margin-bottom: 0.25rem;
-    transition: all 0.3s ease;
 }
 
-.glass-card:hover .stat-value {
-    transform: scale(1.05);
-    color: hsl(var(--accent-primary));
+/* Badges */
+.bento-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    width: fit-content;
 }
 
-.stat-label {
-    color: hsl(var(--text-secondary));
-    font-size: 0.9rem;
+.badge-negative {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
-.stat-trend {
-    font-size: 0.85rem;
+.badge-positive {
+    background: rgba(34, 197, 94, 0.2);
+    color: #86efac;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.badge-neutral {
+    background: rgba(255, 255, 255, 0.05);
+    color: #e2e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.trend-indicator {
     display: flex;
     align-items: center;
     gap: 0.25rem;
-    transition: all 0.3s ease;
 }
 
-.glass-card:hover .stat-trend {
-    transform: translateX(4px);
-}
-
-.trend-up {
-    color: hsl(var(--accent-success));
-}
-
-.trend-down {
-    color: hsl(var(--accent-danger));
+/* Icon Containers for small cards */
+.icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
 }
 
 .charts-section {

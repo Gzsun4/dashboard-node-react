@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import Card from '../components/Card';
-import { DollarSign, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, ArrowDownRight, Menu } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, ArrowDownRight, Menu, Wallet } from 'lucide-react';
 import MobileMenuButton from '../components/MobileMenuButton';
 import MobileHeader from '../components/MobileHeader';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import './Dashboard.css';
 
 const Dashboard = () => {
-    const { token } = useAuth();
+    const { token, user } = useAuth();
     const { symbol } = useCurrency();
     const [stats, setStats] = useState({
         totalIncome: 0,
@@ -53,32 +53,39 @@ const Dashboard = () => {
                 setTransactions(allTransactions.slice(0, 10));
 
                 // Process Chart Data (Last 6 Months)
-                const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+                // Process Chart Data (Last 7 Days)
+                const daysOfWeek = ["Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"];
                 const chartMap = new Map();
+                const today = new Date();
+
+                // Initialize last 7 days with 0
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date();
+                    d.setDate(today.getDate() - i);
+                    const dayKey = d.toISOString().split('T')[0]; // YYYY-MM-DD
+                    chartMap.set(dayKey, {
+                        name: daysOfWeek[d.getDay()],
+                        income: 0,
+                        expense: 0,
+                        order: d.getTime()
+                    });
+                }
 
                 [...incomes, ...expenses].forEach(item => {
                     const date = new Date(item.date);
-                    const monthKey = `${date.getFullYear()}-${date.getMonth()}`; // Unique key
+                    const dayKey = date.toISOString().split('T')[0];
 
-                    if (!chartMap.has(monthKey)) {
-                        chartMap.set(monthKey, {
-                            name: monthNames[date.getMonth()],
-                            income: 0,
-                            expense: 0,
-                            order: date.getTime()
-                        });
-                    }
-
-                    if (item.source) { // Is Income
-                        chartMap.get(monthKey).income += item.amount;
-                    } else {
-                        chartMap.get(monthKey).expense += item.amount;
+                    if (chartMap.has(dayKey)) {
+                        if (item.source) { // Is Income
+                            chartMap.get(dayKey).income += item.amount;
+                        } else {
+                            chartMap.get(dayKey).expense += item.amount;
+                        }
                     }
                 });
 
                 const processedChartData = Array.from(chartMap.values())
-                    .sort((a, b) => a.order - b.order)
-                    .slice(-6); // Last 6 months
+                    .sort((a, b) => a.order - b.order);
 
                 setChartData(processedChartData);
                 setLoading(false);
@@ -108,99 +115,148 @@ const Dashboard = () => {
                 <p className="page-subtitle">Bienvenido de nuevo, aquí tienes tu resumen financiero.</p>
             </div>
 
+            {/* Mobile Greeting - Inserted here */}
+            <div className="mb-6 mt-4 px-1 md:hidden">
+                <h1 className="text-2xl font-bold text-white mb-1">
+                    {(() => {
+                        const hour = new Date().getHours();
+                        let greeting = 'Buenos días';
+                        if (hour >= 12 && hour < 19) greeting = 'Buenas tardes';
+                        if (hour >= 19) greeting = 'Buenas noches';
+
+                        const firstName = user?.name?.split(' ')[0] || 'Usuario';
+                        return `${greeting}, ${firstName}`;
+                    })()}
+                </h1>
+                <p className="text-gray-400 text-sm font-medium">
+                    Tu Resumen Financiero
+                </p>
+            </div>
+
             <div className="dashboard-grid">
-                <Card>
-                    <div className="stat-card-header">
-                        <div>
-                            <p className="stat-label">Balance Total</p>
-                            <h3 className="stat-value">{symbol} {stats.balance.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
-                        </div>
-                        <div className="stat-icon" style={{ background: 'hsl(var(--accent-primary) / 0.2)', color: 'hsl(var(--accent-primary))' }}>
-                            <DollarSign size={20} />
+                {/* Large Balance Card */}
+                <div className="glass-card bento-card bento-card-large">
+                    <div className="balance-section">
+                        <p className="bento-label">BALANCE TOTAL</p>
+                        <h3 className="bento-value" style={{ color: stats.balance >= 0 ? '#22c55e' : '#ff4d4d' }}>
+                            {symbol} {stats.balance.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </h3>
+                        <div className="flex items-center gap-3">
+                            <div className={`bento-badge ${stats.balance >= 0 ? 'badge-positive' : 'badge-negative'}`}>
+                                {stats.balance >= 0 ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
+                                <span>{stats.balance >= 0 ? 'Balance Positivo' : 'Balance Negativo'}</span>
+                            </div>
+                            <span className="text-sm text-gray-500">Actualizado hoy</span>
                         </div>
                     </div>
-                    <div className={`stat-trend ${stats.balance >= 0 ? 'trend-up' : 'trend-down'}`}>
-                        {stats.balance >= 0 ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
-                        <span>{stats.balance >= 0 ? 'Positivo' : 'Negativo'}</span>
+                    {/* Decorative Background Icon */}
+                    <div className="large-wallet-icon">
+                        <Wallet size={180} color="white" />
                     </div>
-                </Card>
+                </div>
 
-                <Card>
-                    <div className="stat-card-header">
-                        <div>
-                            <p className="stat-label">Ingresos</p>
-                            <h3 className="stat-value">{symbol} {stats.totalIncome.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
+                {/* Income Card */}
+                <div className="glass-card bento-card bento-card-small">
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="icon-box" style={{ background: 'rgba(34, 197, 94, 0.1)', marginBottom: 0 }}>
+                            <TrendingUp size={24} style={{ color: '#00ff9d' }} />
                         </div>
-                        <div className="stat-icon" style={{ background: 'hsl(var(--accent-success) / 0.2)', color: 'hsl(var(--accent-success))' }}>
-                            <TrendingUp size={20} />
-                        </div>
+                        <span className="flex items-center gap-1 text-xs font-medium" style={{ color: '#4ade80' }}>
+                            <ArrowUpRight size={14} /> Acumulado
+                        </span>
                     </div>
-                    <div className="stat-trend trend-up">
-                        <ArrowUpRight size={16} />
-                        <span>Total acumulado</span>
+                    <div>
+                        <p className="bento-label" style={{ marginBottom: '0.25rem', color: '#94a3b8' }}>INGRESOS</p>
+                        <h3 className="bento-value small" style={{ marginBottom: 0 }}>
+                            {symbol} {stats.totalIncome.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </h3>
                     </div>
-                </Card>
+                </div>
 
-                <Card>
-                    <div className="stat-card-header">
-                        <div>
-                            <p className="stat-label">Gastos</p>
-                            <h3 className="stat-value">{symbol} {stats.totalExpenses.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
+                {/* Expenses Card */}
+                <div className="glass-card bento-card bento-card-small">
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="icon-box" style={{ background: 'rgba(239, 68, 68, 0.1)', marginBottom: 0 }}>
+                            <TrendingDown size={24} style={{ color: '#ff4d4d' }} />
                         </div>
-                        <div className="stat-icon" style={{ background: 'hsl(var(--accent-danger) / 0.2)', color: 'hsl(var(--accent-danger))' }}>
-                            <TrendingDown size={20} />
-                        </div>
+                        <span className="flex items-center gap-1 text-xs font-medium" style={{ color: '#f87171' }}>
+                            <ArrowDownRight size={14} /> Total gastado
+                        </span>
                     </div>
-                    <div className="stat-trend trend-down">
-                        <ArrowDownRight size={16} />
-                        <span>Total gastado</span>
+                    <div>
+                        <p className="bento-label" style={{ marginBottom: '0.25rem', color: '#94a3b8' }}>GASTOS</p>
+                        <h3 className="bento-value small" style={{ marginBottom: 0 }}>
+                            {symbol} {stats.totalExpenses.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </h3>
                     </div>
-                </Card>
-
-                <Card>
-                    <div className="stat-card-header">
-                        <div>
-                            <p className="stat-label">Ahorros</p>
-                            <h3 className="stat-value">{symbol} {stats.totalSavings.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
-                        </div>
-                        <div className="stat-icon" style={{ background: 'hsl(var(--accent-secondary) / 0.2)', color: 'hsl(var(--accent-secondary))' }}>
-                            <PiggyBank size={20} />
-                        </div>
-                    </div>
-                    <div className="stat-trend trend-up">
-                        <ArrowUpRight size={16} />
-                        <span>Total ahorrado</span>
-                    </div>
-                </Card>
+                </div>
             </div>
 
             <div className="charts-section">
                 <Card>
-                    <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Resumen Mensual</h3>
+                    <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem', textAlign: 'center' }}>Resumen Mensual</h3>
                     <div className="chart-container">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={chartData}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                                <XAxis dataKey="name" stroke="rgba(255,255,255,0.5)" />
-                                <YAxis stroke="rgba(255,255,255,0.5)" />
+                            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -5, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                                    </linearGradient>
+                                    <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                                <XAxis
+                                    dataKey="name"
+                                    stroke="#94a3b8"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fontSize: 12 }}
+                                    dy={10}
+                                />
+                                <YAxis
+                                    width={35}
+                                    stroke="#94a3b8"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fontSize: 12 }}
+                                />
                                 <Tooltip
                                     contentStyle={{
-                                        backgroundColor: 'rgba(30, 35, 55, 0.95)',
+                                        backgroundColor: '#1e293b',
                                         border: '1px solid rgba(255, 255, 255, 0.1)',
-                                        borderRadius: '0.5rem',
-                                        color: 'white'
+                                        borderRadius: '0.75rem',
+                                        color: 'white',
+                                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)'
                                     }}
                                     formatter={(value) => `${symbol} ${value.toLocaleString('es-PE', { minimumFractionDigits: 2 })}`}
                                 />
-                                <Bar dataKey="income" fill="hsl(var(--accent-success))" radius={[8, 8, 0, 0]} />
-                                <Bar dataKey="expense" fill="hsl(var(--accent-danger))" radius={[8, 8, 0, 0]} />
-                            </BarChart>
+                                <Area
+                                    type="monotone"
+                                    dataKey="income"
+                                    stroke="#22c55e"
+                                    strokeWidth={3}
+                                    fillOpacity={1}
+                                    fill="url(#colorIncome)"
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="expense"
+                                    stroke="#ef4444"
+                                    strokeWidth={3}
+                                    fillOpacity={1}
+                                    fill="url(#colorExpense)"
+                                />
+                            </AreaChart>
                         </ResponsiveContainer>
                     </div>
                 </Card>
 
                 <Card>
-                    <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Transacciones Recientes</h3>
+                    <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem', textAlign: 'center' }}>Transacciones Recientes</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '300px', overflowY: 'auto' }}>
                         {loading ? <p className="text-center text-muted">Cargando...</p> :
                             transactions.length === 0 ? (
