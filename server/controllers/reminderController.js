@@ -24,12 +24,21 @@ const getReminderConfig = asyncHandler(async (req, res) => {
 const saveReminderConfig = asyncHandler(async (req, res) => {
     const { telegramChatId } = req.body;
 
-    // Update User model with telegramChatId for bot authentication
-    const updatedUser = await User.findByIdAndUpdate(
-        req.user.id,
-        { telegramChatId },
-        { new: true }
-    );
+    let updatedUser;
+    try {
+        // Update User model with telegramChatId for bot authentication
+        updatedUser = await User.findByIdAndUpdate(
+            req.user.id,
+            { telegramChatId },
+            { new: true }
+        );
+    } catch (error) {
+        if (error.code === 11000) {
+            res.status(409);
+            throw new Error('Este ID de Telegram ya está vinculado a otra cuenta');
+        }
+        throw error;
+    }
 
     if (updatedUser) {
         // Send welcome message if telegramChatId is provided

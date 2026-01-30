@@ -52,7 +52,11 @@ const Reminders = () => {
                 setOriginalId(telegramChatId);
                 setToast({ message: 'Actualizado con éxito', type: 'success' });
             } else {
-                setToast({ message: '❌ Error al guardar', type: 'error' });
+                const errorData = await response.json();
+                setToast({
+                    message: errorData.message || '❌ Error al guardar',
+                    type: 'error'
+                });
             }
         } catch (error) {
             console.error('Error saving config:', error);
