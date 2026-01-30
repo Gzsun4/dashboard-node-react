@@ -15,6 +15,8 @@ import AdminUsers from './pages/AdminUsers';
 import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import { CurrencyProvider } from './context/CurrencyContext';
+import { DebtProvider } from './context/DebtContext';
+import InstallPrompt from './components/InstallPrompt';
 import './App.css';
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -56,39 +58,42 @@ function App() {
       <AuthProvider>
         <SocketProvider>
           <CurrencyProvider>
-            <div
-              className="app-container"
-              onTouchStart={onTouchStart}
-              onTouchMove={onTouchMove}
-              onTouchEnd={onTouchEnd}
-            >
-              <Routes>
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
+            <DebtProvider>
+              <InstallPrompt />
+              <div
+                className="app-container"
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
+              >
+                <Routes>
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
 
-                <Route element={<PrivateRoute />}>
-                  <Route element={
-                    <>
-                      <Sidebar isOpen={isSidebarOpen} closeSidebar={closeSidebar} />
-                      <main className="main-content">
-                        <Outlet context={{ toggleSidebar }} />
-                      </main>
-                    </>
-                  }>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/income" element={<Income />} />
-                    <Route path="/expenses" element={<Expenses />} />
-                    <Route path="/savings" element={<Savings />} />
-                    <Route path="/debts" element={<Debts />} />
-                    <Route path="/reminders" element={<Reminders />} />
+                  <Route element={<PrivateRoute />}>
+                    <Route element={
+                      <>
+                        <Sidebar isOpen={isSidebarOpen} closeSidebar={closeSidebar} />
+                        <main className="main-content">
+                          <Outlet context={{ toggleSidebar }} />
+                        </main>
+                      </>
+                    }>
+                      <Route path="/" element={<Dashboard />} />
+                      <Route path="/income" element={<Income />} />
+                      <Route path="/expenses" element={<Expenses />} />
+                      <Route path="/savings" element={<Savings />} />
+                      <Route path="/debts" element={<Debts />} />
+                      <Route path="/reminders" element={<Reminders />} />
 
-                    <Route element={<AdminRoute />}>
-                      <Route path="/admin/users" element={<AdminUsers />} />
+                      <Route element={<AdminRoute />}>
+                        <Route path="/admin/users" element={<AdminUsers />} />
+                      </Route>
                     </Route>
                   </Route>
-                </Route>
-              </Routes>
-            </div>
+                </Routes>
+              </div>
+            </DebtProvider>
           </CurrencyProvider>
         </SocketProvider>
       </AuthProvider>

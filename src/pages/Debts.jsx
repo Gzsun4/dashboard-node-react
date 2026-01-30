@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Card from '../components/Card';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { useDebts } from '../context/DebtContext';
 import { Plus, Target, Car, Home, Smartphone, X, History, DollarSign, TrendingUp, CreditCard, AlertCircle } from 'lucide-react';
 import MobileHeader from '../components/MobileHeader';
 import MobileStatsGrid from '../components/MobileStatsGrid';
@@ -12,36 +13,10 @@ import Toast from '../components/Toast';
 const Debts = () => {
     const { token } = useAuth();
     const { symbol } = useCurrency();
-    const [debts, setDebts] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { debts, loading, fetchDebts } = useDebts(); // Use Context
     const [toast, setToast] = useState({ show: false, message: '', type: 'error' });
 
-    // Mock/Fetch logic - Replace with actual endpoint if available
-    useEffect(() => {
-        if (token) fetchDebts();
-    }, [token]);
-
-    const fetchDebts = async () => {
-        try {
-            // Using /api/data/debts assuming backend consistency. 
-            // If it fails, empty array allows UI verification.
-            const response = await fetch('/api/data/debts', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setDebts(data);
-            } else {
-                console.warn("Endpoints de deudas no encontrados, usando datos locales vacíos");
-                setDebts([]);
-            }
-            setLoading(false);
-        } catch (error) {
-            console.error("Error fetching debts", error);
-            setLoading(false);
-            setDebts([]);
-        }
-    };
+    // Mock/Fetch logic removed since it is handled by Context
 
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState(null);
@@ -106,28 +81,16 @@ const Debts = () => {
                 deadline: newDebt.deadline
             };
 
-            // Optimistic update
-            if (editingId) {
-                setDebts(debts.map(d => d._id === editingId ? mockDebt : d));
-            } else {
-                setDebts([...debts, mockDebt]);
-            }
+            // Optimistic update removed - relying on fast context refresh
 
             // Actual call - BACKGROUND SYNC
             try {
                 const res = await fetch(url, { method, headers, body });
                 if (res.ok) {
-                    const data = await res.json();
-                    if (editingId) {
-                        setDebts(prev => prev.map(d => d._id === editingId ? data : d));
-                    } else {
-                        // Replace the temp ID with real ID from server
-                        setDebts(prev => prev.map(d => d._id === mockDebt._id ? data : d));
-                    }
+                    await fetchDebts(); // Update global context
                 }
             } catch (err) {
                 console.error("Failed to sync debt", err);
-                // Optionally revert optimistic update here
             }
 
         } catch (error) {
@@ -155,7 +118,7 @@ const Debts = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('¿Estás seguro de eliminar esta deuda?')) return;
+
         try {
             const response = await fetch(`/api/data/debts/${id}`, {
                 method: 'DELETE',
@@ -163,7 +126,7 @@ const Debts = () => {
             });
 
             if (response.ok) {
-                setDebts(debts.filter(d => d._id !== id));
+                await fetchDebts(); // Update global context
                 setToast({ show: true, message: 'Deuda eliminada', type: 'success' });
             } else {
                 setToast({ show: true, message: 'Error al eliminar', type: 'error' });
@@ -218,7 +181,7 @@ const Debts = () => {
             });
 
             if (response.ok) {
-                setDebts(debts.map(d => d._id === selectedDebt._id ? updatedDebt : d));
+                await fetchDebts(); // Update global context
                 setToast({ show: true, message: 'Abono realizado exitosamente', type: 'success' });
                 setShowPayModal(false);
             } else {

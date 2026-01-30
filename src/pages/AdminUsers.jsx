@@ -38,7 +38,7 @@ const AdminUsers = () => {
     };
 
     const deleteUser = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this user?')) return;
+
 
         try {
             await fetch(`/api/admin/users/${id}`, {

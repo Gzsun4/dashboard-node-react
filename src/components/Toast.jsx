@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { X, CheckCircle, AlertCircle } from 'lucide-react';
+import { CheckCircle, AlertCircle } from 'lucide-react';
 
 const Toast = ({ message, type = 'success', onClose }) => {
     useEffect(() => {
@@ -10,7 +10,7 @@ const Toast = ({ message, type = 'success', onClose }) => {
         return () => clearTimeout(timer);
     }, [onClose]);
 
-    const bgColor = type === 'success' ? 'hsl(var(--accent-success))' : 'hsl(var(--accent-danger))';
+
     const Icon = type === 'success' ? CheckCircle : AlertCircle;
 
     return (
@@ -18,35 +18,28 @@ const Toast = ({ message, type = 'success', onClose }) => {
             className="toast"
             style={{
                 position: 'fixed',
-                top: '2rem',
-                right: '2rem',
-                background: bgColor,
+                bottom: '2rem',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background: type === 'success' ? 'rgba(16, 185, 129, 0.85)' : 'rgba(239, 68, 68, 0.85)', // Transparent Green/Red
+                backdropFilter: 'blur(4px)',
                 color: 'white',
-                padding: '1rem 1.5rem',
-                borderRadius: 'var(--radius-sm)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                padding: '0.5rem 1rem', // Smaller padding
+                borderRadius: '99px', // Pill shape
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.75rem',
+                gap: '0.5rem',
                 zIndex: 10000,
-                animation: 'slideInRight 0.3s ease-out',
-                minWidth: '300px'
+                // animation: 'slideUp 0.3s ease-out',
+                width: 'max-content', // Wrap content
+                maxWidth: '90%',
+                fontSize: '0.875rem'
             }}
         >
-            <Icon size={24} />
+            <Icon size={18} />
             <span style={{ flex: 1, fontWeight: 600 }}>{message}</span>
-            <button
-                onClick={onClose}
-                style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'white',
-                    cursor: 'pointer',
-                    padding: '0.25rem'
-                }}
-            >
-                <X size={18} />
-            </button>
+
         </div>
     );
 };

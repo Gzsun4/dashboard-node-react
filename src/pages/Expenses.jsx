@@ -123,7 +123,7 @@ const Expenses = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure?")) return;
+
         try {
             await fetch(`/api/data/expenses/${id}`, {
                 method: 'DELETE',

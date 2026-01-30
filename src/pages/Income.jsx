@@ -113,7 +113,7 @@ const Income = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure?")) return;
+
         try {
             await fetch(`/api/data/incomes/${id}`, {
                 method: 'DELETE',

@@ -126,7 +126,7 @@ const Savings = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure?")) return;
+
         try {
             await fetch(`/api/data/goals/${id}`, {
                 method: 'DELETE',
@@ -203,7 +203,7 @@ const Savings = () => {
     };
 
     const handleDeleteHistory = async (index, amount) => {
-        if (!window.confirm("¿Eliminar este registro? Se restará el monto de la meta.")) return;
+
 
         const newHistory = [...selectedGoal.history];
         newHistory.splice(index, 1);

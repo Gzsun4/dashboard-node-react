@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { useDebts } from '../context/DebtContext';
 import { LayoutDashboard, TrendingUp, TrendingDown, PiggyBank, Wallet, Users, LogOut, Menu, Bell, Repeat, CreditCard } from 'lucide-react';
 import './Sidebar.css';
 
@@ -24,8 +25,9 @@ const TelegramIcon = ({ className }) => (
 );
 
 const Sidebar = ({ isOpen, closeSidebar }) => {
-    const { user, logout } = useAuth();
+    const { user, token, logout } = useAuth();
     const { currency, toggleCurrency } = useCurrency();
+    const { activeCount } = useDebts();
     const navigate = useNavigate();
 
     const navItems = [
@@ -33,7 +35,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
         { path: '/income', label: 'Ingresos', icon: TrendingUp },
         { path: '/expenses', label: 'Gastos', icon: TrendingDown },
         { path: '/savings', label: 'Ahorros', icon: PiggyBank },
-        { path: '/debts', label: 'Deudas', icon: CreditCard },
+        { path: '/debts', label: 'Deudas', icon: CreditCard, badge: activeCount },
         { path: '/reminders', label: 'Telegram', icon: TelegramIcon },
     ];
 
@@ -75,6 +77,21 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                         >
                             <item.icon className="nav-icon" />
                             <span className="nav-label">{item.label}</span>
+                            {item.badge > 0 && (
+                                <span style={{
+                                    marginLeft: 'auto',
+                                    background: '#ef4444',
+                                    color: 'white',
+                                    fontSize: '0.7rem',
+                                    fontWeight: 'bold',
+                                    padding: '2px 8px',
+                                    borderRadius: '999px',
+                                    minWidth: '20px',
+                                    textAlign: 'center'
+                                }}>
+                                    {item.badge}
+                                </span>
+                            )}
                         </NavLink>
                     ))}
                 </nav>
