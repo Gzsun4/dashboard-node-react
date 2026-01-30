@@ -46,9 +46,9 @@ const Dashboard = () => {
 
                 // Process Transactions
                 const allTransactions = [
-                    ...incomes.map(i => ({ ...i, type: 'income', description: i.source })),
-                    ...expenses.map(e => ({ ...e, type: 'expense', description: e.description }))
-                ].sort((a, b) => new Date(b.date) - new Date(a.date));
+                    ...incomes.map(i => ({ ...i, type: 'income', description: i.source, createdAt: i.createdAt })),
+                    ...expenses.map(e => ({ ...e, type: 'expense', description: e.description, createdAt: e.createdAt }))
+                ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
                 setTransactions(allTransactions.slice(0, 10));
 
@@ -72,8 +72,11 @@ const Dashboard = () => {
                 }
 
                 [...incomes, ...expenses].forEach(item => {
-                    const date = new Date(item.date);
-                    const dayKey = date.toISOString().split('T')[0];
+                    const date = new Date(item.date + 'T12:00:00'); // Ensure middle of day to avoid timezone shift
+                    const dayKey = item.date; // Use the raw date string from DB if it matches YYYY-MM-DD
+
+                    // Fallback if dayKey needs to be derived securely
+                    // const dayKey = date.toISOString().split('T')[0]; 
 
                     if (chartMap.has(dayKey)) {
                         if (item.source) { // Is Income
@@ -279,7 +282,11 @@ const Dashboard = () => {
                                                 {transaction.description}
                                             </p>
                                             <p className="text-secondary" style={{ fontSize: '0.75rem' }}>
-                                                {transaction.category} • {new Date(transaction.date).toLocaleDateString()}
+                                                {/* Fix: Parse date parts to avoid timezone issues with single string date */}
+                                                {transaction.category} • {(() => {
+                                                    const [y, m, d] = transaction.date.split('-');
+                                                    return `${d}/${m}/${y}`;
+                                                })()}
                                             </p>
                                         </div>
                                         <p style={{
