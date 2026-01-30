@@ -20,4 +20,4 @@ Actualmente, la aplicación está en fase privada, pero he habilitado un **Usuar
 *Siéntete libre de probar las funciones, es una cuenta para visitantes.*
 ---
 ¡Espero que disfruten viendo este proyecto tanto como yo disfruté aprendiendo a crearlo!
-Code & Design by **Gszunnk**
+###Code & Design by **Gszunnk**
