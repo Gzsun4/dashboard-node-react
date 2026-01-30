@@ -20,8 +20,8 @@ import InstallPrompt from './components/InstallPrompt';
 import './App.css';
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
+  const touchStart = React.useRef(null);
+  const touchEnd = React.useRef(null);
 
   const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
   const closeSidebar = () => setIsSidebarOpen(false);
@@ -30,15 +30,17 @@ function App() {
   const minSwipeDistance = 50;
 
   const onTouchStart = (e) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
+    touchEnd.current = null;
+    touchStart.current = e.targetTouches[0].clientX;
   };
 
-  const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
+  const onTouchMove = (e) => {
+    touchEnd.current = e.targetTouches[0].clientX;
+  };
 
   const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
+    if (!touchStart.current || !touchEnd.current) return;
+    const distance = touchStart.current - touchEnd.current;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
 
@@ -48,7 +50,7 @@ function App() {
     }
 
     // Swipe Right to Open (restricted to left edge region for better UX)
-    if (isRightSwipe && !isSidebarOpen && touchStart < 150) {
+    if (isRightSwipe && !isSidebarOpen && touchStart.current < 150) {
       setIsSidebarOpen(true);
     }
   };

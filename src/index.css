@@ -57,7 +57,18 @@ html {
   height: auto;
   min-height: 44px;
   width: auto;
+  cursor: pointer;
+  touch-action: manipulation;
+  /* Prevents double-tap to zoom, speeds up click */
 }
+
+/* Hover effects only for devices with hover capability */
+@media (hover: hover) {
+  .btn-responsive-action:hover {
+    filter: brightness(1.1);
+  }
+}
+
 
 .btn-responsive-action .icon {
   width: 18px;
@@ -1809,5 +1820,25 @@ input:checked+.toggle-slider:hover {
 
   to {
     opacity: 1;
+  }
+}
+
+/* Loader for Suspense/Loading states */
+.loader {
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border-left-color: hsl(var(--accent-primary));
+  animation: spin 1s ease infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
   }
 }

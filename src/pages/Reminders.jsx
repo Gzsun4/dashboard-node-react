@@ -65,11 +65,10 @@ const Reminders = () => {
     const hasChanges = telegramChatId !== originalId;
     const isLinked = originalId && originalId.length > 0;
 
-    if (loading) return (
-        <div className="flex justify-center items-center h-64 animate-fade-in">
-            <div className="loader"></div>
-        </div>
-    );
+
+    // Removed blocking loader as per user request
+    // if (loading) return (...)
+
 
     return (
         <>
