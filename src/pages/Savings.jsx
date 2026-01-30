@@ -402,7 +402,7 @@ const Savings = () => {
                         <div className="w-12 h-12 rounded-full mb-4 flex-center" style={{ background: 'rgba(255,255,255,0.1)' }}>
                             <Plus size={24} className="text-secondary" />
                         </div>
-                        <p className="text-secondary" style={{ fontWeight: 600 }}>Crear Nueva Meta</p>
+                        <p className="text-secondary" style={{ fontWeight: 600 }}>Nueva Meta</p>
                     </button>
                 </div >
 
@@ -428,7 +428,7 @@ const Savings = () => {
                                 <X size={24} />
                             </button>
 
-                            <h3 className="mb-6 text-center">{editingId ? 'Editar Meta de Ahorro' : 'Crear Nueva Meta de Ahorro'}</h3>
+                            <h3 className="mb-6 text-center">{editingId ? 'Editar Meta' : 'Nueva Meta'}</h3>
 
                             <form onSubmit={handleSubmit}>
                                 <div className="mb-4">

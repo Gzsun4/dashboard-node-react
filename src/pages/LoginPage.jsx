@@ -176,7 +176,8 @@ const LoginPage = () => {
                     marginTop: '40px',
                     textAlign: 'center',
                     fontSize: '14px',
-                    color: '#9ca3af'
+                    color: '#9ca3af',
+                    display: 'none' // Hidden as per user request
                 }}>
                     ¿No tienes una cuenta?{' '}
                     <Link to="/register" style={{

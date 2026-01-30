@@ -6,8 +6,6 @@ import Income from '../models/Income.js';
 import Goal from '../models/Goal.js';
 import OneTimeReminder from '../models/OneTimeReminder.js';
 
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-
 let bot;
 const userStates = {}; // Almacena el estado de la conversación
 
@@ -198,6 +196,7 @@ const parseReminder = (text) => {
 // --- INITIALIZATION ---
 
 export const initializeBot = () => {
+    const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
     if (!TELEGRAM_BOT_TOKEN) {
         console.error('TELEGRAM_BOT_TOKEN is not set. Bot will not start.');
         return;
@@ -391,7 +390,7 @@ Dime qué registramos hoy, <b>${firstName}</b>:
 💸 <b>DINERO DEL DÍA</b>
 • <i>"Almuerzo 15"</i> o <i>"Venta 30"</i>
 
-�📒 <b>AHORROS O DEUDAS</b>
+📒 <b>AHORROS O DEUDAS</b>
 • <i>"Ahorre 50 soles para viaje"</i>
 • <i>"Debo 20 en la tienda"</i>
 • <i>"Le preste 100 a Juan"</i>
@@ -446,7 +445,7 @@ const processSmartTransaction = async (text, user, chatId, preParsed = null) => 
     try {
         if (type === 'expense') {
             await Expense.create({ user: user._id, description, amount, category, date });
-            await bot.sendMessage(chatId, `✅ <b>Gasto Registrado</b>\n\n� <b>-S/. ${amount.toFixed(2)}</b>\n📝 ${description}\n📂 ${category}\n� ${date}`, { parse_mode: 'HTML' });
+            await bot.sendMessage(chatId, `✅ <b>Gasto Registrado</b>\n\n💸 <b>-S/. ${amount.toFixed(2)}</b>\n📝 ${description}\n📂 ${category}\n📅 ${date}`, { parse_mode: 'HTML' });
         } else if (type === 'income') {
             await Income.create({ user: user._id, source: description, amount, category, date });
             await bot.sendMessage(chatId, `✅ <b>Ingreso Registrado</b>\n\n💰 <b>+S/. ${amount.toFixed(2)}</b>\n📝 ${description}\n📂 ${category}\n📅 ${date}`, { parse_mode: 'HTML' });
@@ -474,7 +473,7 @@ const processSmartTransaction = async (text, user, chatId, preParsed = null) => 
                 goal.current += amount;
                 goal.history.push({ amount, date, note: 'Desde Telegram' });
                 await goal.save();
-                await bot.sendMessage(chatId, `🎯 <b>¡Ahorro Registrado!</b>\n\n� <b>+S/. ${amount.toFixed(2)}</b> para <b>${goal.name}</b>\n\n📈 <i>Progreso: S/. ${goal.current} / S/. ${goal.target}</i>`, { parse_mode: 'HTML' });
+                await bot.sendMessage(chatId, `🎯 <b>¡Ahorro Registrado!</b>\n\n💰 <b>+S/. ${amount.toFixed(2)}</b> para <b>${goal.name}</b>\n\n📈 <i>Progreso: S/. ${goal.current} / S/. ${goal.target}</i>`, { parse_mode: 'HTML' });
             } else {
                 await bot.sendMessage(chatId, `⚠️ No encontré una meta de ahorro llamada "${description}". Regístrala primero en la web.`, { parse_mode: 'HTML' });
             }

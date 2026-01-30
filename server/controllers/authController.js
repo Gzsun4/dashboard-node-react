@@ -9,10 +9,18 @@ import User from '../models/User.js';
 const registerUser = asyncHandler(async (req, res) => {
     const { name, email, password } = req.body;
 
+
     if (!name || !email || !password) {
         res.status(400);
         throw new Error('Please add all fields');
     }
+
+    // Check if email domain is valid
+    if (!email.endsWith('@pe.com')) {
+        res.status(400);
+        throw new Error('Solo se permiten correos @pe.com');
+    }
+
 
     // Check if user exists
     const userExists = await User.findOne({ email });

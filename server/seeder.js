@@ -10,14 +10,15 @@ const importData = async () => {
     await connectDB();
     try {
         // Delete existing users with this email if any
-        await User.deleteMany({ email: 'admin@admin.com' });
+        await User.deleteMany({ email: 'jesus@dev.com' });
+        await User.deleteMany({ email: 'admin@admin.com' }); // Clean up old default admin
 
         const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash('123456', salt);
+        const hashedPassword = await bcrypt.hash('genesis.26', salt);
 
         const adminUser = new User({
-            name: 'Admin User',
-            email: 'admin@admin.com',
+            name: 'Jesus Guerrero',
+            email: 'jesus@dev.com',
             password: hashedPassword,
             role: 'Admin',
         });
@@ -25,8 +26,8 @@ const importData = async () => {
         await adminUser.save();
 
         console.log('Admin User Created!');
-        console.log('Email: admin@admin.com');
-        console.log('Password: 123456');
+        console.log('Email: jesus@dev.com');
+        console.log('Password: genesis.26');
         process.exit();
     } catch (error) {
         console.error(`${error}`);

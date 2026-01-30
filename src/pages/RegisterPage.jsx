@@ -148,7 +148,7 @@ const RegisterPage = () => {
                                 outline: 'none',
                                 transition: 'all 0.3s'
                             }}
-                            placeholder="nombre@ejemplo.com"
+                            placeholder="nombre@pe.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />

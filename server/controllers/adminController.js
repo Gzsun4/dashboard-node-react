@@ -5,7 +5,7 @@ import User from '../models/User.js';
 // @route   GET /api/admin/users
 // @access  Private/Admin
 const getUsers = asyncHandler(async (req, res) => {
-    const users = await User.find({});
+    const users = await User.find({}).sort({ role: 1 });
     res.json(users);
 });
 
