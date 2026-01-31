@@ -446,8 +446,8 @@ const handleMessage = async (msg) => {
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const tryGenerateContent = async (prompt) => {
-    // Try primary (2.5), then 2.0, then lite, then legacy
-    const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-pro"];
+    // Updated: User reports 2.0 is deprecated. Using 2.5 family + stable pro.
+    const modelsToTry = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-pro"];
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
     for (const modelName of modelsToTry) {
