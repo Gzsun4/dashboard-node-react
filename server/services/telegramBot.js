@@ -337,7 +337,7 @@ export const initializeBot = () => {
         systemInstruction: "Eres un asistente financiero experto y amigable llamado 'FinanzasBot'. Ayudas a Jesús (un estudiante de economía en 8vo ciclo) a entender sus gastos y conceptos económicos. Tienes acceso a su resumen financiero del mes. Sé conciso, usa emojis y da consejos prácticos. Si te preguntan algo fuera de finanzas, responde brevemente que solo sabes de economía."
     });
 
-    console.log('Telegram bot initialized 🤖');
+    console.log('Telegram bot initialized 🤖 - Build: 2026-01-31 Vision Fix');
 
     console.log('Telegram bot initialized 🤖');
 
