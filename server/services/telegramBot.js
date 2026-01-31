@@ -770,4 +770,78 @@ const handleUndo = async (user, chatId) => {
     }
 };
 
+// --- PHOTO HANDLER ---
+const handlePhoto = async (msg) => {
+    const chatId = msg.chat.id;
+    const user = await User.findOne({ telegramChatId: String(chatId) });
+    if (!user) return bot.sendMessage(chatId, '⛔ Cuenta no vinculada.');
+
+    try {
+        bot.sendChatAction(chatId, 'upload_photo'); // "sending photo" action means processing
+        const fileId = msg.photo[msg.photo.length - 1].file_id; // Get highest resolution
+        const fileLink = await bot.getFileLink(fileId);
+
+        // Download Image
+        const imageResp = await fetch(fileLink);
+        const arrayBuffer = await imageResp.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        // Analyze with Gemini
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+        const prompt = `
+        Analiza esta imagen (recibo/factura) y extrae:
+        1. Monto total (solo número).
+        2. Descripción corta (ej. "McDonalds", "Cena", "Uber").
+        3. Fecha (YYYY-MM-DD) si es visible, si no, usa HOY.
+        
+        Responde SOLO un JSON así:
+        {"amount": 50.00, "description": "McDonalds", "date": "2024-01-30", "type": "expense"}
+        Si no es un recibo claro, responde: null
+        `;
+
+        const result = await model.generateContent([
+            prompt,
+            {
+                inlineData: {
+                    data: buffer.toString('base64'),
+                    mimeType: "image/jpeg"
+                }
+            }
+        ]);
+
+        const text = result.response.text().trim().replace(/```json|```/g, '');
+        if (text === 'null') return bot.sendMessage(chatId, '⚠️ No pude leer el recibo. Intenta con una foto más clara.');
+
+        const data = JSON.parse(text);
+        if (!data.amount) throw new Error("No amount found");
+
+        const parsed = {
+            description: data.description,
+            amount: data.amount,
+            category: "Otros", // Default
+            date: data.date,
+            isAmbiguous: true // Force confirmation
+        };
+
+        // Reuse Smart Transaction Flow
+        userStates[chatId] = { pendingData: parsed };
+        const keyboard = {
+            inline_keyboard: [
+                [{ text: '💸 Confirmar Gasto', callback_data: `CONFIRM_AS:EXPENSE` }],
+                [{ text: '❌ Cancelar', callback_data: 'CANCEL_EDIT' }]
+            ]
+        };
+        await bot.sendMessage(chatId, `🧾 <b>Recibo Detectado</b>\n\n📌 <b>${parsed.description}</b>\n💰 <b>S/. ${parsed.amount.toFixed(2)}</b>\n📅 <i>${parsed.date}</i>\n\n¿Registramos este gasto?`, { parse_mode: 'HTML', reply_markup: keyboard });
+
+    } catch (error) {
+        console.error("Photo Error:", error);
+        await bot.sendMessage(chatId, '❌ Error leyendo la imagen. Intenta escribirlo manualmente.');
+    }
+};
+
+// Register Photo Handler
+bot.on('photo', handlePhoto);
+
 export default bot;
