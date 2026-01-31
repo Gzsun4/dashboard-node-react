@@ -41,10 +41,13 @@ const REMINDER_TRIGGERS = ['alerta', 'recordatorio', 'avisame', 'acuerdame', 're
 
 const getFinancialContext = async (userId) => {
     const now = new Date();
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    // Fix: Convert firstDay to YYYY-MM-DD string because Schema uses String for dates
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const firstDayStr = `${year}-${month}-01`;
 
-    const expenses = await Expense.find({ user: userId, date: { $gte: firstDay } });
-    const incomes = await Income.find({ user: userId, date: { $gte: firstDay } });
+    const expenses = await Expense.find({ user: userId, date: { $gte: firstDayStr } });
+    const incomes = await Income.find({ user: userId, date: { $gte: firstDayStr } });
 
     const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
     const totalIncome = incomes.reduce((sum, i) => sum + i.amount, 0);
@@ -62,7 +65,7 @@ const getFinancialContext = async (userId) => {
         .join(', ');
 
     return `
-    Resumen del Mes:
+    Resumen del Mes (${year}-${month}):
     - Ingresos: S/. ${totalIncome.toFixed(2)}
     - Gastos: S/. ${totalExpense.toFixed(2)}
     - Balance: S/. ${balance.toFixed(2)}
@@ -442,49 +445,58 @@ const handleMessage = async (msg) => {
     }
 };
 
-// Helper to delay (for exponential backoff)
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+// Global throttle to prevent spamming Google API locally
+let lastRequestTime = 0;
+const MIN_REQUEST_INTERVAL = 4000; // 4 seconds between requests min
 
 const tryGenerateContent = async (prompt) => {
-    // Updated: User reports 2.0 is deprecated. Using 2.5 family + stable pro.
-    const modelsToTry = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-pro"];
+    // Verified: gemini-2.5-flash IS available. gemini-1.5-flash is 404.
+    // We stick to the one we know works to avoid wasting attempts on invalid models.
+    const modelName = "gemini-2.5-flash";
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-    for (const modelName of modelsToTry) {
-        let attempts = 0;
-        const maxAttempts = 2;
+    // Throttling: Wait if we are sending requests too fast
+    const now = Date.now();
+    const timeSinceLast = now - lastRequestTime;
+    if (timeSinceLast < MIN_REQUEST_INTERVAL) {
+        const wait = MIN_REQUEST_INTERVAL - timeSinceLast;
+        console.log(`⏱️ Throttling: Waiting ${wait}ms before calling AI...`);
+        await delay(wait);
+    }
+    lastRequestTime = Date.now();
 
-        while (attempts < maxAttempts) {
-            try {
-                // Exponential backoff: 4s, then 8s... (increased to avoid rapid 429s)
-                if (attempts > 0) {
-                    console.log(`⏳ Rate limit hit for ${modelName}. Retrying in ${4000 * attempts}ms...`);
-                    await delay(4000 * attempts);
-                }
+    let attempts = 0;
+    const maxAttempts = 3;
 
-                const model = genAI.getGenerativeModel({
-                    model: modelName,
-                    systemInstruction: "Eres un asistente financiero experto y amigable llamado 'FinanzasBot'. Ayudas a Jesús (un estudiante de economía en 8vo ciclo) a entender sus gastos y conceptos económicos. Tienes acceso a su resumen financiero del mes. Sé conciso, usa emojis y da consejos prácticos. Si te preguntan algo fuera de finanzas, responde brevemente que solo sabes de economía."
-                });
+    while (attempts < maxAttempts) {
+        try {
+            if (attempts > 0) {
+                // Aggressive backoff: 5s, 10s...
+                const waitTime = 5000 * attempts;
+                console.log(`⏳ Rate limit hit for ${modelName}. Retrying in ${waitTime}ms...`);
+                await delay(waitTime);
+            }
 
-                const result = await model.generateContent(prompt);
-                return result.response.text();
+            const model = genAI.getGenerativeModel({
+                model: modelName,
+                systemInstruction: "Eres un asistente financiero experto y amigable llamado 'FinanzasBot'. Ayudas a Jesús (un estudiante de economía en 8vo ciclo) a entender sus gastos y conceptos económicos. Tienes acceso a su resumen financiero del mes. Sé conciso, usa emojis y da consejos prácticos. Si te preguntan algo fuera de finanzas, responde brevemente que solo sabes de economía."
+            });
 
-            } catch (error) {
-                const msg = error.message || '';
-                if (msg.includes("429") || msg.includes("503")) {
-                    attempts++;
-                    console.warn(`⚠️ Warning: ${modelName} hit ${msg.includes("429") ? "Rate Limit" : "Overload"}. Attempt ${attempts}/${maxAttempts}`);
-                    if (attempts >= maxAttempts) break; // Move to next model
-                } else {
-                    // If it's not a rate limit (e.g., 404, Auth), fail this model immediately
-                    console.warn(`❌ Error: ${modelName} failed with ${msg}. Skipping.`);
-                    break;
-                }
+            const result = await model.generateContent(prompt);
+            return result.response.text();
+
+        } catch (error) {
+            const msg = error.message || '';
+            if (msg.includes("429") || msg.includes("503")) {
+                attempts++;
+                console.warn(`⚠️ Warning: ${modelName} hit ${msg.includes("429") ? "Rate Limit" : "Overload"}. Attempt ${attempts}/${maxAttempts}`);
+                if (attempts >= maxAttempts) throw new Error(`Rate limit exceeded after ${maxAttempts} retries.`);
+            } else {
+                // Fatal error (e.g. 404)
+                throw error;
             }
         }
     }
-    throw new Error("All models failed after retries.");
 };
 
 const processAIQuery = async (text, user, chatId) => {
