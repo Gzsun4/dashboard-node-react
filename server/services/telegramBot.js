@@ -796,88 +796,73 @@ const handlePhoto = async (msg) => {
         const buffer = Buffer.from(arrayBuffer);
         console.log("⬇️ Image downloaded, size:", buffer.length);
 
-        // Analyze with Gemini (USING RAW FETCH TO AVOID SDK ISSUES)
-        // Model: gemini-2.0-flash (New Project Key - Fresh Quota)
-        const apiKey = process.env.GEMINI_API_KEY;
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+        // Helper to try a specific model
+        const tryAnalyze = async (modelName) => {
+            const apiKey = process.env.GEMINI_API_KEY;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
-        const prompt = `
-        Analiza esta imagen (recibo/factura) y extrae:
-        1. Monto total (solo número).
-        2. Descripción corta (ej. "McDonalds", "Cena", "Uber").
-        3. Fecha (YYYY-MM-DD) si es visible, si no, usa HOY.
-        
-        Responde SOLO un JSON así:
-        {"amount": 50.00, "description": "McDonalds", "date": "2024-01-30", "type": "expense"}
-        Si no es un recibo claro, responde: null
-        `;
+            const prompt = `
+            Analiza esta imagen (recibo/factura) y extrae:
+            1. Monto total (solo número).
+            2. Descripción corta (ej. "McDonalds", "Cena", "Uber").
+            3. Fecha (YYYY-MM-DD) si es visible, si no, usa HOY.
+            
+            Responde SOLO un JSON así:
+            {"amount": 50.00, "description": "McDonalds", "date": "2024-01-30", "type": "expense"}
+            Si no es un recibo claro, responde: null
+            `;
 
-        const requestBody = {
-            contents: [{
-                parts: [
-                    { text: prompt },
-                    {
-                        inline_data: {
-                            mime_type: "image/jpeg",
-                            data: buffer.toString('base64')
+            const requestBody = {
+                contents: [{
+                    parts: [
+                        { text: prompt },
+                        {
+                            inline_data: {
+                                mime_type: "image/jpeg",
+                                data: buffer.toString('base64')
+                            }
                         }
-                    }
-                ]
-            }]
+                    ]
+                }]
+            };
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`${response.status} - ${text}`);
+            }
+            return response.json();
         };
 
-        // Retry Loop for 429 (Rate Limits)
-        // Expanded to cover up to ~60s of waiting if needed
-        let apiResponse;
-        let attempts = 0;
-        const maxAttempts = 5;
-        let lastError = null;
+        // Fallback Strategy: Requested 2.5 -> then Stable 1.5
+        const models = ['gemini-2.5-flash', 'gemini-1.5-flash'];
+        let result;
+        let finalError;
 
-        while (attempts < maxAttempts) {
+        for (const model of models) {
             try {
-                if (attempts > 0) {
-                    // Backoff: 5s, 10s, 15s, 20s...
-                    const waitTime = 5000 * attempts;
-                    console.log(`⏳ Vision Rate Limit hit (429). Waiting ${waitTime / 1000}s before retry ${attempts + 1}/${maxAttempts}...`);
-                    try { await bot.sendChatAction(chatId, 'typing'); } catch (e) { /* ignore */ }
-                    await new Promise(r => setTimeout(r, waitTime));
-                }
+                console.log(`🤖 Trying Vision Model: ${model}...`);
+                try { await bot.sendChatAction(chatId, 'typing'); } catch (e) { }
 
-                apiResponse = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(requestBody)
-                });
-
-                if (apiResponse.status === 429) {
-                    attempts++;
-                    const errBody = await apiResponse.text();
-                    console.warn(`429 Body (Attempt ${attempts}):`, errBody);
-                    lastError = new Error(`Rate Limit 429: ${errBody.substring(0, 150)}`);
-                    continue; // Retry
-                }
-
-                if (!apiResponse.ok) {
-                    const errText = await apiResponse.text();
-                    console.error(`Gemini API Fail [${apiResponse.status}]:`, errText);
-                    throw new Error(`API Error ${apiResponse.status}: ${errText}`);
-                }
-
-                break; // Success
-            } catch (e) {
-                lastError = e;
-                if (attempts === maxAttempts - 1) break;
-                attempts++;
+                result = await tryAnalyze(model);
+                console.log(`✅ Success with ${model}`);
+                break; // Exit loop on success
+            } catch (error) {
+                console.warn(`⚠️ Failed with ${model}:`, error.message.substring(0, 150));
+                finalError = error;
+                // Auto-retry with next model
             }
         }
 
-        if (!apiResponse || !apiResponse.ok) {
-            // Give specific feedback if possible
-            const errorMsg = lastError ? lastError.message : "Error desconocido después de reintentos";
-            throw new Error(errorMsg);
+        if (!result) {
+            throw new Error(`All models failed. Last error: ${finalError?.message}`);
         }
 
-        const result = await apiResponse.json();
         // Extract text from raw response structure
         const text = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim().replace(/```json|```/g, '') || 'null';
         if (text === 'null') return bot.sendMessage(chatId, '⚠️ No pude leer el recibo. Intenta con una foto más clara.');
