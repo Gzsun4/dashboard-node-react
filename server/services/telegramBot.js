@@ -796,9 +796,9 @@ const handlePhoto = async (msg) => {
         console.log("⬇️ Image downloaded, size:", buffer.length);
 
         // Analyze with Gemini (USING RAW FETCH TO AVOID SDK ISSUES)
-        // Model: gemini-2.0-flash (Confirmed available for this new key)
+        // Model: gemini-2.5-flash (Trying 2.5 to see if it has fresh quota separate from 2.0)
         const apiKey = process.env.GEMINI_API_KEY;
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
         const prompt = `
         Analiza esta imagen (recibo/factura) y extrae:
