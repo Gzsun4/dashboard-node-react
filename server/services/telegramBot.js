@@ -830,6 +830,7 @@ const handlePhoto = async (msg) => {
         let apiResponse;
         let attempts = 0;
         const maxAttempts = 5;
+        let lastError = null;
 
         while (attempts < maxAttempts) {
             try {
@@ -848,22 +849,27 @@ const handlePhoto = async (msg) => {
 
                 if (apiResponse.status === 429) {
                     attempts++;
+                    lastError = new Error("Rate Limit (429) - Persistent");
                     continue; // Retry
                 }
 
                 if (!apiResponse.ok) {
                     const errText = await apiResponse.text();
-                    throw new Error(`Gemini API Error: ${apiResponse.status} - ${errText}`);
+                    console.error(`Gemini API Fail [${apiResponse.status}]:`, errText);
+                    throw new Error(`API Error ${apiResponse.status}: ${errText}`);
                 }
 
                 break; // Success
             } catch (e) {
-                if (attempts === maxAttempts - 1) throw e;
+                lastError = e;
+                if (attempts === maxAttempts - 1) break;
                 attempts++;
             }
         }
 
-        if (!apiResponse || !apiResponse.ok) throw new Error("Failed to get response after retries");
+        if (!apiResponse || !apiResponse.ok) {
+            throw lastError || new Error("Unknown error after retries");
+        }
 
         const result = await apiResponse.json();
         // Extract text from raw response structure
