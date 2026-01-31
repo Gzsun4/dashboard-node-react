@@ -1,12 +1,14 @@
 import TelegramBot from 'node-telegram-bot-api';
 import cron from 'node-cron';
 import User from '../models/User.js';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import Expense from '../models/Expense.js';
 import Income from '../models/Income.js';
 import Goal from '../models/Goal.js';
 import OneTimeReminder from '../models/OneTimeReminder.js';
 
 let bot;
+let model;
 const userStates = {}; // Almacena el estado de la conversación
 
 // --- CONFIGURACIÓN INTELIGENTE ---
@@ -36,6 +38,37 @@ const SAVINGS_TRIGGERS = ['ahorre', 'ahorro', 'guarde', 'ahorré', 'guardé', 'p
 const REMINDER_TRIGGERS = ['alerta', 'recordatorio', 'avisame', 'acuerdame', 'recuerdame', 'alarma', 'programame', 'avisar', 'hazme acuerdo', 'hazme acordar', 'avísame', 'acuérdame', 'recuérdame', 'prográmame'];
 
 // --- FUNCIONES DE AYUDA (NLP) ---
+
+const getFinancialContext = async (userId) => {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const expenses = await Expense.find({ user: userId, date: { $gte: firstDay } });
+    const incomes = await Income.find({ user: userId, date: { $gte: firstDay } });
+
+    const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
+    const totalIncome = incomes.reduce((sum, i) => sum + i.amount, 0);
+    const balance = totalIncome - totalExpense;
+
+    // Top Categories
+    const catMap = {};
+    expenses.forEach(e => {
+        catMap[e.category] = (catMap[e.category] || 0) + e.amount;
+    });
+    const topCategories = Object.entries(catMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([cat, amount]) => `${cat}: S/.${amount.toFixed(2)}`)
+        .join(', ');
+
+    return `
+    Resumen del Mes:
+    - Ingresos: S/. ${totalIncome.toFixed(2)}
+    - Gastos: S/. ${totalExpense.toFixed(2)}
+    - Balance: S/. ${balance.toFixed(2)}
+    - Top Gastos: ${topCategories || "Ninguno"}
+    `;
+};
 
 const normalizeText = (text) => text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
@@ -205,6 +238,16 @@ export const initializeBot = () => {
     if (bot) return;
 
     bot = new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: true });
+
+    // Initialize Gemini
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+    model = genAI.getGenerativeModel({
+        model: "gemini-2.0-flash-lite", // Using a lightweight model (check available models if this fails, or use gemini-pro/flash)
+        systemInstruction: "Eres un asistente financiero experto y amigable llamado 'FinanzasBot'. Ayudas a Jesús (un estudiante de economía en 8vo ciclo) a entender sus gastos y conceptos económicos. Tienes acceso a su resumen financiero del mes. Sé conciso, usa emojis y da consejos prácticos. Si te preguntan algo fuera de finanzas, responde brevemente que solo sabes de economía."
+    });
+
+    console.log('Telegram bot initialized 🤖');
+
     console.log('Telegram bot initialized 🤖');
 
     // Manejar Mensajes
@@ -317,6 +360,21 @@ export const initializeBot = () => {
     });
 };
 
+export const sendNotification = async (chatId, message) => {
+    if (bot) {
+        try {
+            await bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
+            return true;
+        } catch (error) {
+            console.error('Error sending notification via bot:', error.message);
+            return false;
+        }
+    } else {
+        console.warn('Bot not initialized, skipping notification');
+        return false;
+    }
+};
+
 // --- HANDLERS ---
 
 const handleMessage = async (msg) => {
@@ -376,7 +434,31 @@ const handleMessage = async (msg) => {
         }
         await processSmartTransaction(text, user, chatId, parsed);
     } else {
-        await bot.sendMessage(chatId, '🤔 No entendí. Intenta: "Taxi 15" o "Alerta en 10 min".', { parse_mode: 'HTML' });
+        // 6. IA / Fallback
+        await processAIQuery(text, user, chatId);
+    }
+};
+
+const processAIQuery = async (text, user, chatId) => {
+    bot.sendChatAction(chatId, 'typing');
+    try {
+        const context = await getFinancialContext(user._id);
+        const prompt = `
+        Contexto Financiero de ${user.name}:
+        ${context}
+
+        Pregunta del usuario: "${text}"
+        
+        Responde como un asistente financiero personal.
+        `;
+
+        const result = await model.generateContent(prompt);
+        const response = result.response.text();
+
+        await bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
+    } catch (error) {
+        console.error("Error Gemini:", error);
+        await bot.sendMessage(chatId, '🧠 Estoy teniendo problemas para pensar en eso. ¿Intenta más tarde?');
     }
 };
 

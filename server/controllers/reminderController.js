@@ -1,6 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import User from '../models/User.js';
-import { sendTelegramMessage } from '../services/telegramService.js';
+import { sendNotification } from '../services/telegramBot.js';
 
 // @desc    Get user's telegram config
 // @route   GET /api/reminders
@@ -44,7 +44,7 @@ const saveReminderConfig = asyncHandler(async (req, res) => {
         // Send welcome message if telegramChatId is provided
         if (telegramChatId) {
             try {
-                await sendTelegramMessage(
+                await sendNotification(
                     telegramChatId,
                     "<b>¡Vinculación exitosa!</b> 🚀\n\nTu cuenta de Finanzas ha sido conectada correctamente. Aquí recibirás tus recordatorios y notificaciones."
                 );
