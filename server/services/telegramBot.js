@@ -1,6 +1,7 @@
 import TelegramBot from 'node-telegram-bot-api';
 import cron from 'node-cron';
 import User from '../models/User.js';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import OpenAI from 'openai'; // Groq uses OpenAI SDK
 
 // ... existing imports ...
