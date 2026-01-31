@@ -795,10 +795,10 @@ const handlePhoto = async (msg) => {
         const buffer = Buffer.from(arrayBuffer);
         console.log("⬇️ Image downloaded, size:", buffer.length);
 
-        // Analyze with Gemini
-        // Using "gemini-2.0-flash" as verified in available models list
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        // Analyze with Gemini (USING RAW FETCH TO AVOID SDK ISSUES)
+        // Model: gemini-2.0-flash (Verified in list)
+        const apiKey = process.env.GEMINI_API_KEY;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
         const prompt = `
         Analiza esta imagen (recibo/factura) y extrae:
@@ -811,17 +811,34 @@ const handlePhoto = async (msg) => {
         Si no es un recibo claro, responde: null
         `;
 
-        const result = await model.generateContent([
-            prompt,
-            {
-                inlineData: {
-                    data: buffer.toString('base64'),
-                    mimeType: "image/jpeg"
-                }
-            }
-        ]);
+        const requestBody = {
+            contents: [{
+                parts: [
+                    { text: prompt },
+                    {
+                        inline_data: {
+                            mime_type: "image/jpeg",
+                            data: buffer.toString('base64')
+                        }
+                    }
+                ]
+            }]
+        };
 
-        const text = result.response.text().trim().replace(/```json|```/g, '');
+        const apiResponse = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!apiResponse.ok) {
+            const errText = await apiResponse.text();
+            throw new Error(`Gemini API Error: ${apiResponse.status} - ${errText}`);
+        }
+
+        const result = await apiResponse.json();
+        // Extract text from raw response structure
+        const text = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim().replace(/```json|```/g, '') || 'null';
         if (text === 'null') return bot.sendMessage(chatId, '⚠️ No pude leer el recibo. Intenta con una foto más clara.');
 
         const data = JSON.parse(text);
