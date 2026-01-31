@@ -240,7 +240,10 @@ export const initializeBot = () => {
     bot = new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: true });
 
     // Initialize Gemini
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+    const apiKey = process.env.GEMINI_API_KEY;
+    console.log("🔑 Gemini API Key Status:", apiKey ? `Present (Starts with ${apiKey.substring(0, 4)}...)` : "MISSING");
+
+    const genAI = new GoogleGenerativeAI(apiKey || '');
     model = genAI.getGenerativeModel({
         model: "gemini-1.5-flash",
         systemInstruction: "Eres un asistente financiero experto y amigable llamado 'FinanzasBot'. Ayudas a Jesús (un estudiante de economía en 8vo ciclo) a entender sus gastos y conceptos económicos. Tienes acceso a su resumen financiero del mes. Sé conciso, usa emojis y da consejos prácticos. Si te preguntan algo fuera de finanzas, responde brevemente que solo sabes de economía."
@@ -457,7 +460,10 @@ const processAIQuery = async (text, user, chatId) => {
 
         await bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
     } catch (error) {
-        console.error("Error Gemini:", error);
+        console.error("Error Gemini FULL:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+        if (error.response) {
+            console.error("Gemini Response Error:", await error.response.text());
+        }
         await bot.sendMessage(chatId, '🧠 Estoy teniendo problemas para pensar en eso. ¿Intenta más tarde?');
     }
 };
