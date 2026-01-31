@@ -780,14 +780,20 @@ const handlePhoto = async (msg) => {
     if (!user) return bot.sendMessage(chatId, '⛔ Cuenta no vinculada.');
 
     try {
-        bot.sendChatAction(chatId, 'upload_photo'); // "sending photo" action means processing
-        const fileId = msg.photo[msg.photo.length - 1].file_id; // Get highest resolution
+        console.log("📸 Processing photo...");
+        bot.sendChatAction(chatId, 'upload_photo');
+
+        const fileId = msg.photo[msg.photo.length - 1].file_id;
         const fileLink = await bot.getFileLink(fileId);
+        console.log("🔗 File Link:", fileLink);
 
         // Download Image
         const imageResp = await fetch(fileLink);
+        if (!imageResp.ok) throw new Error(`Failed to fetch image: ${imageResp.statusText}`);
+
         const arrayBuffer = await imageResp.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
+        console.log("⬇️ Image downloaded, size:", buffer.length);
 
         // Analyze with Gemini
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
