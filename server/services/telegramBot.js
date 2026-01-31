@@ -445,6 +445,9 @@ const handleMessage = async (msg) => {
     }
 };
 
+// Helper to delay (for exponential backoff)
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 // Global throttle to prevent spamming Google API locally
 let lastRequestTime = 0;
 const MIN_REQUEST_INTERVAL = 4000; // 4 seconds between requests min
