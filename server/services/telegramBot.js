@@ -245,7 +245,7 @@ export const initializeBot = () => {
 
     const genAI = new GoogleGenerativeAI(apiKey || '');
     model = genAI.getGenerativeModel({
-        model: "gemini-1.5-flash",
+        model: "gemini-2.0-flash",
         systemInstruction: "Eres un asistente financiero experto y amigable llamado 'FinanzasBot'. Ayudas a Jesús (un estudiante de economía en 8vo ciclo) a entender sus gastos y conceptos económicos. Tienes acceso a su resumen financiero del mes. Sé conciso, usa emojis y da consejos prácticos. Si te preguntan algo fuera de finanzas, responde brevemente que solo sabes de economía."
     });
 
@@ -460,11 +460,12 @@ const processAIQuery = async (text, user, chatId) => {
 
         await bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
     } catch (error) {
-        console.error("Error Gemini FULL:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
-        if (error.response) {
-            console.error("Gemini Response Error:", await error.response.text());
+        console.error("Error Gemini:", error.message);
+        if (error.message.includes("429")) {
+            await bot.sendMessage(chatId, '⏳ Estoy algo saturado ahora mismo. Pregúntame de nuevo en un minuto.');
+        } else {
+            await bot.sendMessage(chatId, '🧠 Estoy teniendo problemas técnicos. ¿Intenta más tarde?');
         }
-        await bot.sendMessage(chatId, '🧠 Estoy teniendo problemas para pensar en eso. ¿Intenta más tarde?');
     }
 };
 
