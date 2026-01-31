@@ -531,8 +531,8 @@ const processAIQuery = async (text, user, chatId) => {
         const msg = error.message || "Unknown error";
 
         // Expose the specific error to the user for debugging
-        if (msg.includes("429")) {
-            await bot.sendMessage(chatId, `⏳ <b>G. Limit Reached</b>\nGoogle está bloqueando las peticiones (Error 429). Por favor espera 2 minutos.\n\n<i>Detalles: ${msg.substring(0, 100)}...</i>`, { parse_mode: 'HTML' });
+        if (msg.includes("429") || msg.toLowerCase().includes("rate limit")) {
+            await bot.sendMessage(chatId, `⏳ <b>G. Limit Reached</b>\nGoogle está bloqueando las peticiones por exceso de velocidad. Por favor espera 2 minutos.\n\n<i>Detalles: ${msg.substring(0, 100)}...</i>`, { parse_mode: 'HTML' });
         } else if (msg.includes("404")) {
             await bot.sendMessage(chatId, `❌ <b>Model Error</b>\nEl modelo configurado no existe para tu cuenta gratuit (Error 404).\n\n<i>Detalles: ${msg.substring(0, 100)}...</i>`, { parse_mode: 'HTML' });
         } else {
