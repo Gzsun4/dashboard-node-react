@@ -506,8 +506,16 @@ const processAIQuery = async (text, user, chatId) => {
 
     } catch (error) {
         console.error("Error Gemini Final:", error.message);
-        // Fallback friendly message
-        await bot.sendMessage(chatId, '⏳ Estoy procesando mucha información ahora mismo. Por favor, pregúntame de nuevo en 30 segundos.');
+        const msg = error.message || "Unknown error";
+
+        // Expose the specific error to the user for debugging
+        if (msg.includes("429")) {
+            await bot.sendMessage(chatId, `⏳ <b>G. Limit Reached</b>\nGoogle está bloqueando las peticiones (Error 429). Por favor espera 2 minutos.\n\n<i>Detalles: ${msg.substring(0, 100)}...</i>`, { parse_mode: 'HTML' });
+        } else if (msg.includes("404")) {
+            await bot.sendMessage(chatId, `❌ <b>Model Error</b>\nEl modelo configurado no existe para tu cuenta gratuit (Error 404).\n\n<i>Detalles: ${msg.substring(0, 100)}...</i>`, { parse_mode: 'HTML' });
+        } else {
+            await bot.sendMessage(chatId, `⚠️ <b>Error Técnico</b>\nHubo un problema con la IA.\n\n<i>Error: ${msg.substring(0, 150)}...</i>`, { parse_mode: 'HTML' });
+        }
     }
 };
 
