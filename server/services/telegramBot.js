@@ -826,15 +826,17 @@ const handlePhoto = async (msg) => {
         };
 
         // Retry Loop for 429 (Rate Limits)
+        // Expanded to cover up to ~60s of waiting if needed
         let apiResponse;
         let attempts = 0;
-        const maxAttempts = 3;
+        const maxAttempts = 5;
 
         while (attempts < maxAttempts) {
             try {
                 if (attempts > 0) {
-                    const waitTime = 4000 * attempts; // 4s, 8s...
-                    console.log(`⏳ Vision Rate Limit hit. Retrying in ${waitTime}ms...`);
+                    // Backoff: 5s, 10s, 15s, 20s...
+                    const waitTime = 5000 * attempts;
+                    console.log(`⏳ Vision Rate Limit hit (429). Waiting ${waitTime / 1000}s before retry ${attempts + 1}/${maxAttempts}...`);
                     await new Promise(r => setTimeout(r, waitTime));
                 }
 
