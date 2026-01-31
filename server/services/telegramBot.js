@@ -446,9 +446,8 @@ const handleMessage = async (msg) => {
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const tryGenerateContent = async (prompt) => {
-    // Try primary (2.0), then lite (2.0), then legacy standard (1.0 pro)
-    // Removed 1.5-flash as it returned 404 for this key
-    const modelsToTry = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-pro"];
+    // Try primary (2.5), then 2.0, then lite, then legacy
+    const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-pro"];
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
     for (const modelName of modelsToTry) {

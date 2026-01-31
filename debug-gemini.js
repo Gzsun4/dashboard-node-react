@@ -6,13 +6,13 @@ async function testGemini() {
     const apiKey = process.env.GEMINI_API_KEY;
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    // Testing the lite version explicitly found in the list
-    const modelName = "gemini-2.0-flash-lite";
+    // Testing the user suggested model which was in the list
+    const modelName = "gemini-2.5-flash";
 
     console.log(`🤖 Testing: ${modelName}`);
     try {
         const model = genAI.getGenerativeModel({ model: modelName });
-        const result = await model.generateContent("Hola, eres rapido?");
+        const result = await model.generateContent("Hola, eres la version 2.5?");
         console.log(`✅ SUCCESS: ${modelName}`);
         console.log(result.response.text());
     } catch (error) {
