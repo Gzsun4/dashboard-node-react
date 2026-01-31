@@ -513,7 +513,15 @@ const processAIQuery = async (text, user, chatId) => {
         `;
 
         const response = await tryGenerateContent(prompt);
-        await bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
+
+        // Safe Send: Try Markdown first, fallback to Text if it fails
+        try {
+            await bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
+        } catch (renderError) {
+            console.warn("⚠️ Markdown failed, sending plain text:", renderError.message);
+            // Fallback: Send plain text to avoid ETELEGRAM 400
+            await bot.sendMessage(chatId, response);
+        }
 
     } catch (error) {
         console.error("Error Gemini Final:", error.message);
