@@ -825,16 +825,43 @@ const handlePhoto = async (msg) => {
             }]
         };
 
-        const apiResponse = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody)
-        });
+        // Retry Loop for 429 (Rate Limits)
+        let apiResponse;
+        let attempts = 0;
+        const maxAttempts = 3;
 
-        if (!apiResponse.ok) {
-            const errText = await apiResponse.text();
-            throw new Error(`Gemini API Error: ${apiResponse.status} - ${errText}`);
+        while (attempts < maxAttempts) {
+            try {
+                if (attempts > 0) {
+                    const waitTime = 4000 * attempts; // 4s, 8s...
+                    console.log(`⏳ Vision Rate Limit hit. Retrying in ${waitTime}ms...`);
+                    await new Promise(r => setTimeout(r, waitTime));
+                }
+
+                apiResponse = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (apiResponse.status === 429) {
+                    attempts++;
+                    continue; // Retry
+                }
+
+                if (!apiResponse.ok) {
+                    const errText = await apiResponse.text();
+                    throw new Error(`Gemini API Error: ${apiResponse.status} - ${errText}`);
+                }
+
+                break; // Success
+            } catch (e) {
+                if (attempts === maxAttempts - 1) throw e;
+                attempts++;
+            }
         }
+
+        if (!apiResponse || !apiResponse.ok) throw new Error("Failed to get response after retries");
 
         const result = await apiResponse.json();
         // Extract text from raw response structure
