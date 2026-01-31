@@ -446,20 +446,21 @@ const handleMessage = async (msg) => {
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const tryGenerateContent = async (prompt) => {
-    // Try primary, then lite, then legacy
-    const modelsToTry = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash"];
+    // Try primary (2.0), then lite (2.0), then legacy standard (1.0 pro)
+    // Removed 1.5-flash as it returned 404 for this key
+    const modelsToTry = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-pro"];
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
     for (const modelName of modelsToTry) {
         let attempts = 0;
-        const maxAttempts = 2; // Try each model twice if rate limited
+        const maxAttempts = 2;
 
         while (attempts < maxAttempts) {
             try {
-                // If this is a retry, wait a bit (exponential backoff: 2s, then 4s...)
+                // Exponential backoff: 4s, then 8s... (increased to avoid rapid 429s)
                 if (attempts > 0) {
-                    console.log(`⏳ Rate limit hit for ${modelName}. Retrying in ${2000 * attempts}ms...`);
-                    await delay(2000 * attempts);
+                    console.log(`⏳ Rate limit hit for ${modelName}. Retrying in ${4000 * attempts}ms...`);
+                    await delay(4000 * attempts);
                 }
 
                 const model = genAI.getGenerativeModel({
