@@ -498,7 +498,9 @@ const handleMessage = async (msg) => {
     if (lowerText === '/editar' || lowerText.includes('/modificar')) return sendRecentTransactionsForEdit(chatId, user);
 
     // 3. Deshacer
-    if (lowerText === 'deshacer') return handleUndo(user, chatId);
+    if (lowerText === '/deshacer' || lowerText === 'deshacer') {
+        return handleUndo(user, chatId);
+    }
 
 
     // 4. RECORDATORIOS (Nueva lógica) - Normalizamos texto y usamos includes
