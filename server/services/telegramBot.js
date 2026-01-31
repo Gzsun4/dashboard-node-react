@@ -1,7 +1,83 @@
 import TelegramBot from 'node-telegram-bot-api';
 import cron from 'node-cron';
 import User from '../models/User.js';
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from 'openai'; // Groq uses OpenAI SDK
+
+// ... existing imports ...
+
+// Initialize Groq Client
+const groq = new OpenAI({
+    apiKey: process.env.GROQ_API_KEY,
+    baseURL: "https://api.groq.com/openai/v1"
+});
+
+// ... existing code ...
+
+// Helper function for Groq (Primary Fast Brain)
+const tryGroqGeneration = async (prompt) => {
+    try {
+        console.log("⚡ Asking Groq (Llama-3)...");
+        const completion = await groq.chat.completions.create({
+            messages: [
+                {
+                    role: "system",
+                    content: "Eres 'FinanzasBot', un asistente financiero experto, amigable y motivador. Tu misión es ayudar al usuario a mejorar su salud financiera. Sé conciso (máximo 3 frases), usa emojis y da consejos prácticos. Si te preguntan algo fuera de finanzas, responde amablemente que tu especialidad es la economía." // Consistent persona
+                },
+                { role: "user", content: prompt }
+            ],
+            model: "llama3-8b-8192", // Fast & Efficient
+            temperature: 0.7,
+        });
+        return completion.choices[0].message.content;
+    } catch (error) {
+        console.warn("⚠️ Groq Failed:", error.message);
+        throw error; // Rethrow to trigger fallback
+    }
+};
+
+// ... existing tryGenerateContent (Gemini) ...
+
+const processAIQuery = async (text, user, chatId) => {
+    bot.sendChatAction(chatId, 'typing');
+    try {
+        const context = await getFinancialContext(user._id);
+        const prompt = `
+        Contexto Financiero de ${user.name}:
+        ${context}
+
+        Pregunta del usuario: "${text}"
+        
+        Responde como un asistente financiero personal.
+        `;
+
+        let response;
+        let source = "Groq";
+
+        // Hybrid Logic: Try Groq First -> Then Gemini
+        try {
+            // Priority 1: Groq (Llama 3) - Super Fast
+            response = await tryGroqGeneration(prompt);
+        } catch (groqError) {
+            console.log("🔄 Switching to Gemini Fallback...");
+            source = "Gemini";
+            // Priority 2: Gemini (2.5 Flash / Pro) - Deep Reasoning / Fallback
+            response = await tryGenerateContent(prompt);
+        }
+
+        // Safe Send
+        try {
+            await bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
+        } catch (renderError) {
+            console.warn(`⚠️ Markdown failed (${source}), sending plain text:`, renderError.message);
+            await bot.sendMessage(chatId, response);
+        }
+
+    } catch (error) {
+        console.error("Error Hybrid AI Final:", error.message);
+        // If BOTH fail
+        await bot.sendMessage(chatId, `⚠️ <b>Error Total</b>\nMis dos cerebros (Groq y Gemini) están ocupados. Por favor intenta en 1 minuto.`, { parse_mode: 'HTML' });
+    }
+};
 import Expense from '../models/Expense.js';
 import Income from '../models/Income.js';
 import Goal from '../models/Goal.js';
