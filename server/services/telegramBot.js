@@ -337,7 +337,7 @@ export const initializeBot = () => {
         systemInstruction: "Eres un asistente financiero experto y amigable llamado 'FinanzasBot'. Ayudas a Jesús (un estudiante de economía en 8vo ciclo) a entender sus gastos y conceptos económicos. Tienes acceso a su resumen financiero del mes. Sé conciso, usa emojis y da consejos prácticos. Si te preguntan algo fuera de finanzas, responde brevemente que solo sabes de economía."
     });
 
-    console.log('Telegram bot initialized 🤖 - Build: 2026-01-31 New API Key Refresh 17:05');
+    console.log('Telegram bot initialized 🤖 - Build: 2026-01-31 Final Fix New Project Key 17:30');
 
     console.log('Telegram bot initialized 🤖');
 
@@ -796,9 +796,9 @@ const handlePhoto = async (msg) => {
         console.log("⬇️ Image downloaded, size:", buffer.length);
 
         // Analyze with Gemini (USING RAW FETCH TO AVOID SDK ISSUES)
-        // Model: gemini-2.5-flash (Trying 2.5 to see if it has fresh quota separate from 2.0)
+        // Model: gemini-2.0-flash (New Project Key - Fresh Quota)
         const apiKey = process.env.GEMINI_API_KEY;
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
         const prompt = `
         Analiza esta imagen (recibo/factura) y extrae:
