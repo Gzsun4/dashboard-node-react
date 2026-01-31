@@ -578,44 +578,7 @@ const tryGenerateContent = async (prompt) => {
     }
 };
 
-const processAIQuery = async (text, user, chatId) => {
-    bot.sendChatAction(chatId, 'typing');
-    try {
-        const context = await getFinancialContext(user._id);
-        const prompt = `
-        Contexto Financiero de ${user.name}:
-        ${context}
 
-        Pregunta del usuario: "${text}"
-        
-        Responde como un asistente financiero personal.
-        `;
-
-        const response = await tryGenerateContent(prompt);
-
-        // Safe Send: Try Markdown first, fallback to Text if it fails
-        try {
-            await bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
-        } catch (renderError) {
-            console.warn("⚠️ Markdown failed, sending plain text:", renderError.message);
-            // Fallback: Send plain text to avoid ETELEGRAM 400
-            await bot.sendMessage(chatId, response);
-        }
-
-    } catch (error) {
-        console.error("Error Gemini Final:", error.message);
-        const msg = error.message || "Unknown error";
-
-        // Expose the specific error to the user for debugging
-        if (msg.includes("429") || msg.toLowerCase().includes("rate limit")) {
-            await bot.sendMessage(chatId, `⏳ <b>G. Limit Reached</b>\nGoogle está bloqueando las peticiones por exceso de velocidad. Por favor espera 2 minutos.\n\n<i>Detalles: ${msg.substring(0, 100)}...</i>`, { parse_mode: 'HTML' });
-        } else if (msg.includes("404")) {
-            await bot.sendMessage(chatId, `❌ <b>Model Error</b>\nEl modelo configurado no existe para tu cuenta gratuit (Error 404).\n\n<i>Detalles: ${msg.substring(0, 100)}...</i>`, { parse_mode: 'HTML' });
-        } else {
-            await bot.sendMessage(chatId, `⚠️ <b>Error Técnico</b>\nHubo un problema con la IA.\n\n<i>Error: ${msg.substring(0, 150)}...</i>`, { parse_mode: 'HTML' });
-        }
-    }
-};
 
 const sendMenu = async (chatId, userName) => {
     const firstName = userName.split(' ')[0];
