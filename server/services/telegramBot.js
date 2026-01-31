@@ -796,9 +796,9 @@ const handlePhoto = async (msg) => {
         console.log("⬇️ Image downloaded, size:", buffer.length);
 
         // Analyze with Gemini (USING RAW FETCH TO AVOID SDK ISSUES)
-        // Model: gemini-2.0-flash (Verified in list)
+        // Model: gemini-2.0-flash-lite (Switching to Lite to bypass 429 on main Flash)
         const apiKey = process.env.GEMINI_API_KEY;
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`;
 
         const prompt = `
         Analiza esta imagen (recibo/factura) y extrae:
@@ -868,7 +868,9 @@ const handlePhoto = async (msg) => {
         }
 
         if (!apiResponse || !apiResponse.ok) {
-            throw lastError || new Error("Unknown error after retries");
+            // Give specific feedback if possible
+            const errorMsg = lastError ? lastError.message : "Error desconocido después de reintentos";
+            throw new Error(errorMsg);
         }
 
         const result = await apiResponse.json();
