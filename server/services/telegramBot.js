@@ -337,7 +337,8 @@ export const initializeBot = () => {
         systemInstruction: "Eres un asistente financiero experto y amigable llamado 'FinanzasBot'. Ayudas a Jesús (un estudiante de economía en 8vo ciclo) a entender sus gastos y conceptos económicos. Tienes acceso a su resumen financiero del mes. Sé conciso, usa emojis y da consejos prácticos. Si te preguntan algo fuera de finanzas, responde brevemente que solo sabes de economía."
     });
 
-    console.log('Telegram bot initialized 🤖 - Build: 2026-01-31 Final Fix New Project Key 17:30');
+    const activeKey = process.env.GEMINI_API_KEY || "NONE";
+    console.log(`Telegram bot initialized 🤖 - Active Key: ${activeKey.substring(0, 8)}... - Build: 17:37`);
 
     console.log('Telegram bot initialized 🤖');
 
