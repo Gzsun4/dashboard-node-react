@@ -796,9 +796,9 @@ const handlePhoto = async (msg) => {
         console.log("⬇️ Image downloaded, size:", buffer.length);
 
         // Analyze with Gemini (USING RAW FETCH TO AVOID SDK ISSUES)
-        // Model: gemini-2.0-flash-lite (Switching to Lite to bypass 429 on main Flash)
+        // Model: gemini-flash-latest (Switching to Stable 1.5 Flash to bypass 2.0 Beta limits)
         const apiKey = process.env.GEMINI_API_KEY;
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`;
 
         const prompt = `
         Analiza esta imagen (recibo/factura) y extrae:
