@@ -509,25 +509,31 @@ const handleMessage = async (msg) => {
         return;
     }
 
-    // 5. Transacciones Inteligentes
+    // 5. Transacciones Inteligentes (Gasto 50, Ingreso 100)
+    // IMPROVED: Ensure it doesn't trigger for generic text with numbers unless specifically structured
     if (/\d/.test(text)) {
         const parsed = parseSmartMessage(text);
-        if (parsed.isAmbiguous && parsed.amount) {
-            userStates[chatId] = { pendingData: parsed };
-            const keyboard = {
-                inline_keyboard: [
-                    [{ text: '💸 Gasto Normal', callback_data: `CONFIRM_AS:EXPENSE` }],
-                    [{ text: '🚩 Deuda Pendiente', callback_data: `CONFIRM_AS:DEBT` }],
-                    [{ text: '❌ Cancelar', callback_data: 'CANCEL_EDIT' }]
-                ]
-            };
-            return bot.sendMessage(chatId, `❓ <b>¿Qué registramos, ${user.name.split(' ')[0]}?</b>\nDetecté <b>S/. ${parsed.amount.toFixed(2)}</b> para <i>"${parsed.description}"</i>.\n\n¿Es un gasto que ya pagaste o una deuda pendiente?`, { parse_mode: 'HTML', reply_markup: keyboard });
+
+        // If it looks like a valid transaction (has amount)
+        if (parsed.amount) {
+            if (parsed.isAmbiguous) {
+                userStates[chatId] = { pendingData: parsed };
+                const keyboard = {
+                    inline_keyboard: [
+                        [{ text: '💸 Gasto Normal', callback_data: `CONFIRM_AS:EXPENSE` }],
+                        [{ text: '🚩 Deuda Pendiente', callback_data: `CONFIRM_AS:DEBT` }],
+                        [{ text: '❌ Cancelar', callback_data: 'CANCEL_EDIT' }]
+                    ]
+                };
+                return bot.sendMessage(chatId, `❓ <b>¿Qué registramos, ${user.name.split(' ')[0]}?</b>\nDetecté <b>S/. ${parsed.amount.toFixed(2)}</b> para <i>"${parsed.description}"</i>.\n\n¿Es un gasto que ya pagaste o una deuda pendiente?`, { parse_mode: 'HTML', reply_markup: keyboard });
+            }
+            await processSmartTransaction(text, user, chatId, parsed);
+            return; // FIX: STOP here so we don't send to AI
         }
-        await processSmartTransaction(text, user, chatId, parsed);
-    } else {
-        // 6. IA / Fallback
-        await processAIQuery(text, user, chatId);
     }
+
+    // 6. IA / Fallback (Solo si no fue nada de lo anterior)
+    await processAIQuery(text, user, chatId);
 };
 
 // Helper to delay (for exponential backoff)
