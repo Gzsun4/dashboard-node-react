@@ -796,9 +796,9 @@ const handlePhoto = async (msg) => {
         console.log("⬇️ Image downloaded, size:", buffer.length);
 
         // Analyze with Gemini (USING RAW FETCH TO AVOID SDK ISSUES)
-        // Model: gemini-flash-latest (Switching to Stable 1.5 Flash to bypass 2.0 Beta limits)
+        // Model: gemini-2.0-flash (Reverting to 2.0 as 1.5 is unavailable/failing)
         const apiKey = process.env.GEMINI_API_KEY;
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
         const prompt = `
         Analiza esta imagen (recibo/factura) y extrae:
@@ -838,6 +838,7 @@ const handlePhoto = async (msg) => {
                     // Backoff: 5s, 10s, 15s, 20s...
                     const waitTime = 5000 * attempts;
                     console.log(`⏳ Vision Rate Limit hit (429). Waiting ${waitTime / 1000}s before retry ${attempts + 1}/${maxAttempts}...`);
+                    try { await bot.sendChatAction(chatId, 'typing'); } catch (e) { /* ignore */ }
                     await new Promise(r => setTimeout(r, waitTime));
                 }
 
@@ -849,7 +850,9 @@ const handlePhoto = async (msg) => {
 
                 if (apiResponse.status === 429) {
                     attempts++;
-                    lastError = new Error("Rate Limit (429) - Persistent");
+                    const errBody = await apiResponse.text();
+                    console.warn(`429 Body (Attempt ${attempts}):`, errBody);
+                    lastError = new Error(`Rate Limit 429: ${errBody.substring(0, 150)}`);
                     continue; // Retry
                 }
 
