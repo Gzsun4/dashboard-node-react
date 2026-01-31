@@ -53,6 +53,7 @@ const processAIQuery = async (text, user, chatId) => {
 
         let response;
         let source = "Groq";
+        let groqErrorMsg = null;
 
         // Hybrid Logic: Try Groq First -> Then Gemini
         try {
@@ -61,6 +62,7 @@ const processAIQuery = async (text, user, chatId) => {
         } catch (groqError) {
             console.log("🔄 Switching to Gemini Fallback...");
             source = "Gemini";
+            groqErrorMsg = groqError.message; // Capture Groq error
             // Priority 2: Gemini (2.5 Flash / Pro) - Deep Reasoning / Fallback
             response = await tryGenerateContent(prompt);
         }
@@ -76,7 +78,8 @@ const processAIQuery = async (text, user, chatId) => {
     } catch (error) {
         console.error("Error Hybrid AI Final:", error.message);
         // If BOTH fail
-        await bot.sendMessage(chatId, `⚠️ <b>Error Total</b>\nMis dos cerebros (Groq y Gemini) están ocupados. Por favor intenta en 1 minuto.`, { parse_mode: 'HTML' });
+        const groqStatus = groqErrorMsg ? `Groq: ${groqErrorMsg.substring(0, 50)}...` : "Groq: OK";
+        await bot.sendMessage(chatId, `⚠️ <b>Error Total</b>\nMis dos cerebros fallaron.\n\n🔍 <b>Diagnóstico:</b>\n1. ${groqStatus}\n2. Gemini: ${error.message.substring(0, 50)}...\n\n<i>Intenta en 1 minuto.</i>`, { parse_mode: 'HTML' });
     }
 };
 import Expense from '../models/Expense.js';
