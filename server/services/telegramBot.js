@@ -846,7 +846,7 @@ const handlePhoto = async (msg) => {
 
     } catch (error) {
         console.error("Photo Error:", error);
-        await bot.sendMessage(chatId, '❌ Error leyendo la imagen. Intenta escribirlo manualmente.');
+        await bot.sendMessage(chatId, `❌ Error: ${error.message.substring(0, 100)}\nIntenta escribirlo manualmente.`);
     }
 };
 
