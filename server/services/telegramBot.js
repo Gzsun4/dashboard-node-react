@@ -841,7 +841,6 @@ const handlePhoto = async (msg) => {
     }
 };
 
-// Register Photo Handler
-bot.on('photo', handlePhoto);
+// Register Photo Handler (Moved to initializeBot)
 
 export default bot;
