@@ -53,6 +53,7 @@ const processAIQuery = async (text, user, chatId) => {
         1. Responde al mensaje del usuario.
         2. Si no pregunta de finanzas, IGNORA los datos y responde casualmente (chistes, dudas, etc).
         3. IMPORTANTE: DETECTA EL IDIOMA DEL MENSAJE Y RESPONDE EN ESE MISMO IDIOMA.
+        4. OBLIGATORIO: Menciona SIEMPRE el nombre del usuario ("${user.name.split(' ')[0]}") en tu respuesta para que sea personal.
         `;
 
         let response;
