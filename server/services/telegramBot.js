@@ -242,7 +242,7 @@ export const initializeBot = () => {
     // Initialize Gemini
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
     model = genAI.getGenerativeModel({
-        model: "gemini-2.0-flash-lite", // Using a lightweight model (check available models if this fails, or use gemini-pro/flash)
+        model: "gemini-1.5-flash",
         systemInstruction: "Eres un asistente financiero experto y amigable llamado 'FinanzasBot'. Ayudas a Jesús (un estudiante de economía en 8vo ciclo) a entender sus gastos y conceptos económicos. Tienes acceso a su resumen financiero del mes. Sé conciso, usa emojis y da consejos prácticos. Si te preguntan algo fuera de finanzas, responde brevemente que solo sabes de economía."
     });
 
