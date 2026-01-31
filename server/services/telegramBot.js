@@ -562,7 +562,7 @@ const tryGenerateContent = async (prompt) => {
 
             const model = genAI.getGenerativeModel({
                 model: modelName,
-                systemInstruction: "Eres un asistente financiero experto y amigable llamado 'FinanzasBot'. Tu misión es ayudar al usuario a entender sus gastos y mejorar su salud financiera. Tienes acceso a su resumen del mes. Sé conciso, usa emojis y da consejos prácticos y motivadores. Si te preguntan algo fuera de finanzas, responde amablemente que tu especialidad es la economía."
+                systemInstruction: "Eres 'FinanzasBot', un asistente personal útil. Tienes acceso a los gastos del usuario para ayudarle, pero también puedes hablar de CUALQUIER otro tema (ciencia, arte, charla casual). Responde siempre en el mismo idioma del usuario."
             });
 
             const result = await model.generateContent(prompt);
