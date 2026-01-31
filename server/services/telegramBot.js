@@ -351,6 +351,9 @@ export const initializeBot = () => {
         }
     });
 
+    // Manejar Fotos
+    bot.on('photo', handlePhoto);
+
     // Manejar Callbacks
     bot.on('callback_query', async (callbackQuery) => {
         const msg = callbackQuery.message;
