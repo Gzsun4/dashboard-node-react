@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Trash2, Edit2, Wallet, PieChart, TrendingUp, DollarSign, X, EllipsisVertical, CircleCheck, AlertTriangle, CircleX } from 'lucide-react';
+import { Plus, Trash2, Edit2, Wallet, PieChart, TrendingUp, DollarSign, X, EllipsisVertical, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
 import MobileHeader from '../components/MobileHeader';
 import MobileStatsGrid from '../components/MobileStatsGrid';
 
@@ -25,8 +25,7 @@ const Budgets = () => {
 
     const fetchBudgets = async () => {
         try {
-            const baseUrl = import.meta.env.VITE_API_URL || '';
-            const res = await fetch(`${baseUrl}/api/budgets`, {
+            const res = await fetch('/api/budgets', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -71,10 +70,9 @@ const Budgets = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const baseUrl = import.meta.env.VITE_API_URL || '';
             const url = editingId
-                ? `${baseUrl}/api/budgets/${editingId}`
-                : `${baseUrl}/api/budgets`;
+                ? `/api/budgets/${editingId}`
+                : '/api/budgets';
 
             const method = editingId ? 'PUT' : 'POST';
 
@@ -113,7 +111,7 @@ const Budgets = () => {
     const handleDelete = async (id) => {
         if (!window.confirm('¿Seguro que quieres eliminar este presupuesto?')) return;
         try {
-            await fetch(`${import.meta.env.VITE_API_URL}/api/budgets/${id}`, {
+            await fetch(`/api/budgets/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -204,13 +202,13 @@ const Budgets = () => {
                                     let statusText = "Excelente";
                                     let statusColor = "#10b981"; // emerald-500
                                     let progressBg = "#10b981";
-                                    let StatusIcon = CircleCheck;
+                                    let StatusIcon = CheckCircle;
 
                                     if (isExceeded) {
                                         statusText = "Excedido";
                                         statusColor = "#ef4444"; // red-500
                                         progressBg = "#ef4444";
-                                        StatusIcon = CircleX;
+                                        StatusIcon = XCircle;
                                     } else if (isWarning) {
                                         statusText = "Atención";
                                         statusColor = "#f59e0b"; // amber-500
