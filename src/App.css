@@ -1,6 +1,8 @@
 .app-container {
   display: flex;
   min-height: 100vh;
+  touch-action: pan-y;
+  /* Disable horizontal browser swipes (Back/Forward) */
 }
 
 .main-content {
