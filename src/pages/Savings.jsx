@@ -92,19 +92,30 @@ const Savings = () => {
                     headers,
                     body
                 });
-                const updated = await res.json();
-                setGoals(goals.map(g => g._id === editingId ? updated : g));
+                if (res.ok) {
+                    const updated = await res.json();
+                    setGoals(goals.map(g => g._id === editingId ? updated : g));
+                    setToast({ show: true, message: 'Meta actualizada', type: 'success' });
+                } else {
+                    setToast({ show: true, message: 'Error al actualizar', type: 'error' });
+                }
             } else {
                 const res = await fetch('/api/data/goals', {
                     method: 'POST',
                     headers,
                     body
                 });
-                const data = await res.json();
-                setGoals([...goals, data]);
+                if (res.ok) {
+                    const data = await res.json();
+                    setGoals([...goals, data]);
+                    setToast({ show: true, message: 'Meta creada', type: 'success' });
+                } else {
+                    setToast({ show: true, message: 'Error al crear meta', type: 'error' });
+                }
             }
         } catch (error) {
             console.error("Error saving goal", error);
+            setToast({ show: true, message: 'Error de conexión', type: 'error' });
         }
 
         setShowModal(false);
@@ -126,15 +137,16 @@ const Savings = () => {
     };
 
     const handleDelete = async (id) => {
-
         try {
             await fetch(`/api/data/goals/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             setGoals(goals.filter(g => g._id !== id));
+            setToast({ show: true, message: 'Meta eliminada', type: 'success' });
         } catch (error) {
             console.error(error);
+            setToast({ show: true, message: 'Error al eliminar', type: 'error' });
         }
     };
 
@@ -180,14 +192,20 @@ const Savings = () => {
                 })
             });
 
-            const updatedGoal = await res.json();
-            setGoals(goals.map(g => g._id === selectedGoal._id ? updatedGoal : g));
+            if (res.ok) {
+                const updatedGoal = await res.json();
+                setGoals(goals.map(g => g._id === selectedGoal._id ? updatedGoal : g));
+                setToast({ show: true, message: 'Dinero agregado', type: 'success' });
+            } else {
+                setToast({ show: true, message: 'Error al agregar dinero', type: 'error' });
+            }
 
             setShowAddMoneyModal(false);
             setAmountToAdd('');
             setSelectedGoal(null);
         } catch (error) {
             console.error("Error adding money", error);
+            setToast({ show: true, message: 'Error de conexión', type: 'error' });
         }
     };
 
@@ -221,11 +239,17 @@ const Savings = () => {
                     history: newHistory
                 })
             });
-            const updatedGoal = await res.json();
-            setGoals(goals.map(g => g._id === selectedGoal._id ? updatedGoal : g));
-            setSelectedGoal(updatedGoal);
+            if (res.ok) {
+                const updatedGoal = await res.json();
+                setGoals(goals.map(g => g._id === selectedGoal._id ? updatedGoal : g));
+                setSelectedGoal(updatedGoal);
+                setToast({ show: true, message: 'Historial actualizado', type: 'success' });
+            } else {
+                setToast({ show: true, message: 'Error al actualizar historial', type: 'error' });
+            }
         } catch (error) {
             console.error(error);
+            setToast({ show: true, message: 'Error de conexión', type: 'error' });
         }
     };
 
@@ -256,13 +280,19 @@ const Savings = () => {
                     history: newHistory
                 })
             });
-            const updatedGoal = await res.json();
-            setGoals(goals.map(g => g._id === selectedGoal._id ? updatedGoal : g));
-            setSelectedGoal(updatedGoal);
-            setEditingHistoryIndex(null);
-            setEditingHistoryAmount('');
+            if (res.ok) {
+                const updatedGoal = await res.json();
+                setGoals(goals.map(g => g._id === selectedGoal._id ? updatedGoal : g));
+                setSelectedGoal(updatedGoal);
+                setEditingHistoryIndex(null);
+                setEditingHistoryAmount('');
+                setToast({ show: true, message: 'Registro actualizado', type: 'success' });
+            } else {
+                setToast({ show: true, message: 'Error al actualizar registro', type: 'error' });
+            }
         } catch (error) {
             console.error(error);
+            setToast({ show: true, message: 'Error de conexión', type: 'error' });
         }
     };
 

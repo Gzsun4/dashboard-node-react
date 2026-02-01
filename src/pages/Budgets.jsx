@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { Plus, Trash2, Edit2, Wallet, PieChart, TrendingUp, DollarSign, X, EllipsisVertical, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
 import MobileHeader from '../components/MobileHeader';
 import MobileStatsGrid from '../components/MobileStatsGrid';
+import Toast from '../components/Toast';
 
 const Budgets = () => {
     console.log("Budgets.jsx: Rendering component");
@@ -15,7 +16,8 @@ const Budgets = () => {
         limit: ''
     });
     const [editingId, setEditingId] = useState(null);
-    const [openMenuId, setOpenMenuId] = useState(null); // Track open dropdown
+    const [toast, setToast] = useState({ show: false, message: '', type: 'error' });
+
 
     // Suggested categories (Standardized across the app)
     const commonCategories = ["Alimentación", "Transporte", "Servicios", "Entretenimiento", "Salud", "Educación", "Hogar", "Otros"];
@@ -50,19 +52,19 @@ const Budgets = () => {
     const stats = [
         {
             title: "Disponible Global",
-            value: `S/. ${totalAvailable.toFixed(2)}`,
+            value: `S/${totalAvailable.toFixed(2)}`,
             icon: <Wallet />,
             color: "bg-purple-500"
         },
         {
             title: "Presupuesto Total",
-            value: `S/. ${totalLimit.toFixed(2)}`,
+            value: `S/${totalLimit.toFixed(2)}`,
             icon: <PieChart />,
             color: "bg-blue-500"
         },
         {
             title: "Total Gastado",
-            value: `S/. ${totalSpent.toFixed(2)}`,
+            value: `S/${totalSpent.toFixed(2)}`,
             icon: <TrendingUp />,
             color: "bg-red-500"
         }
@@ -98,19 +100,19 @@ const Budgets = () => {
                 setFormData({ category: '', limit: '' });
                 setEditingId(null);
                 fetchBudgets();
+                setToast({ show: true, message: editingId ? 'Presupuesto actualizado' : 'Presupuesto creado', type: 'success' });
             } else {
                 const err = await res.json();
                 console.error("Server error:", err);
-                alert(`Error: ${err.message || 'No se pudo guardar'}`);
+                setToast({ show: true, message: `Error: ${err.message || 'No se pudo guardar'}`, type: 'error' });
             }
         } catch (error) {
             console.error("Network error:", error);
-            alert("Error de conexión al guardar");
+            setToast({ show: true, message: "Error de conexión al guardar", type: 'error' });
         }
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('¿Seguro que quieres eliminar este presupuesto?')) return;
         try {
             await fetch(`/api/budgets/${id}`, {
                 method: 'DELETE',
@@ -119,8 +121,10 @@ const Budgets = () => {
                 }
             });
             fetchBudgets();
+            setToast({ show: true, message: 'Presupuesto eliminado', type: 'success' });
         } catch (error) {
             console.error("Error deleting budget:", error);
+            setToast({ show: true, message: 'Error al eliminar', type: 'error' });
         }
     };
 
@@ -140,6 +144,13 @@ const Budgets = () => {
 
     return (
         <>
+            {toast.show && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast({ ...toast, show: false })}
+                />
+            )}
             <div className="animate-fade-in relative z-10 w-full h-full pb-20 md:pb-0">
                 {/* Mobile Header (Hamburger + Title + Add Button) */}
                 <MobileHeader
@@ -218,52 +229,19 @@ const Budgets = () => {
                                     return (
                                         <div
                                             key={budget._id}
+                                            onClick={() => openEdit(budget)}
                                             style={{
                                                 backgroundColor: '#151b2b',
                                                 borderRadius: '20px',
                                                 padding: '24px',
                                                 boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)',
-                                                marginBottom: '15px'
+                                                marginBottom: '15px',
+                                                cursor: 'pointer'
                                             }}
-                                            className="relative group transition-all duration-300 hover:-translate-y-1"
+                                            className="relative group transition-all duration-300 hover:-translate-y-1 hover:border hover:border-white/10"
                                         >
                                             <div className="flex justify-between items-start mb-1">
                                                 <h3 style={{ fontSize: '22px', fontWeight: '800', color: 'white', margin: 0, letterSpacing: '-0.01em' }}>{budget.category}</h3>
-                                                <div className="relative">
-                                                    <button
-                                                        onClick={() => setOpenMenuId(openMenuId === budget._id ? null : budget._id)}
-                                                        style={{ color: '#64748b', fontSize: '24px', background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px' }}
-                                                    >
-                                                        <EllipsisVertical size={24} />
-                                                    </button>
-
-                                                    {/* Dropdown Menu */}
-                                                    {openMenuId === budget._id && (
-                                                        <div
-                                                            className="absolute top-[30px] right-0 bg-[#1e293b] border border-[#334155] rounded-[12px] p-[6px] w-[130px] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.5)] z-[100] animate-fade-in"
-                                                        >
-                                                            <button
-                                                                onClick={() => { openEdit(budget); setOpenMenuId(null); }}
-                                                                className="w-full flex items-center px-3 py-2.5 rounded-[8px] cursor-pointer text-[14px] font-[500] transition-colors duration-200 text-[#38bdf8] hover:bg-[#334155] border-none"
-                                                                style={{ background: 'transparent' }}
-                                                            >
-                                                                <Edit2 size={16} className="mr-2.5" /> Editar
-                                                            </button>
-                                                            <button
-                                                                onClick={() => { handleDelete(budget._id); setOpenMenuId(null); }}
-                                                                className="w-full flex items-center px-3 py-2.5 rounded-[8px] cursor-pointer text-[14px] font-[500] transition-colors duration-200 text-[#f87171] hover:bg-[#334155] border-none"
-                                                                style={{ background: 'transparent' }}
-                                                            >
-                                                                <Trash2 size={16} className="mr-2.5" /> Eliminar
-                                                            </button>
-                                                        </div>
-                                                    )}
-
-                                                    {/* Backdrop */}
-                                                    {openMenuId === budget._id && (
-                                                        <div className="fixed inset-0 z-40" onClick={() => setOpenMenuId(null)}></div>
-                                                    )}
-                                                </div>
                                             </div>
 
                                             <div
@@ -301,11 +279,11 @@ const Budgets = () => {
                                             <div className="flex justify-between items-end mb-[15px]">
                                                 <div>
                                                     <p style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '2px', opacity: 0.8, fontWeight: '500' }}>Gastado</p>
-                                                    <p style={{ fontSize: '28px', fontWeight: '800', color: 'white', letterSpacing: '-0.01em', lineHeight: '1.2' }}>S/. {budget.spent.toFixed(2)}</p>
+                                                    <p style={{ fontSize: '28px', fontWeight: '800', color: 'white', letterSpacing: '-0.01em', lineHeight: '1.2' }}>S/{budget.spent.toFixed(2)}</p>
                                                 </div>
                                                 <div className="text-right">
                                                     <p style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '2px', opacity: 0.8, fontWeight: '500' }}>Límite</p>
-                                                    <p style={{ fontSize: '18px', fontWeight: '600', color: 'white' }}>S/. {budget.limit.toFixed(2)}</p>
+                                                    <p style={{ fontSize: '18px', fontWeight: '600', color: 'white' }}>S/{budget.limit.toFixed(2)}</p>
                                                 </div>
                                             </div>
 
@@ -379,7 +357,7 @@ const Budgets = () => {
 
                                 <div className="mb-6">
                                     <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                        Límite Mensual (S/.)
+                                        Límite Mensual (S/)
                                     </label>
                                     <input
                                         type="number"
@@ -393,10 +371,34 @@ const Budgets = () => {
                                     />
                                 </div>
 
-                                <div className="flex flex-col gap-3">
+                                <div className="flex flex-col gap-1">
                                     <button type="submit" className="btn btn-primary flex justify-center items-center w-full">
                                         {editingId ? 'Actualizar' : 'Registrar'}
                                     </button>
+
+                                    {editingId && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setShowModal(false);
+                                                handleDelete(editingId);
+                                            }}
+                                            className="flex justify-center items-center w-full transition-colors duration-200"
+                                            style={{
+                                                background: 'transparent',
+                                                border: '1px solid #ef4444',
+                                                borderRadius: '0.5rem',
+                                                color: '#ef4444',
+                                                fontWeight: 'bold',
+                                                padding: '12px',
+                                                marginTop: '8px',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            <Trash2 size={18} className="mr-2" />
+                                            Eliminar Presupuesto
+                                        </button>
+                                    )}
                                 </div>
                             </form>
                         </div>

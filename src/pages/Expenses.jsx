@@ -12,12 +12,14 @@ import MobileStatsGrid from '../components/MobileStatsGrid';
 import MobileChartSection from '../components/MobileChartSection';
 import TransactionItem from '../components/TransactionItem';
 import TransactionList from '../components/TransactionList';
+import Toast from '../components/Toast';
 
 const Expenses = () => {
     const { token } = useAuth();
     const { symbol } = useCurrency();
     const [expenses, setExpenses] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [toast, setToast] = useState({ show: false, message: '', type: 'error' });
 
     useEffect(() => {
         if (token) fetchExpenses();
@@ -90,20 +92,31 @@ const Expenses = () => {
                     headers,
                     body
                 });
-                const updatedExpense = await res.json();
-                setExpenses(expenses.map(e => e._id === editingId ? updatedExpense : e));
+                if (res.ok) {
+                    const updatedExpense = await res.json();
+                    setExpenses(expenses.map(e => e._id === editingId ? updatedExpense : e));
+                    setToast({ show: true, message: 'Gasto actualizado', type: 'success' });
+                } else {
+                    setToast({ show: true, message: 'Error al actualizar', type: 'error' });
+                }
             } else {
                 const res = await fetch('/api/data/expenses', {
                     method: 'POST',
                     headers,
                     body
                 });
-                const data = await res.json();
-                setExpenses([data, ...expenses]);
+                if (res.ok) {
+                    const data = await res.json();
+                    setExpenses([data, ...expenses]);
+                    setToast({ show: true, message: 'Gasto registrado', type: 'success' });
+                } else {
+                    setToast({ show: true, message: 'Error al registrar', type: 'error' });
+                }
             }
             fetchExpenses();
         } catch (error) {
             console.error("Error saving expense", error);
+            setToast({ show: true, message: 'Error de conexión', type: 'error' });
         }
 
         setShowModal(false);
@@ -123,15 +136,20 @@ const Expenses = () => {
     };
 
     const handleDelete = async (id) => {
-
         try {
-            await fetch(`/api/data/expenses/${id}`, {
+            const res = await fetch(`/api/data/expenses/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            setExpenses(expenses.filter(e => e._id !== id));
+            if (res.ok) {
+                setExpenses(expenses.filter(e => e._id !== id));
+                setToast({ show: true, message: 'Gasto eliminado', type: 'success' });
+            } else {
+                setToast({ show: true, message: 'Error al eliminar', type: 'error' });
+            }
         } catch (error) {
             console.error(error);
+            setToast({ show: true, message: 'Error de conexión', type: 'error' });
         }
     };
 
@@ -243,6 +261,13 @@ const Expenses = () => {
 
     return (
         <>
+            {toast.show && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast({ ...toast, show: false })}
+                />
+            )}
             <div className="animate-fade-in">
 
                 <MobileHeader

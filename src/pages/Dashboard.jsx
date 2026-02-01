@@ -116,14 +116,7 @@ const Dashboard = () => {
                 themeColor="#3b82f6"
             />
 
-            <div className="page-header hidden-mobile">
-                <div className="flex items-center gap-2 w-full">
-                    <div>
-                        <h2 className="page-title">Panel General</h2>
-                    </div>
-                </div>
-                <p className="page-subtitle">Bienvenido de nuevo, aquí tienes tu resumen financiero.</p>
-            </div>
+            {/* Desktop Header removed as requested */}
 
             {/* Mobile Greeting - Inserted here */}
             <div className="mb-6 mt-4 px-1 md:hidden">

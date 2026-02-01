@@ -11,12 +11,14 @@ import MobileStatsGrid from '../components/MobileStatsGrid';
 import MobileChartSection from '../components/MobileChartSection';
 import TransactionItem from '../components/TransactionItem';
 import TransactionList from '../components/TransactionList';
+import Toast from '../components/Toast';
 
 const Income = () => {
     const { token } = useAuth();
     const { symbol } = useCurrency();
     const [incomes, setIncomes] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [toast, setToast] = useState({ show: false, message: '', type: 'error' });
 
     useEffect(() => {
         if (token) fetchIncomes();
@@ -79,20 +81,31 @@ const Income = () => {
                     headers,
                     body
                 });
-                const updatedIncome = await res.json();
-                setIncomes(incomes.map(i => i._id === editingId ? updatedIncome : i));
+                if (res.ok) {
+                    const updatedIncome = await res.json();
+                    setIncomes(incomes.map(i => i._id === editingId ? updatedIncome : i));
+                    setToast({ show: true, message: 'Ingreso actualizado', type: 'success' });
+                } else {
+                    setToast({ show: true, message: 'Error al actualizar', type: 'error' });
+                }
             } else {
                 const res = await fetch('/api/data/incomes', {
                     method: 'POST',
                     headers,
                     body
                 });
-                const data = await res.json();
-                setIncomes([data, ...incomes]);
+                if (res.ok) {
+                    const data = await res.json();
+                    setIncomes([data, ...incomes]);
+                    setToast({ show: true, message: 'Ingreso registrado', type: 'success' });
+                } else {
+                    setToast({ show: true, message: 'Error al registrar', type: 'error' });
+                }
             }
             fetchIncomes();
         } catch (error) {
             console.error("Error saving income", error);
+            setToast({ show: true, message: 'Error de conexión', type: 'error' });
         }
 
         setShowModal(false);
@@ -115,13 +128,19 @@ const Income = () => {
     const handleDelete = async (id) => {
 
         try {
-            await fetch(`/api/data/incomes/${id}`, {
+            const res = await fetch(`/api/data/incomes/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            setIncomes(incomes.filter(i => i._id !== id));
+            if (res.ok) {
+                setIncomes(incomes.filter(i => i._id !== id));
+                setToast({ show: true, message: 'Ingreso eliminado', type: 'success' });
+            } else {
+                setToast({ show: true, message: 'Error al eliminar', type: 'error' });
+            }
         } catch (error) {
             console.error(error);
+            setToast({ show: true, message: 'Error de conexión', type: 'error' });
         }
     };
 
@@ -201,6 +220,13 @@ const Income = () => {
 
     return (
         <>
+            {toast.show && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast({ ...toast, show: false })}
+                />
+            )}
             <div className="animate-fade-in">
 
                 <MobileHeader
