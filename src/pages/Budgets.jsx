@@ -334,6 +334,34 @@ const Budgets = () => {
                                     );
                                 })
                             )}
+                            {budgets.length > 0 && (
+                                <button
+                                    onClick={() => {
+                                        setEditingId(null);
+                                        setFormData({ category: '', limit: '' });
+                                        setShowModal(true);
+                                    }}
+                                    style={{
+                                        backgroundColor: 'rgba(30, 41, 59, 0.3)',
+                                        border: '2px dashed rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '20px',
+                                        padding: '32px',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '12px',
+                                        cursor: 'pointer',
+                                        minHeight: '220px'
+                                    }}
+                                    className="group hover:border-purple-500/50 hover:bg-purple-500/5 transition-all"
+                                >
+                                    <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-purple-500 group-hover:text-white transition-all">
+                                        <Plus size={24} className="text-slate-400 group-hover:text-white" />
+                                    </div>
+                                    <span className="text-slate-400 font-bold group-hover:text-white uppercase tracking-widest text-xs">Nuevo Presupuesto</span>
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}
