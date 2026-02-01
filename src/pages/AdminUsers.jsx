@@ -346,7 +346,7 @@ const AdminUsers = () => {
                                                     ) : (
                                                         <>
                                                             <span style={{ color: '#94a3b8' }}>•</span>
-                                                            <span style={{ fontSize: '11px', color: '#94a3b8' }}>{getLastActivity(user.createdAt)}</span>
+                                                            <span style={{ fontSize: '11px', color: '#94a3b8' }}>{getLastActivity(user.lastLogin || user.createdAt)}</span>
                                                         </>
                                                     )}
                                                 </div>

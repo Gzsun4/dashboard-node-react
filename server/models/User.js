@@ -23,6 +23,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         unique: true,
         sparse: true // Allows multiple null values
+    },
+    lastLogin: {
+        type: Date,
+        default: Date.now
     }
 
 }, {

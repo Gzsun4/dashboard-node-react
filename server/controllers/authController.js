@@ -67,11 +67,16 @@ const loginUser = asyncHandler(async (req, res) => {
     const user = await User.findOne({ email });
 
     if (user && (await bcrypt.compare(password, user.password))) {
+        // Update last login
+        user.lastLogin = Date.now();
+        await user.save();
+
         res.json({
             _id: user.id,
             name: user.name,
             email: user.email,
             role: user.role,
+            lastLogin: user.lastLogin,
             token: generateToken(user._id, user.role)
         });
     } else {
