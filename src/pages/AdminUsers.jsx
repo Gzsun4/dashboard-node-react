@@ -281,15 +281,7 @@ const AdminUsers = () => {
                                                         {getInitials(user.name)}
 
                                                         {/* Online Status Dot */}
-                                                        {isOnline && (
-                                                            <span
-                                                                className="absolute bottom-0 right-0 w-3 h-3 rounded-full"
-                                                                style={{
-                                                                    background: '#10b981',
-                                                                    border: '2px solid rgba(15, 23, 42, 1)'
-                                                                }}
-                                                            />
-                                                        )}
+
                                                     </div>
 
                                                     {/* Name + Email */}
@@ -348,7 +340,7 @@ const AdminUsers = () => {
                                                 <div className="flex items-center gap-2 mb-4">
                                                     {isOnline ? (
                                                         <>
-                                                            <span className="w-2 h-2 rounded-full bg-green-500" />
+                                                            <span className="w-2 h-2 rounded-full" style={{ background: '#10b981', display: 'inline-block' }} />
                                                             <span style={{ fontSize: '11px' }} className="text-green-500 font-medium">En línea</span>
                                                         </>
                                                     ) : (
