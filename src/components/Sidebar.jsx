@@ -31,10 +31,10 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
     const navigate = useNavigate();
 
     const navItems = [
-        { path: '/', label: 'Dashboard', icon: HomeIcon },
-        { path: '/budgets', label: 'Presupuestos ⭐', icon: Wallet },
+        { path: '/', label: 'Panel', icon: HomeIcon },
         { path: '/income', label: 'Ingresos', icon: TrendingUp },
         { path: '/expenses', label: 'Gastos', icon: TrendingDown },
+        { path: '/budgets', label: 'Presupuestos', icon: Wallet },
         { path: '/savings', label: 'Ahorros', icon: PiggyBank },
         { path: '/debts', label: 'Deudas', icon: CreditCard, badge: activeCount },
         { path: '/reminders', label: 'Telegram', icon: TelegramIcon },
