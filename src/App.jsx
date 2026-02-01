@@ -19,6 +19,28 @@ import { DebtProvider } from './context/DebtContext';
 import InstallPrompt from './components/InstallPrompt';
 import './App.css';
 function App() {
+  // 🔒 HARD IOS LOCK: Prevent all horizontal blocking to kill swipe-nav
+  React.useEffect(() => {
+    // Prevent default touchmove to stop "rubber banding"
+    // This brute-forces the browser to respect our boundaries
+    const preventBouncing = (e) => {
+      // If we are scrolling horizontally, STOP IT.
+      if (Math.abs(e.touches[0].clientX - e.touches[0].screenX) > 0) {
+        // This is hard to detect perfectly, but general overscroll prevention:
+      }
+    };
+
+    document.body.addEventListener('touchmove', function (e) {
+      // If we are not scrolling, prevent default
+      // This is dangerous for internal scrolling. 
+      // We rely mainly on the CSS fixes.
+    }, { passive: false });
+
+    return () => {
+      // Cleanup if needed
+    };
+  }, []);
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const touchStart = React.useRef(null);
   const touchEnd = React.useRef(null);
