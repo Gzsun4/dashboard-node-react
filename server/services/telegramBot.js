@@ -7,10 +7,9 @@ import OpenAI from 'openai'; // Groq uses OpenAI SDK
 // ... existing imports ...
 
 // Initialize Groq Client
-const groq = new OpenAI({
-    apiKey: process.env.GROQ_API_KEY,
-    baseURL: "https://api.groq.com/openai/v1"
-});
+// Initialize Groq Client Lazily
+let groq;
+
 
 // ... existing code ...
 
@@ -103,11 +102,11 @@ const CATEGORY_MAP = {
     'Alimentación': ['comida', 'almuerzo', 'cena', 'desayuno', 'snack', 'restaurante', 'mercado', 'supermercado', 'burger', 'pizza', 'pollo', 'bebida', 'menu', 'menú', 'fruta'],
     'Transporte': ['pasaje', 'bus', 'taxi', 'uber', 'tren', 'gasolina', 'combustible', 'peaje', 'combi', 'moto', 'colectivo', 'metro'],
     'Servicios': ['luz', 'agua', 'internet', 'celular', 'plan', 'gas', 'recarga', 'cable', 'servicio'],
-    'Salud': ['farmacia', 'medico', 'consulta', 'pastillas', 'cita', 'doctor', 'medicina', 'dentista'],
     'Entretenimiento': ['cine', 'juego', 'salida', 'netflix', 'spotify', 'fiesta', 'entrada', 'concierto', 'steam', 'suscripción'],
+    'Salud': ['farmacia', 'medico', 'consulta', 'pastillas', 'cita', 'doctor', 'medicina', 'dentista'],
     'Educación': ['curso', 'libro', 'clase', 'universidad', 'colegio', 'útiles', 'taller'],
-    'Ropa': ['polo', 'camisa', 'pantalon', 'zapatillas', 'ropa', 'vestido', 'zapatos'],
     'Hogar': ['mueble', 'limpieza', 'casa', 'departamento', 'alquiler', 'reparación'],
+    'Otros': ['regalo', 'otros', 'varios', 'compra', 'tienda'],
 
     // Ingresos
     'Sueldo': ['sueldo', 'pago', 'nómina', 'salario', 'quincena', 'mensualidad'],
@@ -428,6 +427,14 @@ export const initializeBot = () => {
     // Initialize Gemini
     const apiKey = process.env.GEMINI_API_KEY;
     console.log("🔑 Gemini API Key Status:", apiKey ? `Present (Starts with ${apiKey.substring(0, 4)}...)` : "MISSING");
+
+    // Initialize Groq (now that env vars are loaded)
+    if (!groq && process.env.GROQ_API_KEY) {
+        groq = new OpenAI({
+            apiKey: process.env.GROQ_API_KEY,
+            baseURL: "https://api.groq.com/openai/v1"
+        });
+    }
 
     const genAI = new GoogleGenerativeAI(apiKey || '');
     model = genAI.getGenerativeModel({

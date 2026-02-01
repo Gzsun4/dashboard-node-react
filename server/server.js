@@ -8,10 +8,12 @@ import authRoutes from './routes/authRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import dataRoutes from './routes/dataRoutes.js';
 import reminderRoutes from './routes/reminderRoutes.js';
+import budgetRoutes from './routes/budgetRoutes.js';
 import testRoutes from './routes/testRoutes.js';
 import { sendTelegramMessage } from './services/telegramService.js';
 import { initializeBot } from './services/telegramBot.js';
 import { initializeSocket } from './services/socketService.js';
+import { errorHandler } from './middleware/errorMiddleware.js';
 
 dotenv.config();
 
@@ -37,7 +39,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/reminders', reminderRoutes);
+app.use('/api/budgets', budgetRoutes);
 app.use('/api/test', testRoutes);
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 

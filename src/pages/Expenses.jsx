@@ -534,12 +534,14 @@ const Expenses = () => {
                                         required
                                     >
                                         <option value="">Selecciona una categoría</option>
-                                        <option value="Comida">Comida</option>
+                                        <option value="Alimentación">Alimentación</option>
                                         <option value="Transporte">Transporte</option>
-                                        <option value="Entretenimiento">Entretenimiento</option>
-                                        <option value="Suscripciones">Suscripciones</option>
                                         <option value="Servicios">Servicios</option>
-                                        <option value="Otro">Otro</option>
+                                        <option value="Entretenimiento">Entretenimiento</option>
+                                        <option value="Salud">Salud</option>
+                                        <option value="Educación">Educación</option>
+                                        <option value="Hogar">Hogar</option>
+                                        <option value="Otros">Otros</option>
                                     </select>
                                 </div>
 
@@ -648,12 +650,14 @@ const Expenses = () => {
                                     onChange={(e) => setFilters({ ...filters, category: e.target.value })}
                                 >
                                     <option value="">Todas las categorías</option>
-                                    <option value="Comida">Comida</option>
+                                    <option value="Alimentación">Alimentación</option>
                                     <option value="Transporte">Transporte</option>
-                                    <option value="Entretenimiento">Entretenimiento</option>
-                                    <option value="Suscripciones">Suscripciones</option>
                                     <option value="Servicios">Servicios</option>
-                                    <option value="Otro">Otro</option>
+                                    <option value="Entretenimiento">Entretenimiento</option>
+                                    <option value="Salud">Salud</option>
+                                    <option value="Educación">Educación</option>
+                                    <option value="Hogar">Hogar</option>
+                                    <option value="Otros">Otros</option>
                                 </select>
                             </div>
 
