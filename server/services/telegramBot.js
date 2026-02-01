@@ -219,12 +219,29 @@ const getFinancialContext = async (userId) => {
             return `${label}:\n${txs}`;
         }).join('\n\n    ');
 
+    // Pre-calculate daily totals for Prompt Injection
+    const calculateDailyTotal = (dateStr, type) => {
+        return allTransactions
+            .filter(t => t.date === dateStr && t.type === type)
+            .reduce((sum, t) => sum + t.amount, 0)
+            .toFixed(2);
+    };
+
+    const todayInc = calculateDailyTotal(todayStr, 'Ingreso');
+    const todayExp = calculateDailyTotal(todayStr, 'Gasto');
+    const yestInc = calculateDailyTotal(yesterdayStr, 'Ingreso');
+    const yestExp = calculateDailyTotal(yesterdayStr, 'Gasto');
+
     return `
     [CONTEXTO DE TIEMPO]
     Fecha Actual (Hoy): ${now.toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}
     Fecha de Ayer: ${yesterday.toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}
     (IMPORTANTE: Si el usuario pregunta por "ayer", busca movimientos ÚNICAMENTE en la sección que dice "(AYER)" abajo.)
     (ADVERTENCIA: Si la sección "(AYER)" no existe o está vacía, responde "No tuve movimientos ayer".)
+
+    [RESUMEN DIARIO PRE-CALCULADO]
+    HOY (${todayStr}): Ingresos: S/.${todayInc} | Gastos: S/.${todayExp}
+    AYER (${yesterdayStr}): Ingresos: S/.${yestInc} | Gastos: S/.${yestExp}
 
     Resumen Mes ACTUAL (${currentYear}-${currentMonth}):
     - Ing: S/. ${curTotalInc.toFixed(2)} | Gas: S/. ${curTotalExp.toFixed(2)} | Bal: S/. ${curBalance.toFixed(2)}
