@@ -204,6 +204,7 @@ const getFinancialContext = async (userId) => {
     Fecha Actual (Hoy): ${now.toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}
     Fecha de Ayer: ${yesterday.toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}
     (IMPORTANTE: Si el usuario pregunta por "ayer", busca movimientos con fecha ${yesterday.toLocaleDateString('es-CA', { timeZone: 'America/Lima' })})
+    (ADVERTENCIA: NO inventes movimientos. Si no hay movimientos con esa fecha exacta en la lista de abajo, di "No tuve movimientos ayer".)
 
     Resumen Mes ACTUAL (${currentYear}-${currentMonth}):
     - Ing: S/. ${curTotalInc.toFixed(2)} | Gas: S/. ${curTotalExp.toFixed(2)} | Bal: S/. ${curBalance.toFixed(2)}
