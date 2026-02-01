@@ -176,7 +176,15 @@ const getFinancialContext = async (userId) => {
         `- [${t.date}] ${t.type} (${t.category}): S/. ${t.amount} (${t.description || t.source || 'Sin desc.'})`
     ).join('\n    ');
 
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+
     return `
+    [CONTEXTO DE TIEMPO]
+    Fecha Actual (Hoy): ${now.toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}
+    Fecha de Ayer: ${yesterday.toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}
+    (IMPORTANTE: Si el usuario pregunta por "ayer", busca movimientos con fecha ${yesterday.toLocaleDateString('es-CA', { timeZone: 'America/Lima' })})
+
     Resumen del Mes Actual (${currentYear}-${currentMonth}):
     - Ingresos: S/. ${totalIncome.toFixed(2)}
     - Gastos: S/. ${totalExpense.toFixed(2)}
