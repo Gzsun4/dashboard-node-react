@@ -337,13 +337,19 @@ const AdminUsers = () => {
                                                 </div>
 
                                                 {/* Status */}
-                                                <div className="flex items-center gap-2 mb-4">
+                                                <div className="flex items-center gap-2 mb-4" style={{ marginTop: '4px' }}>
                                                     {isOnline ? (
                                                         <>
-                                                            <div style={{ width: '14px', display: 'flex', justifyContent: 'center' }}>
-                                                                <span className="w-2 h-2 rounded-full" style={{ background: '#10b981', display: 'inline-block' }} />
+                                                            <div style={{ width: '14px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                                                <div style={{
+                                                                    width: '8px',
+                                                                    height: '8px',
+                                                                    borderRadius: '50%',
+                                                                    backgroundColor: '#10b981',
+                                                                    boxShadow: '0 0 8px rgba(16,185,129,0.5)'
+                                                                }}></div>
                                                             </div>
-                                                            <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 500 }}>En línea</span>
+                                                            <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 600 }}>En línea</span>
                                                         </>
                                                     ) : (
                                                         <>

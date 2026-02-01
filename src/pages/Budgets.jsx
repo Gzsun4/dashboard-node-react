@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Plus, Trash2, Edit2, Wallet, PieChart, TrendingUp, DollarSign, X, EllipsisVertical, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
+import { useCurrency } from '../context/CurrencyContext';
 import MobileHeader from '../components/MobileHeader';
 import MobileStatsGrid from '../components/MobileStatsGrid';
 import Toast from '../components/Toast';
@@ -8,6 +9,7 @@ import Toast from '../components/Toast';
 const Budgets = () => {
     console.log("Budgets.jsx: Rendering component");
     const { user, token } = useAuth();
+    const { symbol } = useCurrency();
     const [budgets, setBudgets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -52,19 +54,19 @@ const Budgets = () => {
     const stats = [
         {
             title: "Disponible Global",
-            value: `S/${totalAvailable.toFixed(2)}`,
+            value: `${symbol}${totalAvailable.toFixed(2)}`,
             icon: <Wallet />,
             color: "bg-purple-500"
         },
         {
             title: "Presupuesto Total",
-            value: `S/${totalLimit.toFixed(2)}`,
+            value: `${symbol}${totalLimit.toFixed(2)}`,
             icon: <PieChart />,
             color: "bg-blue-500"
         },
         {
             title: "Total Gastado",
-            value: `S/${totalSpent.toFixed(2)}`,
+            value: `${symbol}${totalSpent.toFixed(2)}`,
             icon: <TrendingUp />,
             color: "bg-red-500"
         }
@@ -279,11 +281,11 @@ const Budgets = () => {
                                             <div className="flex justify-between items-end mb-[15px]">
                                                 <div>
                                                     <p style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '2px', opacity: 0.8, fontWeight: '500' }}>Gastado</p>
-                                                    <p style={{ fontSize: '28px', fontWeight: '800', color: 'white', letterSpacing: '-0.01em', lineHeight: '1.2' }}>S/{budget.spent.toFixed(2)}</p>
+                                                    <p style={{ fontSize: '28px', fontWeight: '800', color: 'white', letterSpacing: '-0.01em', lineHeight: '1.2' }}>{symbol}{budget.spent.toFixed(2)}</p>
                                                 </div>
                                                 <div className="text-right">
                                                     <p style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '2px', opacity: 0.8, fontWeight: '500' }}>Límite</p>
-                                                    <p style={{ fontSize: '18px', fontWeight: '600', color: 'white' }}>S/{budget.limit.toFixed(2)}</p>
+                                                    <p style={{ fontSize: '18px', fontWeight: '600', color: 'white' }}>{symbol}{budget.limit.toFixed(2)}</p>
                                                 </div>
                                             </div>
 
@@ -357,7 +359,7 @@ const Budgets = () => {
 
                                 <div className="mb-6">
                                     <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                        Límite Mensual (S/)
+                                        Límite Mensual ({symbol})
                                     </label>
                                     <input
                                         type="number"
