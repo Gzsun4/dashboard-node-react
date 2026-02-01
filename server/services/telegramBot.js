@@ -149,12 +149,28 @@ const getFinancialContext = async (userId) => {
         .map(([cat, amount]) => `${cat}: S/.${amount.toFixed(2)}`)
         .join(', ');
 
+    // Recent Transactions (Last 10) for Context
+    const allTransactions = [
+        ...expenses.map(e => ({ ...e.toObject(), type: 'Gasto' })),
+        ...incomes.map(i => ({ ...i.toObject(), type: 'Ingreso' }))
+    ].sort((a, b) => {
+        if (b.date !== a.date) return b.date.localeCompare(a.date);
+        return new Date(b.createdAt) - new Date(a.createdAt);
+    }).slice(0, 10);
+
+    const recentTxText = allTransactions.map(t =>
+        `- [${t.date}] ${t.type} (${t.category}): S/. ${t.amount} (${t.description || t.source || 'Sin desc.'})`
+    ).join('\n    ');
+
     return `
     Resumen del Mes (${year}-${month}):
     - Ingresos: S/. ${totalIncome.toFixed(2)}
     - Gastos: S/. ${totalExpense.toFixed(2)}
     - Balance: S/. ${balance.toFixed(2)}
     - Top Gastos: ${topCategories || "Ninguno"}
+
+    Últimos 10 Movimientos:
+    ${recentTxText || "No hay movimientos recientes."}
     `;
 };
 
