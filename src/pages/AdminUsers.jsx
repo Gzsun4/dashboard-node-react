@@ -339,10 +339,10 @@ const AdminUsers = () => {
                                                 {/* Status */}
                                                 <div className="flex items-center gap-2 mb-4">
                                                     {isOnline ? (
-                                                        <>
-                                                            <span className="w-2 h-2 rounded-full" style={{ background: '#10b981', display: 'inline-block' }} />
-                                                            <span style={{ fontSize: '11px' }} className="text-green-500 font-medium">En línea</span>
-                                                        </>
+                                                        <div className="flex items-center gap-2">
+                                                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }}></div>
+                                                            <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 500 }}>En línea</span>
+                                                        </div>
                                                     ) : (
                                                         <>
                                                             <span style={{ color: '#94a3b8' }}>•</span>

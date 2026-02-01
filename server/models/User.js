@@ -25,8 +25,7 @@ const userSchema = new mongoose.Schema({
         sparse: true // Allows multiple null values
     },
     lastLogin: {
-        type: Date,
-        default: Date.now
+        type: Date
     }
 
 }, {
