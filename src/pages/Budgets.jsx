@@ -190,9 +190,7 @@ const Budgets = () => {
                                     </div>
                                     <h3 className="text-xl font-semibold text-white mb-2">No tienes presupuestos</h3>
                                     <p className="mb-6 max-w-sm mx-auto">Define límites para tus gastos y mantén tu economía bajo control.</p>
-                                    <button onClick={() => setShowModal(true)} className="btn btn-primary">
-                                        <Plus size={18} /> Crear mi primer presupuesto
-                                    </button>
+
                                 </div>
                             ) : (
                                 budgets.map(budget => {
