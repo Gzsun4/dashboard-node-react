@@ -19,25 +19,36 @@ import { DebtProvider } from './context/DebtContext';
 import InstallPrompt from './components/InstallPrompt';
 import './App.css';
 function App() {
-  // 🔒 HARD IOS LOCK: Prevent all horizontal blocking to kill swipe-nav
+  // 🔒 BLOQUEO GESTUAL (IOS/ANDROID) - "Nuclear Option"
   React.useEffect(() => {
-    // Prevent default touchmove to stop "rubber banding"
-    // This brute-forces the browser to respect our boundaries
-    const preventBouncing = (e) => {
-      // If we are scrolling horizontally, STOP IT.
-      if (Math.abs(e.touches[0].clientX - e.touches[0].screenX) > 0) {
-        // This is hard to detect perfectly, but general overscroll prevention:
+    let startX = 0;
+    let startY = 0;
+
+    const handleTouchStart = (e) => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    };
+
+    const handleTouchMove = (e) => {
+      const currentX = e.touches[0].clientX;
+      const currentY = e.touches[0].clientY;
+      const deltaX = Math.abs(currentX - startX);
+      const deltaY = Math.abs(currentY - startY);
+
+      // Si el movimiento es estrictamente horizontal (más lateral que vertical)
+      if (deltaX > deltaY && deltaX > 5) {
+        if (e.cancelable) {
+          e.preventDefault(); // Detiene el Swipe Back del navegador
+        }
       }
     };
 
-    document.body.addEventListener('touchmove', function (e) {
-      // If we are not scrolling, prevent default
-      // This is dangerous for internal scrolling. 
-      // We rely mainly on the CSS fixes.
-    }, { passive: false });
+    document.addEventListener('touchstart', handleTouchStart, { passive: false });
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
 
     return () => {
-      // Cleanup if needed
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
     };
   }, []);
 
