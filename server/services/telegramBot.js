@@ -192,19 +192,39 @@ const getFinancialContext = async (userId) => {
         return new Date(b.createdAt) - new Date(a.createdAt);
     }).slice(0, 30);
 
-    const recentTxText = allTransactions.map(t =>
-        `- [${t.date}] ${t.type} (${t.category}): S/. ${t.amount} (${t.description || t.source || 'Sin desc.'})`
-    ).join('\n    ');
-
     const yesterday = new Date(now);
     yesterday.setDate(now.getDate() - 1);
+
+    // Group headers for better context
+    const todayStr = now.toLocaleDateString('es-CA', { timeZone: 'America/Lima' });
+    const yesterdayStr = yesterday.toLocaleDateString('es-CA', { timeZone: 'America/Lima' });
+
+    const groupedTx = {};
+    allTransactions.forEach(t => {
+        if (!groupedTx[t.date]) groupedTx[t.date] = [];
+        groupedTx[t.date].push(t);
+    });
+
+    const recentTxText = Object.keys(groupedTx)
+        .sort((a, b) => b.localeCompare(a))
+        .map(date => {
+            let label = `[${date}]`;
+            if (date === todayStr) label += " (HOY)";
+            if (date === yesterdayStr) label += " (AYER)";
+
+            const txs = groupedTx[date].map(t =>
+                `      * ${t.type}: S/. ${t.amount} (${t.category} - ${t.description || t.source || 'Sin desc.'})`
+            ).join('\n');
+
+            return `${label}:\n${txs}`;
+        }).join('\n\n    ');
 
     return `
     [CONTEXTO DE TIEMPO]
     Fecha Actual (Hoy): ${now.toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}
     Fecha de Ayer: ${yesterday.toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}
-    (IMPORTANTE: Si el usuario pregunta por "ayer", busca movimientos con fecha ${yesterday.toLocaleDateString('es-CA', { timeZone: 'America/Lima' })})
-    (ADVERTENCIA: NO inventes movimientos. Si no hay movimientos con esa fecha exacta en la lista de abajo, di "No tuve movimientos ayer".)
+    (IMPORTANTE: Si el usuario pregunta por "ayer", busca movimientos ÚNICAMENTE en la sección que dice "(AYER)" abajo.)
+    (ADVERTENCIA: Si la sección "(AYER)" no existe o está vacía, responde "No tuve movimientos ayer".)
 
     Resumen Mes ACTUAL (${currentYear}-${currentMonth}):
     - Ing: S/. ${curTotalInc.toFixed(2)} | Gas: S/. ${curTotalExp.toFixed(2)} | Bal: S/. ${curBalance.toFixed(2)}
@@ -214,7 +234,7 @@ const getFinancialContext = async (userId) => {
 
     Top Gastos (90d): ${topCategories || "Ninguno"}
 
-    Últimos 30 Movimientos (Historial):
+    === HISTORIAL DETALLADO POR DÍA ===
     ${recentTxText || "No hay movimientos recientes."}
     `;
 };
