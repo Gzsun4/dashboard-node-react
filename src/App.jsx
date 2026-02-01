@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import Income from './pages/Income';
 import Expenses from './pages/Expenses';
+import Budgets from './pages/Budgets';
 import Savings from './pages/Savings';
 import Debts from './pages/Debts';
 import Reminders from './pages/Reminders';
@@ -21,6 +22,7 @@ import './App.css';
 function App() {
   // 🔒 BLOQUEO GESTUAL (IOS/ANDROID) - "Nuclear Option"
   React.useEffect(() => {
+    console.log("App Version: 1.2.0 - Budgets Included");
     let startX = 0;
     let startY = 0;
 
@@ -117,6 +119,7 @@ function App() {
                       <Route path="/" element={<Dashboard />} />
                       <Route path="/income" element={<Income />} />
                       <Route path="/expenses" element={<Expenses />} />
+                      <Route path="/budgets" element={<Budgets />} />
                       <Route path="/savings" element={<Savings />} />
                       <Route path="/debts" element={<Debts />} />
                       <Route path="/reminders" element={<Reminders />} />

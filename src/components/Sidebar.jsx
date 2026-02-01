@@ -31,7 +31,8 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
     const navigate = useNavigate();
 
     const navItems = [
-        { path: '/', label: 'Panel', icon: HomeIcon },
+        { path: '/', label: 'Dashboard', icon: HomeIcon },
+        { path: '/budgets', label: 'Presupuestos ⭐', icon: Wallet },
         { path: '/income', label: 'Ingresos', icon: TrendingUp },
         { path: '/expenses', label: 'Gastos', icon: TrendingDown },
         { path: '/savings', label: 'Ahorros', icon: PiggyBank },

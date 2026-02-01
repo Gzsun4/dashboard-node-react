@@ -5,6 +5,7 @@ import MobileHeader from '../components/MobileHeader';
 import MobileStatsGrid from '../components/MobileStatsGrid';
 
 const Budgets = () => {
+    console.log("Budgets.jsx: Rendering component");
     const { user, token } = useAuth();
     const [budgets, setBudgets] = useState([]);
     const [loading, setLoading] = useState(true);
