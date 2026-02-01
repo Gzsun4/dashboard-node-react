@@ -145,12 +145,32 @@ const getFinancialContext = async (userId) => {
     const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
     const currentMonthStr = `${currentYear}-${currentMonth}-01`;
 
-    const monthlyExpenses = expenses.filter(e => e.date >= currentMonthStr);
-    const monthlyIncomes = incomes.filter(i => i.date >= currentMonthStr);
+    // Calculate totals for *Previous Month*
+    const prevDate = new Date(now);
+    prevDate.setMonth(now.getMonth() - 1);
+    const prevYear = prevDate.getFullYear();
+    const prevMonth = String(prevDate.getMonth() + 1).padStart(2, '0');
+    const prevMonthStr = `${prevYear}-${prevMonth}-01`;
+    // End of previous month (for filtering range if needed, though exact "month" check is safer)
 
-    const totalExpense = monthlyExpenses.reduce((sum, e) => sum + e.amount, 0);
-    const totalIncome = monthlyIncomes.reduce((sum, i) => sum + i.amount, 0);
-    const balance = totalIncome - totalExpense;
+    // Filter helper
+    const getMonthData = (data, pYear, pMonth) => {
+        return data.filter(item => item.date.startsWith(`${pYear}-${pMonth}`));
+    };
+
+    // Current Month Totals
+    const curExpenses = getMonthData(expenses, currentYear, currentMonth);
+    const curIncomes = getMonthData(incomes, currentYear, currentMonth);
+    const curTotalExp = curExpenses.reduce((sum, e) => sum + e.amount, 0);
+    const curTotalInc = curIncomes.reduce((sum, i) => sum + i.amount, 0);
+    const curBalance = curTotalInc - curTotalExp;
+
+    // Previous Month Totals
+    const prevExpenses = getMonthData(expenses, prevYear, prevMonth);
+    const prevIncomes = getMonthData(incomes, prevYear, prevMonth);
+    const prevTotalExp = prevExpenses.reduce((sum, e) => sum + e.amount, 0);
+    const prevTotalInc = prevIncomes.reduce((sum, i) => sum + i.amount, 0);
+    const prevBalance = prevTotalInc - prevTotalExp;
 
     // Top Categories (Based on last 90 days for better trend)
     const catMap = {};
@@ -185,13 +205,15 @@ const getFinancialContext = async (userId) => {
     Fecha de Ayer: ${yesterday.toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}
     (IMPORTANTE: Si el usuario pregunta por "ayer", busca movimientos con fecha ${yesterday.toLocaleDateString('es-CA', { timeZone: 'America/Lima' })})
 
-    Resumen del Mes Actual (${currentYear}-${currentMonth}):
-    - Ingresos: S/. ${totalIncome.toFixed(2)}
-    - Gastos: S/. ${totalExpense.toFixed(2)}
-    - Balance: S/. ${balance.toFixed(2)}
-    - Top Gastos (90d): ${topCategories || "Ninguno"}
+    Resumen Mes ACTUAL (${currentYear}-${currentMonth}):
+    - Ing: S/. ${curTotalInc.toFixed(2)} | Gas: S/. ${curTotalExp.toFixed(2)} | Bal: S/. ${curBalance.toFixed(2)}
 
-    Últimos 30 Movimientos (Historial Reciente):
+    Resumen Mes ANTERIOR (${prevYear}-${prevMonth}):
+    - Ing: S/. ${prevTotalInc.toFixed(2)} | Gas: S/. ${prevTotalExp.toFixed(2)} | Bal: S/. ${prevBalance.toFixed(2)}
+
+    Top Gastos (90d): ${topCategories || "Ninguno"}
+
+    Últimos 30 Movimientos (Historial):
     ${recentTxText || "No hay movimientos recientes."}
     `;
 };
