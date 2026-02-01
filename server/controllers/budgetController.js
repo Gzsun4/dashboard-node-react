@@ -9,10 +9,18 @@ export const getBudgets = async (req, res) => {
         const budgets = await Budget.find({ user: req.user.id });
 
         const budgetsWithProgress = await Promise.all(budgets.map(async (budget) => {
-            // Find total expenses for this category across ALL time (as requested by user)
+            // Find total expenses for this category for the CURRENT MONTH
+            const now = new Date();
+            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
             const expenses = await Expense.find({
                 user: req.user.id,
-                category: { $regex: new RegExp(`^${budget.category}$`, 'i') }
+                category: { $regex: new RegExp(`^${budget.category}$`, 'i') },
+                date: {
+                    $gte: firstDay.toISOString().split('T')[0], // Assuming date is stored as string 'YYYY-MM-DD' or similar comparable
+                    $lte: lastDay.toISOString().split('T')[0]
+                }
             });
 
             const spent = expenses.reduce((sum, item) => sum + item.amount, 0);
