@@ -126,19 +126,33 @@ const REMINDER_TRIGGERS = ['alerta', 'recordatorio', 'avisame', 'acuerdame', 're
 
 const getFinancialContext = async (userId) => {
     const now = new Date();
-    // Fix: Convert firstDay to YYYY-MM-DD string because Schema uses String for dates
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const firstDayStr = `${year}-${month}-01`;
+    // Expand to Last 90 Days (~3 Months)
+    const past90Days = new Date();
+    past90Days.setDate(now.getDate() - 90);
 
-    const expenses = await Expense.find({ user: userId, date: { $gte: firstDayStr } });
-    const incomes = await Income.find({ user: userId, date: { $gte: firstDayStr } });
+    // Formatting for query
+    const year = past90Days.getFullYear();
+    const month = String(past90Days.getMonth() + 1).padStart(2, '0');
+    const day = String(past90Days.getDate()).padStart(2, '0');
+    const filterDateStr = `${year}-${month}-${day}`;
 
-    const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
-    const totalIncome = incomes.reduce((sum, i) => sum + i.amount, 0);
+    // Fetch transactions from last 90 days
+    const expenses = await Expense.find({ user: userId, date: { $gte: filterDateStr } });
+    const incomes = await Income.find({ user: userId, date: { $gte: filterDateStr } });
+
+    // Calculate totals for the *Current Month* specifically for the summary section
+    const currentYear = now.getFullYear();
+    const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+    const currentMonthStr = `${currentYear}-${currentMonth}-01`;
+
+    const monthlyExpenses = expenses.filter(e => e.date >= currentMonthStr);
+    const monthlyIncomes = incomes.filter(i => i.date >= currentMonthStr);
+
+    const totalExpense = monthlyExpenses.reduce((sum, e) => sum + e.amount, 0);
+    const totalIncome = monthlyIncomes.reduce((sum, i) => sum + i.amount, 0);
     const balance = totalIncome - totalExpense;
 
-    // Top Categories
+    // Top Categories (Based on last 90 days for better trend)
     const catMap = {};
     expenses.forEach(e => {
         catMap[e.category] = (catMap[e.category] || 0) + e.amount;
@@ -149,27 +163,27 @@ const getFinancialContext = async (userId) => {
         .map(([cat, amount]) => `${cat}: S/.${amount.toFixed(2)}`)
         .join(', ');
 
-    // Recent Transactions (Last 10) for Context
+    // Recent Transactions (Last 30) for Context
     const allTransactions = [
         ...expenses.map(e => ({ ...e.toObject(), type: 'Gasto' })),
         ...incomes.map(i => ({ ...i.toObject(), type: 'Ingreso' }))
     ].sort((a, b) => {
         if (b.date !== a.date) return b.date.localeCompare(a.date);
         return new Date(b.createdAt) - new Date(a.createdAt);
-    }).slice(0, 10);
+    }).slice(0, 30);
 
     const recentTxText = allTransactions.map(t =>
         `- [${t.date}] ${t.type} (${t.category}): S/. ${t.amount} (${t.description || t.source || 'Sin desc.'})`
     ).join('\n    ');
 
     return `
-    Resumen del Mes (${year}-${month}):
+    Resumen del Mes Actual (${currentYear}-${currentMonth}):
     - Ingresos: S/. ${totalIncome.toFixed(2)}
     - Gastos: S/. ${totalExpense.toFixed(2)}
     - Balance: S/. ${balance.toFixed(2)}
-    - Top Gastos: ${topCategories || "Ninguno"}
+    - Top Gastos (90d): ${topCategories || "Ninguno"}
 
-    Últimos 10 Movimientos:
+    Últimos 30 Movimientos (Historial Reciente):
     ${recentTxText || "No hay movimientos recientes."}
     `;
 };
