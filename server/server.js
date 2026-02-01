@@ -1,3 +1,4 @@
+process.env.TZ = 'America/Lima';
 import express from 'express';
 import { createServer } from 'http';
 import dotenv from 'dotenv';
@@ -15,6 +16,7 @@ import { initializeSocket } from './services/socketService.js';
 dotenv.config();
 
 console.log("Starting server..."); // Debug log for deployment
+console.log(`Server Time: ${new Date().toString()}`);
 console.log("Connecting to database...");
 
 connectDB().catch(err => {
