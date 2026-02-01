@@ -301,7 +301,7 @@ const Savings = () => {
     const progressTotal = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;
 
     const mobileStats = [
-        { title: "Ahorro Total", value: `${symbol} ${totalSaved.toLocaleString()}`, icon: <DollarSign className="text-white" />, color: "bg-purple-600" },
+        { title: "Ahorro Total", value: `${symbol} ${totalSaved.toLocaleString()}`, icon: <DollarSign className="text-white" />, color: "bg-blue-600" },
         { title: "Meta Global", value: `${symbol} ${totalTarget.toLocaleString()}`, icon: <Target className="text-blue-500" />, color: "bg-blue-500" },
         { title: "Progreso", value: `${progressTotal.toFixed(1)}%`, icon: <TrendingUp className="text-purple-500" />, color: "bg-purple-500" }
     ];
@@ -320,7 +320,7 @@ const Savings = () => {
                 <MobileHeader
                     title="Ahorros"
                     // Botón eliminado por solicitud
-                    themeColor="#9333ea"
+                    themeColor="#2563eb"
                 />
 
                 <MobileStatsGrid stats={mobileStats} />

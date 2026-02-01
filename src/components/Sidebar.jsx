@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -24,7 +23,7 @@ const TelegramIcon = ({ className }) => (
     </svg>
 );
 
-const Sidebar = ({ isOpen, closeSidebar }) => {
+const Sidebar = React.forwardRef(({ isOpen, closeSidebar }, ref) => {
     const { user, token, logout } = useAuth();
     const { currency, toggleCurrency } = useCurrency();
     const { activeCount } = useDebts();
@@ -58,7 +57,10 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
                 ></div>
             )}
 
-            <aside className={`sidebar glass ${isOpen ? 'open' : ''}`}>
+            <aside
+                ref={ref}
+                className={`sidebar glass ${isOpen ? 'open' : ''}`}
+            >
                 <div className="sidebar-header">
                     <div className="logo-icon">
                         <Wallet color="white" size={24} />
@@ -211,6 +213,8 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
             </aside>
         </>
     );
-};
+});
+
+Sidebar.displayName = 'Sidebar';
 
 export default Sidebar;

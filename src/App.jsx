@@ -57,35 +57,61 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const touchStart = React.useRef(null);
   const touchEnd = React.useRef(null);
+  const sidebarRef = React.useRef(null); // Ref for direct DOM manipulation
 
   const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
   const closeSidebar = () => setIsSidebarOpen(false);
 
-  // Minimum swipe distance
+  // Thresholds
   const minSwipeDistance = 50;
+  const sidebarWidth = 280;
 
   const onTouchStart = (e) => {
     touchEnd.current = null;
     touchStart.current = e.targetTouches[0].clientX;
+    // Prepare for potential drag: disable transition
+    if (sidebarRef.current) {
+      sidebarRef.current.style.transition = 'none';
+    }
   };
 
   const onTouchMove = (e) => {
-    touchEnd.current = e.targetTouches[0].clientX;
+    const currentX = e.targetTouches[0].clientX;
+    touchEnd.current = currentX;
+
+    if (!touchStart.current || !sidebarRef.current) return;
+    const diff = currentX - touchStart.current;
+
+    // Direct DOM manipulation for performance (no state updates here)
+    if (!isSidebarOpen) {
+      if (touchStart.current < 50 && diff > 0) {
+        const newPos = Math.min(0, Math.max(-sidebarWidth, -sidebarWidth + diff));
+        sidebarRef.current.style.transform = `translateX(${newPos}px)`;
+      }
+    } else {
+      if (diff < 0) {
+        const newPos = Math.min(0, Math.max(-sidebarWidth, diff));
+        sidebarRef.current.style.transform = `translateX(${newPos}px)`;
+      }
+    }
   };
 
   const onTouchEnd = () => {
+    // Reset transition to enable smooth snap
+    if (sidebarRef.current) {
+      sidebarRef.current.style.transform = ''; // Clear inline transform to let CSS class take over
+      sidebarRef.current.style.transition = ''; // Restore CSS transition
+    }
+
     if (!touchStart.current || !touchEnd.current) return;
     const distance = touchStart.current - touchEnd.current;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
 
-    // Swipe Left to Close
     if (isLeftSwipe && isSidebarOpen) {
       closeSidebar();
     }
-
-    // Swipe Right to Open (restricted to left edge region for better UX)
-    if (isRightSwipe && !isSidebarOpen && touchStart.current < 150) {
+    if (isRightSwipe && !isSidebarOpen && touchStart.current < 50) {
       setIsSidebarOpen(true);
     }
   };
@@ -110,7 +136,7 @@ function App() {
                   <Route element={<PrivateRoute />}>
                     <Route element={
                       <>
-                        <Sidebar isOpen={isSidebarOpen} closeSidebar={closeSidebar} />
+                        <Sidebar ref={sidebarRef} isOpen={isSidebarOpen} closeSidebar={closeSidebar} />
                         <main className="main-content">
                           <Outlet context={{ toggleSidebar }} />
                         </main>
