@@ -35,10 +35,27 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   font-size: 125%;
   /* Scale everything to 125% */
-  overscroll-behavior-x: none;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  /* Prevent body scroll */
+  overscroll-behavior: none;
+  /* Disable bounce */
+  -webkit-overflow-scrolling: touch;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+  /* Scroll within root */
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  /* Smooth scrolling on iOS */
 }
 
 /* ========================================
