@@ -226,3 +226,10 @@
         font-size: 1.75rem;
     }
 }
+
+/* Force remove focus styling when sidebar is open */
+.sidebar-backdrop~* *:focus,
+.sidebar-backdrop~* *:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+}
