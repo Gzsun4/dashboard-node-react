@@ -163,18 +163,16 @@ const MobileStatsGrid = ({ stats }) => {
                                 color: 'hsl(var(--text-secondary))',
                                 fontSize: '0.75rem', // text-xs
                                 fontWeight: 500,
-                                marginBottom: '0.25rem'
+                                marginBottom: '0.1rem'
                             }}>
                                 {stat.title}
                             </p>
                             <p style={{
                                 color: 'white',
-                                fontSize: 'clamp(0.9rem, 4vw, 1.125rem)', // Responsive font size
+                                fontSize: 'clamp(0.85rem, 3.8vw, 1rem)', // Smaller to fit
                                 fontWeight: 700,
-                                lineHeight: '1.25',
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis'
+                                lineHeight: '1.2',
+                                whiteSpace: 'nowrap'
                             }}>
                                 {stat.value}
                             </p>
