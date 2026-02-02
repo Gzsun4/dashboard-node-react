@@ -177,12 +177,18 @@
 }
 
 .sidebar-backdrop {
-    display: none;
     position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
-    z-index: 99;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 1000;
+    /* Above FAB buttons (999) and below sidebar (100) */
 }
 
 @media (max-width: 768px) {
@@ -215,6 +221,12 @@
 
     .sidebar-backdrop {
         display: block;
+    }
+
+    /* Show backdrop when sidebar is open */
+    .sidebar.open~.sidebar-backdrop {
+        opacity: 1;
+        visibility: visible;
     }
 
     .sidebar-header {

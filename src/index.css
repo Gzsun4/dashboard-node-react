@@ -1454,14 +1454,11 @@ input:checked+.toggle-slider:hover {
   .fab-button {
     display: flex;
   }
-}
 
-/* Hide FAB buttons when sidebar is open - solves focus issue */
-body.sidebar-open .fab-button {
-  opacity: 0;
-  pointer-events: none;
-  transform: scale(0.8);
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  /* Hide FAB buttons when sidebar is open - solves focus issue */
+  body.sidebar-open .fab-button {
+    display: none !important;
+  }
 }
 
 /* Remove focus styling from FAB buttons */

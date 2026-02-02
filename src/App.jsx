@@ -72,16 +72,21 @@ function App() {
       // Add/remove body class for CSS targeting
       if (newState) {
         document.body.classList.add('sidebar-open');
+        console.log('Sidebar opened, body class added:', document.body.classList.contains('sidebar-open'));
         // Delayed blur to ensure it happens after state update
         setTimeout(() => {
           if (document.activeElement && document.activeElement !== document.body) {
             document.activeElement.blur();
           }
           // Force blur on all FAB buttons specifically
-          document.querySelectorAll('.fab-button').forEach(btn => btn.blur());
+          document.querySelectorAll('.fab-button').forEach(btn => {
+            btn.blur();
+            console.log('Blurred FAB button:', btn.className);
+          });
         }, 10);
       } else {
         document.body.classList.remove('sidebar-open');
+        console.log('Sidebar closed, body class removed');
       }
 
       return newState;
@@ -93,6 +98,7 @@ function App() {
       document.activeElement.blur();
     }
     document.body.classList.remove('sidebar-open');
+    console.log('Sidebar closed via closeSidebar');
     setIsSidebarOpen(false);
   };
 
