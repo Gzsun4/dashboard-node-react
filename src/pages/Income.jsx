@@ -11,7 +11,9 @@ import MobileStatsGrid from '../components/MobileStatsGrid';
 import MobileChartSection from '../components/MobileChartSection';
 import TransactionItem from '../components/TransactionItem';
 import TransactionList from '../components/TransactionList';
+import TimeFilter from '../components/TimeFilter';
 import Toast from '../components/Toast';
+import { calculateTrend } from '../utils/trendUtils';
 
 const Income = () => {
     const { token } = useAuth();
@@ -60,6 +62,8 @@ const Income = () => {
         dateFrom: '',
         dateTo: ''
     });
+
+    const [timeFilter, setTimeFilter] = useState('7days'); // Default to 7 days
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -188,6 +192,29 @@ const Income = () => {
             matches = false;
         }
 
+        // Time Filter Logic (Mobile Header)
+        if (timeFilter && timeFilter !== 'all') {
+            const incomeDate = new Date(income.date);
+            const today = new Date();
+            let cutoffDate = new Date();
+
+            if (timeFilter === '7days') {
+                cutoffDate.setDate(today.getDate() - 7);
+            } else if (timeFilter === '1month') {
+                cutoffDate.setMonth(today.getMonth() - 1);
+            } else if (timeFilter === '3months') {
+                cutoffDate.setMonth(today.getMonth() - 3);
+            }
+
+            // Set times to midnight
+            incomeDate.setHours(0, 0, 0, 0);
+            cutoffDate.setHours(0, 0, 0, 0);
+
+            if (incomeDate < cutoffDate) {
+                matches = false;
+            }
+        }
+
         return matches;
     }).sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -212,8 +239,17 @@ const Income = () => {
         return mobileChartData[0].name;
     }, [mobileChartData]);
 
+    const trendData = useMemo(() => calculateTrend(incomes, timeFilter), [incomes, timeFilter]);
+
     const mobileStats = [
-        { title: "Ingreso Total", value: `${symbol} ${totalIncome.toFixed(2)}`, icon: <DollarSign className="text-green-500" />, color: "bg-green-500" },
+        {
+            title: "Ingreso Total",
+            value: `${symbol} ${totalIncome.toFixed(2)}`,
+            icon: <DollarSign className="text-green-500" />,
+            color: "bg-green-500",
+            trend: trendData?.trend,
+            trendLabel: trendData?.trendLabel
+        },
         { title: "Fuente Top", value: topCategory, icon: <TrendingUp className="text-blue-500" />, color: "bg-blue-500" },
         { title: "Movimientos", value: incomes.length.toString(), icon: <PieIcon className="text-purple-500" />, color: "bg-purple-500" }
     ];
@@ -231,10 +267,13 @@ const Income = () => {
 
                 <MobileHeader
                     title="Ingresos"
-                    onAddClick={() => setShowModal(true)}
                     themeColor="#10b981" // Cambiado a verde por solicitud
-                    label="Agregar"
-                />
+                >
+                    <TimeFilter
+                        onFilterChange={(filter) => setTimeFilter(filter)}
+                        themeColor="#10b981"
+                    />
+                </MobileHeader>
 
                 <MobileStatsGrid stats={mobileStats} />
 
@@ -298,13 +337,22 @@ const Income = () => {
 
             </div>
 
-            {/* Floating Action Button (FAB) - Mobile Only */}
+            {/* Floating Action Button (FAB) - Search (Secondary) */}
             <button
-                className="fab-button"
+                className="fab-button fab-secondary"
                 onClick={() => setShowBottomSheet(true)}
                 aria-label="Buscar y filtrar"
             >
-                <Search size={24} />
+                <Search size={20} />
+            </button>
+
+            {/* Floating Action Button (FAB) - Add (Primary) */}
+            <button
+                className="fab-button fab-primary fab-green"
+                onClick={() => setShowModal(true)}
+                aria-label="Nuevo Ingreso"
+            >
+                <Plus size={24} />
             </button>
 
             {/* Bottom Sheet Modal - Mobile Only */}

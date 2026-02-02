@@ -2,7 +2,7 @@ import React from 'react';
 import { Menu, Plus } from 'lucide-react';
 import MobileMenuButton from './MobileMenuButton';
 
-const MobileHeader = ({ title, onAddClick, themeColor = 'hsl(var(--accent-primary))', label = 'Agregar', style = {} }) => {
+const MobileHeader = ({ title, onAddClick, themeColor = 'hsl(var(--accent-primary))', label = 'Agregar', style = {}, children }) => {
     return (
         <div
             className="page-header hidden-desktop"
@@ -44,7 +44,9 @@ const MobileHeader = ({ title, onAddClick, themeColor = 'hsl(var(--accent-primar
             </div>
 
             {/* Botón Agregar (Derecha) o Spacer */}
-            {onAddClick ? (
+            {children ? (
+                children
+            ) : onAddClick ? (
                 <button
                     onClick={onAddClick}
                     className="btn-responsive-action"

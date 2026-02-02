@@ -40,10 +40,15 @@ const TransactionList = ({ transactions, onEdit, onDelete, type, defaultOpen = f
                             border-radius: 16px;
                             border: 1px solid rgba(255, 255, 255, 0.1);
                             background: rgba(255, 255, 255, 0.05);
-                            overflow: hidden;
+                            overflow: visible !important; /* Ensure content is meant to flow out */
+                            height: auto !important;
+                            max-height: none !important;
                         }
                         .mobile-list-content {
                             border-top: 1px solid rgba(255, 255, 255, 0.1);
+                            overflow: visible !important;
+                            height: auto !important;
+                            max-height: none !important;
                         }
                     }
                 `}
@@ -76,7 +81,7 @@ const TransactionList = ({ transactions, onEdit, onDelete, type, defaultOpen = f
 
                 {/* List - Always shown on Desktop, Toggled on Mobile */}
                 <div
-                    className={`transaction-list-container mobile-list-content ${!isOpen ? 'hidden' : ''}`}
+                    className={`transaction-list-container mobile-list-content hide-scrollbar ${!isOpen ? 'hidden' : ''}`}
                 // Force display block on desktop via CSS override above to ignore the hidden class if needed, 
                 // or better logic: On desktop we don't use 'isOpen' state to hide. 
                 // But standard CSS display:none takes precedence? 
@@ -94,29 +99,7 @@ const TransactionList = ({ transactions, onEdit, onDelete, type, defaultOpen = f
                         ))}
                     </div>
 
-                    {/* View All footer link - Mobile Only */}
-                    <div
-                        className="text-center py-4 mobile-footer"
-                        style={{
-                            borderTop: '1px solid rgba(255, 255, 255, 0.1)'
-                        }}
-                    >
-                        <button
-                            className="text-sm text-emerald-400 font-medium hover:text-emerald-300 transition-colors cursor-pointer"
-                            style={{
-                                background: 'transparent',
-                                border: 'none',
-                                outline: 'none',
-                                boxShadow: 'none',
-                                padding: 0,
-                                margin: 0,
-                                width: 'auto',
-                                height: 'auto'
-                            }}
-                        >
-                            Ver todos
-                        </button>
-                    </div>
+
                 </div>
             </div>
         </>

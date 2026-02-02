@@ -157,7 +157,6 @@ const Budgets = () => {
                 {/* Mobile Header (Hamburger + Title + Add Button) */}
                 <MobileHeader
                     title="Presupuestos"
-                    onAddClick={() => setShowModal(true)}
                     themeColor="#c084fc" // Purple to match the gradient
                 />
 
@@ -315,6 +314,19 @@ const Budgets = () => {
                         </div>
                     </div>
                 )}
+
+                {/* FAB Button - Mobile Only */}
+                <button
+                    className="fab-button fab-primary fab-purple"
+                    onClick={() => {
+                        setEditingId(null);
+                        setFormData({ category: '', limit: '' });
+                        setShowModal(true);
+                    }}
+                    aria-label="Nuevo Presupuesto"
+                >
+                    <Plus size={24} />
+                </button>
 
                 {showModal && (
                     <div className="modal-backdrop">

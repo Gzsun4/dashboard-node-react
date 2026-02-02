@@ -12,7 +12,10 @@ import MobileStatsGrid from '../components/MobileStatsGrid';
 import MobileChartSection from '../components/MobileChartSection';
 import TransactionItem from '../components/TransactionItem';
 import TransactionList from '../components/TransactionList';
+import TimeFilter from '../components/TimeFilter';
 import Toast from '../components/Toast';
+import { calculateTrend, calculateLinearRegression } from '../utils/trendUtils';
+import TrendProjectionCard from '../components/TrendProjectionCard';
 
 const Expenses = () => {
     const { token } = useAuth();
@@ -61,6 +64,8 @@ const Expenses = () => {
         dateFrom: '',
         dateTo: ''
     });
+
+    const [timeFilter, setTimeFilter] = useState('7days'); // Default to 7 days
 
     // Colores para cada categoría
     const CATEGORY_COLORS = {
@@ -197,6 +202,29 @@ const Expenses = () => {
             matches = false;
         }
 
+        // Time Filter Logic (Mobile Header)
+        if (timeFilter && timeFilter !== 'all') {
+            const expenseDate = new Date(expense.date);
+            const today = new Date();
+            let cutoffDate = new Date();
+
+            if (timeFilter === '7days') {
+                cutoffDate.setDate(today.getDate() - 7);
+            } else if (timeFilter === '1month') {
+                cutoffDate.setMonth(today.getMonth() - 1);
+            } else if (timeFilter === '3months') {
+                cutoffDate.setMonth(today.getMonth() - 3);
+            }
+
+            // Set times to midnight to ensure accurate day comparison
+            expenseDate.setHours(0, 0, 0, 0);
+            cutoffDate.setHours(0, 0, 0, 0);
+
+            if (expenseDate < cutoffDate) {
+                matches = false;
+            }
+        }
+
         return matches;
     }).sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -253,8 +281,17 @@ const Expenses = () => {
         }
     };
 
+    const trendData = useMemo(() => calculateTrend(expenses, timeFilter), [expenses, timeFilter]);
+
     const mobileStats = [
-        { title: "Gasto Total", value: `${symbol} ${totalSpent.toFixed(2)}`, icon: <DollarSign className="text-white" />, color: "bg-red-500" },
+        {
+            title: "Gasto Total",
+            value: `${symbol} ${totalSpent.toFixed(2)}`,
+            icon: <DollarSign className="text-white" />,
+            color: "bg-red-500",
+            trend: trendData?.trend,
+            trendLabel: trendData?.trendLabel
+        },
         { title: "Categoría Top", value: topCategory, icon: <TrendingUp className="text-[#ff4d6d]" />, color: "bg-[#ff4d6d]" },
         { title: "Movimientos", value: expenses.length.toString(), icon: <PieIcon className="text-blue-500" />, color: "bg-blue-500" }
     ];
@@ -272,9 +309,13 @@ const Expenses = () => {
 
                 <MobileHeader
                     title="Gastos"
-                    onAddClick={() => setShowModal(true)}
                     themeColor="#ff4d6d"
-                />
+                >
+                    <TimeFilter
+                        onFilterChange={(filter) => setTimeFilter(filter)}
+                        themeColor="#ff4d6d"
+                    />
+                </MobileHeader>
 
                 <MobileStatsGrid stats={mobileStats} />
 
@@ -298,7 +339,7 @@ const Expenses = () => {
                     </div>
                 </div>
 
-                <div className="mb-6 flex gap-4 search-filter-container">
+                <div className="flex gap-4 search-filter-container" style={{ marginBottom: '10px' }}>
                     <div className="relative w-full search-container-mobile" style={{ maxWidth: '400px' }}>
                         <div className="absolute" style={{ left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--text-muted))' }}>
                             <Search size={18} />
@@ -324,76 +365,147 @@ const Expenses = () => {
                     </button>
                 </div>
 
-                {/* Layout Grid: Gráfica a la izquierda, Tabla a la derecha */}
-                {/* Layout Grid: Gráfica a la izquierda, Tabla a la derecha */}
-                <div className="expenses-grid" style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '1.5rem', alignItems: 'start' }}>
-                    {/* Gráfica de Gastos por Categoría */}
-                    {chartData.length > 0 && (
-                        <Card>
-                            <h3 className="mb-4" style={{ fontSize: '1.1rem', fontWeight: 700 }}>Gastos por Categoría</h3>
-                            <div className="chart-height-mobile" style={{ width: '100%', height: '280px' }}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie
-                                            data={chartData}
-                                            cx="50%"
-                                            cy="50%"
-                                            labelLine={false}
-                                            label={({ percent }) => percent > 0.08 ? `${(percent * 100).toFixed(0)}%` : ''}
-                                            outerRadius={90}
-                                            fill="#8884d8"
-                                            dataKey="value"
-                                        >
-                                            {chartData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={entry.color} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip
-                                            formatter={(value) => `${symbol} ${value.toFixed(2)}`}
-                                            contentStyle={{
-                                                backgroundColor: 'rgba(30, 35, 55, 0.95)',
-                                                border: '1px solid rgba(255, 255, 255, 0.1)',
-                                                borderRadius: '0.5rem',
-                                                color: 'white',
-                                                fontSize: '0.9rem'
-                                            }}
-                                        />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            </div>
+                {/* Layout Grid: Gráfica a la izquierda, Tabla a la derecha 
+                    UPDATE: Gráfica "Gastos por Categoría" eliminada.
+                    UPDATE: Reemplazada por "TrendProjectionCard".
+                */}
+                <div className="expenses-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 350px) 1fr', gap: '8px 1.5rem', alignItems: 'start' }}>
 
-                            {/* Resumen de totales */}
-                            <div className="mt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem' }}>
-                                {chartData.map((item, index) => (
-                                    <div key={index} className="flex justify-between mb-2" style={{ fontSize: '0.85rem' }}>
-                                        <div className="flex items-center gap-2">
-                                            <div style={{
-                                                width: '10px',
-                                                height: '10px',
-                                                borderRadius: '50%',
-                                                backgroundColor: item.color,
-                                                flexShrink: 0
-                                            }}></div>
-                                            <span className="text-secondary">{item.name}</span>
-                                        </div>
-                                        <span className="text-white" style={{ fontWeight: 600 }}>{symbol} {item.value.toFixed(2)}</span>
-                                    </div>
-                                ))}
-                                <div className="flex justify-between mt-3 pt-3" style={{
-                                    borderTop: '1px solid rgba(255,255,255,0.1)',
-                                    fontSize: '0.95rem',
-                                    fontWeight: 700
-                                }}>
-                                    <span>Total</span>
-                                    <span className="text-danger">{symbol} {totalExpenses.toFixed(2)}</span>
-                                </div>
+                    {/* Nueva Tarjeta de Tendencia y Proyección */}
+
+
+                    {/* Logic for chart data */}
+                    {(() => {
+                        // Prepare data for TrendProjectionCard
+                        // 1. Group expenses by day for the selected period
+                        // 2. Ideally align to Mon-Sun or just Last 7 days dynamic
+
+                        const processChartData = () => {
+                            // Default to last 7 days view logic for the chart for simplicity if filter is small
+                            // Or respect the timeFilter
+
+                            // Map of date -> amount
+                            const dailyMap = {};
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+
+                            // Initialize last 7 days with 0 (or selected range)
+                            // Let's assume standard 7 days graph for visual niceness
+                            const daysToShow = 7;
+                            const templateData = [];
+
+                            for (let i = daysToShow - 1; i >= 0; i--) {
+                                const d = new Date(today);
+                                d.setDate(today.getDate() - i);
+                                const dateStr = d.toLocaleDateString('es-ES', { weekday: 'short' }); // "lun", "mar"
+                                const key = d.toISOString().split('T')[0];
+
+                                templateData.push({
+                                    name: dateStr.charAt(0).toUpperCase() + dateStr.slice(1),
+                                    fullDate: key,
+                                    value: 0
+                                });
+                                dailyMap[key] = 0;
+                            }
+
+                            // Fill with real data
+                            expenses.forEach(exp => {
+                                if (!exp.date) return;
+                                let expDateStr = "";
+                                if (exp.date.includes('-')) expDateStr = exp.date; // YYYY-MM-DD
+                                else expDateStr = new Date(exp.date).toISOString().split('T')[0];
+
+                                if (dailyMap.hasOwnProperty(expDateStr)) {
+                                    // Find index
+                                    const idx = templateData.findIndex(item => item.fullDate === expDateStr);
+                                    if (idx !== -1) {
+                                        templateData[idx].value += exp.amount;
+                                    }
+                                }
+                            });
+
+                            return templateData;
+                        };
+
+                        const chartData = processChartData();
+
+                        // Calculate Estimations
+                        // Simple linear projection logic
+                        // If 7 days filter, and we are in day X... actually simple logic:
+                        // Projection = (Avg Daily Spend) * (Days in Month/Period)?
+                        // User prompt image shows "Estimado al Cierre" $35.
+                        // Let's project for the "End of 7 Days" or "End of Month" depending on filter?
+                        // Let's default to "Estimated Weekly Total" if 7 days.
+
+                        const currentTotal = chartData.reduce((acc, curr) => acc + curr.value, 0);
+
+
+                        // Calculate Projection using Linear Regression
+                        // We project based on the active time filter using the current chart data (last 7 days trend)
+                        let projectionDays = 7;
+                        if (timeFilter === 'month') projectionDays = 30;
+                        if (timeFilter === 'year') projectionDays = 365;
+                        if (timeFilter === 'today') projectionDays = 1;
+
+                        const estimatedTotal = calculateLinearRegression(chartData.map(d => d.value), projectionDays);
+
+                        // Use the real trend percentage if available from trendData
+                        // Parsing "+12.5%" -> 12.5
+                        let trendNum = 0;
+                        if (trendData?.trend) {
+                            trendNum = parseFloat(trendData.trend.replace('%', '').replace('+', ''));
+                        }
+
+                        // Calculate Category Breakdown for Back Face
+                        const categoryStats = useMemo(() => {
+                            const stats = {};
+                            let total = 0;
+                            filteredExpenses.forEach(tx => {
+                                if (!stats[tx.category]) {
+                                    stats[tx.category] = { name: tx.category, amount: 0, count: 0 };
+                                }
+                                stats[tx.category].amount += tx.amount;
+                                stats[tx.category].count += 1;
+                                total += tx.amount;
+                            });
+
+                            return Object.values(stats)
+                                .map(cat => ({
+                                    ...cat,
+                                    percentage: total > 0 ? (cat.amount / total) * 100 : 0
+                                }))
+                                .sort((a, b) => b.amount - a.amount)
+                                .slice(0, 4); // Top 4 categories
+                        }, [filteredExpenses]);
+
+                        const periodLabel = useMemo(() => {
+                            switch (timeFilter) {
+                                case 'today': return 'HOY';
+                                case '7days': return 'ESTA SEMANA'; // Actually means last 7 days but fits context
+                                case 'month': return 'ESTE MES';
+                                case 'year': return 'ESTE AÑO';
+                                case 'all': return 'HISTÓRICO';
+                                default: return 'ESTE PERIODO';
+                            }
+                        }, [timeFilter]);
+
+                        // Determine grid layout again - on Desktop we want side-by-side
+                        return (
+                            <div className="w-full">
+                                <TrendProjectionCard
+                                    data={chartData}
+                                    currentTotal={currentTotal}
+                                    estimatedTotal={estimatedTotal}
+                                    trendPercentage={trendNum}
+                                    categoryData={categoryStats}
+                                    periodLabel={periodLabel}
+                                />
                             </div>
-                        </Card>
-                    )
-                    }
+                        );
+                    })()}
 
                     {/* Tabla de Gastos + Vista Móvil combinadas en una sola Tarjeta */}
-                    <Card>
+                    <Card style={{ marginTop: '0' }}>
                         <h3 className="mb-4 hidden-mobile" style={{ fontSize: '1.2rem' }}>Historial de Gastos</h3>
 
                         <div className="transaction-list">
@@ -419,13 +531,22 @@ const Expenses = () => {
 
             </div>
 
-            {/* Floating Action Button (FAB) - Mobile Only */}
+            {/* Floating Action Button (FAB) - Search (Secondary) */}
             <button
-                className="fab-button"
+                className="fab-button fab-secondary"
                 onClick={() => setShowBottomSheet(true)}
                 aria-label="Buscar y filtrar"
             >
-                <Search size={24} />
+                <Search size={20} />
+            </button>
+
+            {/* Floating Action Button (FAB) - Add (Primary) */}
+            <button
+                className="fab-button fab-primary fab-red"
+                onClick={() => setShowModal(true)}
+                aria-label="Nuevo Gasto"
+            >
+                <Plus size={24} />
             </button>
 
             {/* Bottom Sheet Modal - Mobile Only */}

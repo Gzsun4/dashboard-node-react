@@ -56,6 +56,92 @@ body {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   /* Smooth scrolling on iOS */
+
+  /* Hide scrollbar for main container */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE/Edge */
+}
+
+#root::-webkit-scrollbar {
+  display: none;
+  /* Chrome/Safari/Opera */
+}
+
+/* 3D Flip Card Utilities */
+.flip-card-scene {
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.flip-card-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  border-radius: 1.5rem;
+  overflow: hidden;
+}
+
+/* Front is "default" position */
+.flip-card-front {
+  position: relative;
+  z-index: 2;
+}
+
+/* Ensure nothing inside is selectable (Chart text, dates, etc.) */
+.flip-card-front *,
+.flip-card-back *,
+.chart-container *,
+.recharts-wrapper * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  /* Disable touch callouts (iOS) */
+  -webkit-touch-callout: none !important;
+}
+
+/* Specific aggressive overrides for SVG elements */
+.recharts-wrapper svg,
+.recharts-wrapper text,
+.recharts-wrapper tspan,
+.recharts-wrapper path,
+.recharts-surface {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  pointer-events: none;
+  /* Only if we don't want tooltips on text? careful */
+}
+
+/* Re-enable pointer events for specific interaction areas if needed, but Recharts handles this on wrapper usually */
+.recharts-active-dot,
+.recharts-dot {
+  pointer-events: none;
+}
+
+/* Back is rotated and absolute to match Front's size */
+.flip-card-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotateY(180deg);
+  background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ========================================
@@ -231,6 +317,18 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--text-muted));
+}
+
+/* Utility to hide scrollbar but keep functionality */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 /* Typography */
@@ -1280,22 +1378,54 @@ input:checked+.toggle-slider:hover {
 
 .fab-button {
   position: fixed;
-  bottom: 20px;
   right: 20px;
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, hsl(var(--accent-primary)), hsl(var(--accent-secondary)));
   border: none;
   color: white;
   cursor: pointer;
   display: none;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 0 0 rgba(var(--accent-primary), 0.7);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
   z-index: 999;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fab-primary {
+  bottom: 20px;
+  background: linear-gradient(135deg, hsl(var(--accent-primary)), hsl(var(--accent-secondary)));
   animation: fabPulse 2s infinite;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 0 0 rgba(var(--accent-primary), 0.7);
+}
+
+.fab-purple {
+  background: linear-gradient(135deg, #c084fc, #a855f7);
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4), 0 0 0 0 rgba(168, 85, 247, 0.7);
+}
+
+.fab-red {
+  background: linear-gradient(135deg, #f87171, #ef4444);
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4), 0 0 0 0 rgba(239, 68, 68, 0.7);
+}
+
+.fab-green {
+  background: linear-gradient(135deg, #34d399, #10b981);
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4), 0 0 0 0 rgba(16, 185, 129, 0.7);
+}
+
+.fab-secondary {
+  bottom: 90px;
+  /* 20px (bottom) + 56px (height) + 14px (gap) */
+  background: rgba(30, 35, 55, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 48px;
+  /* Slightly smaller */
+  height: 48px;
+  right: 24px;
+  /* Center with the 56px button below (20 + (56-48)/2) */
 }
 
 .fab-button:hover {

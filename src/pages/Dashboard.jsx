@@ -164,8 +164,8 @@ const Dashboard = () => {
                         <div className="icon-box" style={{ background: 'rgba(34, 197, 94, 0.1)', marginBottom: 0 }}>
                             <TrendingUp size={24} style={{ color: '#00ff9d' }} />
                         </div>
-                        <span className="flex items-center gap-1 text-xs font-medium" style={{ color: '#4ade80' }}>
-                            <ArrowUpRight size={14} /> Acumulado
+                        <span className="flex items-center gap-1 text-xs font-medium" style={{ color: '#4ade80', paddingLeft: '8px' }}>
+                            Acumulado
                         </span>
                     </div>
                     <div>
@@ -182,8 +182,8 @@ const Dashboard = () => {
                         <div className="icon-box" style={{ background: 'rgba(239, 68, 68, 0.1)', marginBottom: 0 }}>
                             <TrendingDown size={24} style={{ color: '#ff4d4d' }} />
                         </div>
-                        <span className="flex items-center gap-1 text-xs font-medium" style={{ color: '#f87171' }}>
-                            <ArrowDownRight size={14} /> Total gastado
+                        <span className="flex items-center gap-1 text-xs font-medium" style={{ color: '#f87171', paddingLeft: '8px' }}>
+                            Total gastado
                         </span>
                     </div>
                     <div>
@@ -197,8 +197,8 @@ const Dashboard = () => {
 
             <div className="charts-section">
                 <Card>
-                    <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem', textAlign: 'center' }}>Resumen Mensual</h3>
-                    <div className="chart-container">
+                    <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem', textAlign: 'center' }}>Resumen Semanal</h3>
+                    <div className="chart-container" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -5, bottom: 0 }}>
                                 <defs>
