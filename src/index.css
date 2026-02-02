@@ -1456,11 +1456,18 @@ input:checked+.toggle-slider:hover {
   }
 }
 
+/* Hide FAB buttons when sidebar is open - solves focus issue */
+body.sidebar-open .fab-button {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.8);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
 /* Remove focus styling from FAB buttons */
 .fab-button:focus,
 .fab-button:focus-visible {
   outline: none !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
 }
 
 .fab-primary:focus,
