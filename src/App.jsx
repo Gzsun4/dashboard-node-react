@@ -68,14 +68,22 @@ function App() {
 
     setIsSidebarOpen(prev => {
       const newState = !prev;
-      // Delayed blur to ensure it happens after state update
+
+      // Add/remove body class for CSS targeting
       if (newState) {
+        document.body.classList.add('sidebar-open');
+        // Delayed blur to ensure it happens after state update
         setTimeout(() => {
           if (document.activeElement && document.activeElement !== document.body) {
             document.activeElement.blur();
           }
+          // Force blur on all FAB buttons specifically
+          document.querySelectorAll('.fab-button').forEach(btn => btn.blur());
         }, 10);
+      } else {
+        document.body.classList.remove('sidebar-open');
       }
+
       return newState;
     });
   };
@@ -84,6 +92,7 @@ function App() {
     if (document.activeElement && document.activeElement !== document.body) {
       document.activeElement.blur();
     }
+    document.body.classList.remove('sidebar-open');
     setIsSidebarOpen(false);
   };
 
