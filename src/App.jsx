@@ -59,8 +59,33 @@ function App() {
   const touchEnd = React.useRef(null);
   const sidebarRef = React.useRef(null); // Ref for direct DOM manipulation
 
-  const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
-  const closeSidebar = () => setIsSidebarOpen(false);
+  const toggleSidebar = () => {
+    // Blur any focused element (buttons, inputs) when sidebar opens
+    // Multiple attempts to ensure blur happens
+    if (document.activeElement && document.activeElement !== document.body) {
+      document.activeElement.blur();
+    }
+
+    setIsSidebarOpen(prev => {
+      const newState = !prev;
+      // Delayed blur to ensure it happens after state update
+      if (newState) {
+        setTimeout(() => {
+          if (document.activeElement && document.activeElement !== document.body) {
+            document.activeElement.blur();
+          }
+        }, 10);
+      }
+      return newState;
+    });
+  };
+
+  const closeSidebar = () => {
+    if (document.activeElement && document.activeElement !== document.body) {
+      document.activeElement.blur();
+    }
+    setIsSidebarOpen(false);
+  };
 
   // Thresholds
   const minSwipeDistance = 50;
