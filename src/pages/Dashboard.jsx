@@ -11,7 +11,7 @@ import './Dashboard.css';
 
 const Dashboard = () => {
     const { token, user } = useAuth();
-    const { symbol } = useCurrency();
+    const { symbol, toggleCurrency, currency } = useCurrency();
     const { incomes, expenses, goals, loading: globalLoading, hasLoaded } = useTransactions();
     const [stats, setStats] = useState({
         totalIncome: 0,
@@ -22,6 +22,7 @@ const Dashboard = () => {
     const [transactions, setTransactions] = useState([]);
     const [chartData, setChartData] = useState([]);
     const [loading, setLoading] = useState(!hasLoaded);
+    const [chartTab, setChartTab] = useState('income'); // 'income' or 'expense'
 
     useEffect(() => {
         if (hasLoaded) {
@@ -78,7 +79,68 @@ const Dashboard = () => {
             <MobileHeader
                 title="Panel"
                 themeColor="#3b82f6"
-            />
+            >
+                <button
+                    onClick={toggleCurrency}
+                    className="relative flex items-center p-1 cursor-pointer overflow-hidden group"
+                    style={{
+                        height: '36px',
+                        minWidth: '84px',
+                        backgroundColor: '#000000',
+                        border: '1px solid #27272a',
+                        borderRadius: '9999px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5)'
+                    }}
+                >
+                    {/* The Sliding Background (Flags) */}
+                    <div
+                        style={{
+                            position: 'absolute',
+                            top: '4px',
+                            bottom: '4px',
+                            width: '36px',
+                            borderRadius: '9999px',
+                            background: currency === 'USD'
+                                ? 'linear-gradient(90deg, #3C3B6E 40%, #B22234 40%, #B22234 60%, #FFFFFF 60%, #FFFFFF 80%, #B22234 80%)' // USA: Blue Field + Red/White Stripes
+                                : 'linear-gradient(90deg, #D91023 30%, #FFFFFF 30%, #FFFFFF 70%, #D91023 70%)', // Peru: Red-White-Red
+                            transition: 'all 300ms cubic-bezier(0.2, 0.8, 0.2, 1)',
+                            left: currency === 'USD' ? '4px' : 'calc(100% - 40px)',
+                            boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.2)'
+                        }}
+                    ></div>
+
+                    {/* Text Layers */}
+                    {/* Text Layers */}
+                    <div style={{ position: 'relative', zIndex: 20, display: 'flex', width: '100%' }}>
+                        <div style={{
+                            flex: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.75rem',
+                            fontWeight: 900,
+                            transition: 'all 300ms',
+                            color: currency === 'USD' ? '#000000' : '#6b7280',
+                            textShadow: currency === 'USD' ? '0 0 10px rgba(255,255,255,0.9), 0 0 2px rgba(255,255,255,1)' : 'none'
+                        }}>
+                            USD
+                        </div>
+                        <div style={{
+                            flex: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.75rem',
+                            fontWeight: 900,
+                            transition: 'all 300ms',
+                            color: currency === 'PEN' ? '#000000' : '#6b7280',
+                            textShadow: currency === 'PEN' ? '0 0 10px rgba(255,255,255,0.9), 0 0 2px rgba(255,255,255,1)' : 'none'
+                        }}>
+                            PEN
+                        </div>
+                    </div>
+                </button>
+            </MobileHeader>
 
             {/* Desktop Header removed as requested */}
 
@@ -162,6 +224,7 @@ const Dashboard = () => {
             <div className="charts-section">
                 <Card>
                     <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem', textAlign: 'center' }}>Resumen Semanal</h3>
+
                     <div className="chart-container" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -5, bottom: 0 }}>

@@ -39,7 +39,13 @@ const Sidebar = React.forwardRef(({ isOpen, closeSidebar }, ref) => {
         { path: '/reminders', label: 'Telegram', icon: TelegramIcon },
     ];
 
-    if (user && user.role === 'Admin') {
+    const isAdmin = user && (
+        user.role === 'Admin' ||
+        user.role === 'admin' ||
+        user.name?.toLowerCase() === 'jesus guerrero'
+    );
+
+    if (isAdmin) {
         navItems.push({ path: '/admin/users', label: 'Usuarios', icon: Users });
     }
 

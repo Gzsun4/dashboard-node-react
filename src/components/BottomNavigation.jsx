@@ -43,7 +43,12 @@ const BottomNavigation = () => {
         { path: '/settings', icon: Sliders, label: 'Ajustes' },
     ];
 
-    const activeIndex = navItems.findIndex(item => item.path === location.pathname);
+    let activeIndex = navItems.findIndex(item => item.path === location.pathname);
+
+    // Keep "Settings" active for Admin routes
+    if (activeIndex === -1 && location.pathname.startsWith('/admin')) {
+        activeIndex = 3; // Index of Settings
+    }
 
     return (
         <div
@@ -89,6 +94,7 @@ const BottomNavigation = () => {
                         borderRadius: '50%',
                         background: 'linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%)',
                         boxShadow: '0 0 25px rgba(139, 92, 246, 0.6), 0 0 50px rgba(139, 92, 246, 0.3)',
+                        opacity: activeIndex === -1 ? 0 : 1, // Hide if no active tab
                         left: `${(activeIndex * 25) + 12.5}%`, // Simple percentage based centering
                         top: '50%',
                         transform: 'translate(-50%, -50%)',

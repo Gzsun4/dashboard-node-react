@@ -8,7 +8,8 @@ import { sendTelegramMessage } from '../services/telegramService.js';
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
-    const { name, email, password } = req.body;
+    const { name, password } = req.body;
+    const email = req.body.email ? req.body.email.toLowerCase().trim() : '';
 
 
     if (!name || !email || !password) {
@@ -63,7 +64,8 @@ const registerUser = asyncHandler(async (req, res) => {
 // @route   POST /api/auth/login
 // @access  Public
 const loginUser = asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
+    const email = req.body.email ? req.body.email.toLowerCase().trim() : '';
+    const { password } = req.body;
 
     // Check for user email
     const user = await User.findOne({ email });
@@ -121,6 +123,37 @@ const updateTelegramChatId = asyncHandler(async (req, res) => {
     }
 });
 
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+// @access  Private
+const updateProfile = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+        user.name = req.body.name || user.name;
+        user.email = req.body.email || user.email;
+
+        if (req.body.password) {
+            const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash(req.body.password, salt);
+        }
+
+        const updatedUser = await user.save();
+
+        res.json({
+            _id: updatedUser._id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            role: updatedUser.role,
+            telegramChatId: updatedUser.telegramChatId,
+            token: generateToken(updatedUser._id, updatedUser.role)
+        });
+    } else {
+        res.status(404);
+        throw new Error('User not found');
+    }
+});
+
 // Generate JWT
 const generateToken = (id, role) => {
     return jwt.sign({ id, role }, process.env.JWT_SECRET, {
@@ -131,5 +164,6 @@ const generateToken = (id, role) => {
 export {
     registerUser,
     loginUser,
-    updateTelegramChatId
+    updateTelegramChatId,
+    updateProfile
 };

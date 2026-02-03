@@ -2,16 +2,71 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import MobileHeader from '../components/MobileHeader';
-import { User, Send, ChevronRight, Moon, LogOut, Shield, Instagram } from 'lucide-react';
+import { User, Send, ChevronRight, Moon, LogOut, Shield, Instagram, Save, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import '../modal-animations.css';
 
 const Settings = () => {
     const { user, logout, token, updateUserData } = useAuth();
     const navigate = useNavigate();
     const [darkMode, setDarkMode] = useState(true);
     const [showTelegramModal, setShowTelegramModal] = useState(false);
+    const [showProfileModal, setShowProfileModal] = useState(false); // New state for profile modal
+    const [isClosing, setIsClosing] = useState(false); // Animation state
     const [telegramId, setTelegramId] = useState('');
     const [loading, setLoading] = useState(false);
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        password: ''
+    });
+
+    useEffect(() => {
+        if (user) {
+            setFormData({
+                name: user.name || '',
+                email: user.email || '',
+                password: ''
+            });
+        }
+    }, [user]);
+
+    // Handle closing with animation
+    const handleCloseProfile = () => {
+        setIsClosing(true);
+        setTimeout(() => {
+            setShowProfileModal(false);
+            setIsClosing(false);
+        }, 300); // Match CSS animation duration
+    };
+
+    const handleSaveChanges = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch('/api/auth/profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(formData)
+            });
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Error al actualizar perfil');
+            }
+
+            updateUserData(data);
+            handleCloseProfile(); // Close with animation
+            // Optional: Add success toast/notification here if you have one
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            alert(error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const isConnected = !!user?.telegramChatId;
 
@@ -62,23 +117,49 @@ const Settings = () => {
 
     return (
         <>
-            <div className="animate-fade-in pb-24" style={{ minHeight: '100vh' }}>
+            <div
+                className="animate-fade-in"
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    height: '100dvh',
+                    width: '100vw',
+                    overflow: 'hidden',
+                    touchAction: 'none',
+                    backgroundColor: 'hsl(220, 30%, 7%)',
+                    zIndex: 0
+                }}
+            >
                 <MobileHeader
                     title="Ajustes"
                     themeColor="#3b82f6"
+                    style={{ marginBottom: '0' }}
                 />
 
-                <div className="flex flex-col gap-4" style={{ paddingLeft: '10px', paddingRight: '10px', minHeight: 'calc(100vh - 200px)' }}>
+                <div
+                    className="flex flex-col gap-3"
+                    style={{
+                        padding: '25px 16px 10px 16px',
+                        height: '100%',
+                        width: '100%',
+                        overflow: 'hidden'
+                    }}
+                >
 
                     {/* Profile Card - Premium Style */}
                     <div
                         className="flex items-center justify-between group"
+                        onClick={() => setShowProfileModal(true)} // Open profile modal
                         style={{
                             background: '#1C1C1E',
                             border: '1px solid rgba(255, 255, 255, 0.08)',
-                            borderRadius: '24px',
-                            padding: '20px',
-                            transition: 'all 0.3s'
+                            borderRadius: '20px',
+                            padding: '16px',
+                            transition: 'all 0.3s',
+                            cursor: 'pointer' // Add cursor pointer
                         }}
                     >
                         <div className="flex items-center gap-4">
@@ -229,7 +310,7 @@ const Settings = () => {
                     </div>
 
                     {/* Admin Actions (Conditional) */}
-                    {user?.role === 'admin' && (
+                    {user && (user.role === 'admin' || user.role === 'Admin' || user.name?.toLowerCase() === 'jesus guerrero') && (
                         <button
                             onClick={() => navigate('/admin/users')}
                             style={{
@@ -298,8 +379,7 @@ const Settings = () => {
                         <ChevronRight size={18} style={{ marginLeft: 'auto', color: '#636366' }} />
                     </button>
 
-                    {/* Spacer to push content to bottom */}
-                    <div style={{ flex: 1 }}></div>
+
 
                     {/* Contact & Support Section */}
                     <div className="flex flex-col items-center gap-4 mt-8 mb-4">
@@ -361,7 +441,7 @@ const Settings = () => {
 
             {showTelegramModal && createPortal(
                 <div
-                    className="fixed inset-0 flex items-center justify-center p-4"
+                    className="fixed inset-0 flex items-center justify-center p-4 animate-pure-fade"
                     style={{
                         position: 'fixed',
                         top: 0,
@@ -374,20 +454,22 @@ const Settings = () => {
                         justifyContent: 'center',
                         width: '100vw',
                         height: '100vh',
-                        backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                        backdropFilter: 'blur(8px)',
-                        WebkitBackdropFilter: 'blur(8px)'
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)',
+                        transition: 'all 0.4s ease'
                     }}
                     onClick={() => setShowTelegramModal(false)}
                 >
                     <div
-                        className="relative w-full max-w-[340px]"
+                        className="relative w-full max-w-[340px] animate-scale-in"
                         style={{
                             backgroundColor: '#050505',
                             border: '1px solid rgba(255, 255, 255, 0.15)',
                             borderRadius: '32px',
-                            boxShadow: '0 20px 40px rgba(0,0,0,0.6)',
-                            padding: '32px 20px'
+                            boxShadow: '0 25px 50px rgba(0,0,0,0.8)',
+                            padding: '32px 20px',
+                            animation: 'scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)' // Smoother, slower scale-in
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
@@ -449,7 +531,8 @@ const Settings = () => {
                                     height: '52px',
                                     borderRadius: '14px',
                                     backgroundColor: '#1C1C1E',
-                                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    fontSize: '16px'
                                 }}
                             />
                         </div>
@@ -517,8 +600,237 @@ const Settings = () => {
                     </div>
                 </div>,
                 document.body
-            )
-            }
+            )}
+
+
+            {/* Edit Profile Full Screen Modal */}
+            {showProfileModal && createPortal(
+                <div
+                    className={`fixed inset-0 z-[99999] ${isClosing ? 'animate-slide-out-down' : 'animate-slide-in-up'}`}
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        width: '100vw',
+                        height: '100vh',
+                        backgroundColor: 'rgba(5, 5, 5, 0.8)', // Slightly darker for better contrast
+                        backdropFilter: 'blur(15px)', // Moderate blur
+                        WebkitBackdropFilter: 'blur(15px)',
+                        overflowY: 'auto'
+                    }}
+                >
+                    <div className="flex flex-col h-full relative font-sans">
+                        {/* Header */}
+                        <div className="flex items-center p-6 pb-2" style={{ marginTop: '20px' }}>
+                            <button
+                                onClick={handleCloseProfile}
+                                className="w-10 h-10 rounded-full flex items-center justify-center transition-active active:scale-95"
+                                style={{
+                                    background: '#1C1C1E',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    color: 'white'
+                                }}
+                            >
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                            <h2 className="text-xl font-bold text-white" style={{ letterSpacing: '-0.5px', marginLeft: '25px' }}>Editar Perfil</h2>
+                        </div>
+
+                        <div
+                            className="flex-1 flex flex-col items-center w-full"
+                            style={{
+                                paddingLeft: '30px',
+                                paddingRight: '30px',
+                                paddingTop: '16px',
+                                paddingBottom: '40px'
+                            }}
+                        >
+
+                            {/* Avatar Section - Matching design */}
+                            <div className="relative mb-3 mt-4">
+                                {/* Glow Effect */}
+                                <div style={{
+                                    position: 'absolute',
+                                    inset: '-30px',
+                                    background: 'radial-gradient(circle, rgba(59, 130, 246, 0.8) 0%, transparent 70%)',
+                                    filter: 'blur(25px)',
+                                    zIndex: 0
+                                }}></div>
+
+                                {/* Avatar Circle */}
+                                <div style={{
+                                    width: '120px',
+                                    height: '120px',
+                                    borderRadius: '50%',
+                                    background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '48px',
+                                    fontWeight: '700',
+                                    color: 'white',
+                                    position: 'relative',
+                                    zIndex: 1,
+                                    border: '4px solid hsl(220, 30%, 7%)', // Match modal bg
+                                    boxShadow: '0 0 0 2px rgba(59, 130, 246, 0.3)' // Outer thin border
+                                }}>
+                                    {user?.name?.charAt(0).toUpperCase() || 'J'}
+                                </div>
+                            </div>
+
+                            {/* Name & Badge */}
+                            <h3 className="text-2xl font-bold text-white mb-1 mt-2">{user?.name || 'Jesus Guerrero'}</h3>
+                            <div className="px-4 py-1.5 rounded-full bg-[#1e1e24] border border-[#2f2f36]" style={{ marginBottom: '25px' }}>
+                                <span className="text-[#6366f1] text-sm font-semibold">Usuario Premium</span>
+                            </div>
+
+                            {/* Form Fields */}
+                            {/* Form Fields */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', width: '100%', maxWidth: '24rem' }}>
+                                {/* Name Input */}
+                                <div>
+                                    <label className="block text-[#6b7280] text-[11px] font-bold uppercase tracking-wider">
+                                        Nombre Completo
+                                    </label>
+                                    <div style={{ height: '12px' }}></div>
+                                    <div className="relative group">
+                                        <div className="absolute top-1/2 -translate-y-1/2 text-[#6b7280] group-focus-within:text-[#3b82f6] transition-colors" style={{ left: '25px' }}>
+                                            <User size={20} />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={formData.name}
+                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                            placeholder="Tu nombre completo"
+                                            className="w-full focus:ring-1 focus:ring-[#3b82f6] transition-all outline-none"
+                                            style={{
+                                                backgroundColor: '#121214',
+                                                border: '1px solid #27272a',
+                                                color: 'white',
+                                                borderRadius: '16px',
+                                                paddingTop: '16px',
+                                                paddingBottom: '16px',
+                                                paddingLeft: '65px',
+                                                paddingRight: '16px',
+                                                fontSize: '15px',
+                                                fontWeight: '500',
+                                                width: '100%',
+                                                boxSizing: 'border-box'
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Email Input */}
+                                <div>
+                                    <label className="block text-[#6b7280] text-[11px] font-bold uppercase tracking-wider">
+                                        Correo Electrónico
+                                    </label>
+                                    <div style={{ height: '12px' }}></div>
+                                    <div className="relative group">
+                                        <div className="absolute top-1/2 -translate-y-1/2 text-[#6b7280] group-focus-within:text-[#3b82f6] transition-colors" style={{ left: '25px' }}>
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                                <polyline points="22,6 12,13 2,6"></polyline>
+                                            </svg>
+                                        </div>
+                                        <input
+                                            type="email"
+                                            value={formData.email}
+                                            readOnly
+                                            placeholder="tu@email.com"
+                                            className="w-full focus:ring-1 focus:ring-[#3b82f6] transition-all outline-none"
+                                            style={{
+                                                backgroundColor: '#121214',
+                                                border: '1px solid #27272a',
+                                                color: '#9ca3af',
+                                                fontStyle: 'italic',
+                                                borderRadius: '16px',
+                                                paddingTop: '16px',
+                                                paddingBottom: '16px',
+                                                paddingLeft: '65px',
+                                                paddingRight: '60px',
+                                                fontSize: '15px',
+                                                fontWeight: '500',
+                                                width: '100%',
+                                                boxSizing: 'border-box',
+                                                cursor: 'not-allowed',
+                                                opacity: 0.7
+                                            }}
+                                        />
+                                        <div className="absolute top-1/2 -translate-y-1/2 text-[#6b7280] opacity-50" style={{ right: '25px' }}>
+                                            <Lock size={18} />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Password Input */}
+                                <div>
+                                    <label className="block text-[#6b7280] text-[11px] font-bold uppercase tracking-wider">
+                                        Contraseña
+                                    </label>
+                                    <div style={{ height: '12px' }}></div>
+                                    <div className="relative group">
+                                        <div className="absolute top-1/2 -translate-y-1/2 text-[#6b7280] group-focus-within:text-[#3b82f6] transition-colors" style={{ left: '25px' }}>
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                            </svg>
+                                        </div>
+                                        <input
+                                            type="password"
+                                            value={formData.password}
+                                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                            placeholder="••••••••"
+                                            className="w-full focus:ring-1 focus:ring-[#3b82f6] transition-all outline-none"
+                                            style={{
+                                                backgroundColor: '#121214',
+                                                border: '1px solid #27272a',
+                                                color: 'white',
+                                                borderRadius: '16px',
+                                                paddingTop: '16px',
+                                                paddingBottom: '16px',
+                                                paddingLeft: '65px',
+                                                paddingRight: '16px',
+                                                fontSize: '15px',
+                                                fontWeight: '500',
+                                                width: '100%',
+                                                boxSizing: 'border-box'
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Save Button */}
+                                <button
+                                    onClick={handleSaveChanges}
+                                    disabled={loading}
+                                    className="w-full flex items-center justify-center gap-2 transition-all active:scale-95 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    style={{
+                                        background: '#3b82f6',
+                                        color: 'white',
+                                        borderRadius: '16px',
+                                        padding: '16px',
+                                        fontSize: '15px',
+                                        fontWeight: '600',
+                                        marginTop: '10px',
+                                        boxShadow: '0 4px 20px rgba(59, 130, 246, 0.4)',
+                                        border: 'none',
+                                        cursor: loading ? 'not-allowed' : 'pointer'
+                                    }}
+                                >
+                                    <Save size={20} />
+                                    {loading ? 'Guardando...' : 'Guardar Cambios'}
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
         </>
     );
 };

@@ -1,38 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
 :root {
-  /* Premium Dark Theme Palette */
+  /* Premium Dark Theme Palette (ORIGINAL) */
   --bg-primary: 220 30% 7%;
-  /* Dark Blue/Black */
   --bg-secondary: 220 25% 12%;
   --bg-glass: 220 25% 12%;
-  /* Base for glass */
 
   --accent-primary: 250 80% 65%;
-  /* Soft Purple */
   --accent-secondary: 190 90% 60%;
-  /* Cyan */
   --accent-success: 150 70% 45%;
-  /* Green */
   --accent-danger: 340 75% 55%;
-
-  /* Red */
-
-  --text-primary: 220 10% 95%;
 
   --text-primary: 220 10% 95%;
   --text-secondary: 220 10% 70%;
   --text-muted: 220 10% 50%;
 
-  --font-sans: 'Inter',
-    system-ui,
-    -apple-system,
-    sans-serif;
-
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --radius-lg: 1.5rem;
   --radius-md: 1rem;
   --radius-sm: 0.5rem;
 
   --shadow-lg: 0 20px 50px -12px rgba(0, 0, 0, 0.5);
   --shadow-md: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+body {
+  background-color: hsl(var(--bg-primary));
+  color: hsl(var(--text-primary));
+  margin: 0;
+  font-family: var(--font-sans);
+}
+
+/* Scoped Cyber-Financial Theme */
+.cyber-theme {
+  --cyber-bg-deep: #020617;
+  --cyber-bg-card: rgba(15, 23, 42, 0.95);
+  --cyber-accent-violet: #8B5CF6;
+  --cyber-accent-cyan: #06B6D4;
+  --cyber-accent-emerald: #10B981;
+  --cyber-text-pure: #FFFFFF;
+  --cyber-text-muted: #64748B;
+  --cyber-btn-gradient: linear-gradient(90deg, #8B5CF6 0%, #06B6D4 100%);
+
+  font-family: 'Rajdhani', sans-serif;
+}
+
+/* Quantum Corner Decals */
+.quantum-corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--cyber-accent-cyan);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.corner-tl {
+  top: 15px;
+  left: 15px;
+  border-right: none;
+  border-bottom: none;
+  border-top-left-radius: 4px;
+}
+
+.corner-tr {
+  top: 15px;
+  right: 15px;
+  border-left: none;
+  border-bottom: none;
+  border-top-right-radius: 4px;
+}
+
+.corner-bl {
+  bottom: 15px;
+  left: 15px;
+  border-right: none;
+  border-top: none;
+  border-bottom-left-radius: 4px;
+}
+
+.corner-br {
+  bottom: 15px;
+  right: 15px;
+  border-left: none;
+  border-top: none;
+  border-bottom-right-radius: 4px;
+}
+
+.social-icon-hover:hover {
+  border-color: var(--cyber-accent-cyan) !important;
+  color: var(--cyber-accent-cyan) !important;
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+  transform: translateY(-2px);
 }
 
 * {
