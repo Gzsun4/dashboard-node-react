@@ -475,12 +475,12 @@ const Settings = () => {
                             <p className="text-[11px] leading-[1.4] text-[#EBEBF5] font-normal text-left">
                                 Encuentra tu ID en Telegram escribiendo a{' '}
                                 <a
-                                    href="https://t.me/gzsunk"
+                                    href="https://t.me/Gszunk_bot"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-[#5AC8FA] hover:underline cursor-pointer font-semibold"
                                 >
-                                    @gzsunk
+                                    @Gszunk
                                 </a>
                             </p>
                         </div>
