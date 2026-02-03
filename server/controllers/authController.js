@@ -49,6 +49,7 @@ const registerUser = asyncHandler(async (req, res) => {
             name: user.name,
             email: user.email,
             role: user.role,
+            telegramChatId: user.telegramChatId,
             token: generateToken(user._id, user.role)
         });
     } else {
@@ -76,6 +77,7 @@ const loginUser = asyncHandler(async (req, res) => {
             name: user.name,
             email: user.email,
             role: user.role,
+            telegramChatId: user.telegramChatId,
             lastLogin: user.lastLogin,
             token: generateToken(user._id, user.role)
         });
