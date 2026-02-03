@@ -75,6 +75,13 @@ body {
   /* Chrome/Safari/Opera */
 }
 
+/* Global mobile zoom fix */
+input,
+select,
+textarea {
+  font-size: 16px !important;
+}
+
 /* 3D Flip Card Utilities */
 .flip-card-scene {
   perspective: 1000px;
@@ -646,6 +653,8 @@ h3 {
   width: 100%;
   outline: none;
   transition: border-color 0.3s;
+  font-size: 16px;
+  /* Prevent auto-zoom on mobile focus */
 }
 
 .input-field:focus {
