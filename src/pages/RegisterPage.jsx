@@ -18,12 +18,12 @@ const RegisterPage = () => {
     const { register } = useAuth();
     const navigate = useNavigate();
 
-    const handleMouseMove = (e) => {
+    const updateTilt = (clientX, clientY) => {
         if (!cardRef.current) return;
         const card = cardRef.current;
         const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
 
         setSpotlightPos({ x, y });
 
@@ -38,11 +38,25 @@ const RegisterPage = () => {
         });
     };
 
+    const handleMouseMove = (e) => {
+        updateTilt(e.clientX, e.clientY);
+    };
+
+    const handleTouchMove = (e) => {
+        if (e.touches.length > 0) {
+            updateTilt(e.touches[0].clientX, e.touches[0].clientY);
+        }
+    };
+
     const handleMouseLeave = () => {
         setTiltStyles({
             transform: `perspective(1000px) rotateX(0deg) rotateY(0deg)`,
             transition: 'transform 0.5s ease-out'
         });
+    };
+
+    const handleTouchEnd = () => {
+        handleMouseLeave();
     };
 
     const handleSubmit = async (e) => {
@@ -84,6 +98,9 @@ const RegisterPage = () => {
                 ref={cardRef}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                onTouchStart={handleTouchMove}
                 className="glow-card"
                 style={{
                     width: '100%',

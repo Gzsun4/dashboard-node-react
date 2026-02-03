@@ -16,7 +16,7 @@ const ParticleBackground = () => {
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        const symbols = ['$', '€', '£', '¥', '₿', 'S/', '₽', '₹', '₩', '₣', '₺', '↗', '↘', 'Ξ', '₮', '₼', '₾', 'BTC', 'ETH'];
+        const symbols = ['$', '€', '£', '¥', '₿', 'S/', '₽', '₹', '₩', '₣', '₺', 'Ξ', '₮', '₼', '₾', 'BTC', 'ETH'];
         const particles = Array.from({ length: 50 }).map(() => ({
             x: Math.random() * canvas.width,
             y: canvas.height + Math.random() * 200,
@@ -63,9 +63,32 @@ const ParticleBackground = () => {
 
             // 3. Draw Floating Symbols
             particles.forEach((p) => {
-                ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
+                // Assign specific colors based on symbol
+                let symbolColor = `rgba(255, 255, 255, ${p.opacity})`; // Default white
+                let useGlow = false;
+
+                if (p.symbol === '$') {
+                    symbolColor = `rgba(34, 197, 94, ${p.opacity + 0.3})`; // Verde
+                } else if (p.symbol === 'BTC' || p.symbol === '₿') {
+                    symbolColor = `rgba(245, 158, 11, ${p.opacity + 0.3})`; // Ambar
+                } else if (p.symbol === 'ETH' || p.symbol === 'Ξ') {
+                    symbolColor = `rgba(59, 130, 246, ${p.opacity + 0.3})`; // Azul
+                } else if (p.symbol === 'S/') {
+                    symbolColor = `rgba(239, 68, 68, ${p.opacity + 0.6})`; // Rojo Intenso
+                    useGlow = true;
+                }
+
+                ctx.save();
+                ctx.fillStyle = symbolColor;
                 ctx.font = `${p.fontSize}px Rajdhani`;
+
+                if (useGlow) {
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = 'rgba(239, 68, 68, 0.8)';
+                }
+
                 ctx.fillText(p.symbol, p.x, p.y);
+                ctx.restore();
 
                 p.y -= p.speed;
                 if (p.y < -50) {

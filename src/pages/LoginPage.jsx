@@ -17,12 +17,12 @@ const LoginPage = () => {
     const { login } = useAuth();
     const navigate = useNavigate();
 
-    const handleMouseMove = (e) => {
+    const updateTilt = (clientX, clientY) => {
         if (!cardRef.current) return;
         const card = cardRef.current;
         const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
 
         // Spotlight position
         setSpotlightPos({ x, y });
@@ -39,11 +39,25 @@ const LoginPage = () => {
         });
     };
 
+    const handleMouseMove = (e) => {
+        updateTilt(e.clientX, e.clientY);
+    };
+
+    const handleTouchMove = (e) => {
+        if (e.touches.length > 0) {
+            updateTilt(e.touches[0].clientX, e.touches[0].clientY);
+        }
+    };
+
     const handleMouseLeave = () => {
         setTiltStyles({
             transform: `perspective(1000px) rotateX(0deg) rotateY(0deg)`,
             transition: 'transform 0.5s ease-out'
         });
+    };
+
+    const handleTouchEnd = () => {
+        handleMouseLeave();
     };
 
     const handleSubmit = async (e) => {
@@ -80,6 +94,9 @@ const LoginPage = () => {
                 ref={cardRef}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                onTouchStart={handleTouchMove} // Trigger immediately on touch start
                 className="glow-card"
                 style={{
                     width: '100%',
@@ -115,17 +132,19 @@ const LoginPage = () => {
 
                 <div style={{
                     position: 'absolute',
-                    bottom: '10px',
+                    bottom: '12px',
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    fontSize: '9px',
+                    fontSize: '11px',
                     color: 'var(--cyber-text-muted)',
                     letterSpacing: '2px',
                     width: '100%',
                     textAlign: 'center',
-                    fontFamily: 'Orbitron'
+                    fontFamily: 'Orbitron',
+                    textTransform: 'none',
+                    opacity: 0.6
                 }}>
-                    SECURE ACCESS PROTOCOL
+                    Hecho por Gzsunnnk
                 </div>
 
                 <div style={{ textAlign: 'center', marginBottom: '24px', position: 'relative', zIndex: 1 }}>
@@ -167,7 +186,7 @@ const LoginPage = () => {
                         textTransform: 'uppercase',
                         letterSpacing: '1px'
                     }}>
-                        ERROR: {error}
+                        {error}
                     </div>
                 )}
 

@@ -176,22 +176,24 @@ const Sidebar = React.forwardRef(({ isOpen, closeSidebar }, ref) => {
                             }}>
                                 S/
                             </div>
-                            <div style={{
-                                padding: '2px 4px',
-                                borderRadius: '99px',
-                                background: currency === 'USD' ? 'hsl(var(--accent-primary))' : 'transparent',
-                                color: currency === 'USD' ? 'white' : 'rgba(255,255,255,0.5)',
-                                fontWeight: currency === 'USD' ? 700 : 500,
-                                fontSize: '0.7rem',
-                                minWidth: '18px',
-                                width: '22px',
-                                height: '22px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                lineHeight: 1,
-                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                            }}>
+                            <div
+                                style={{
+                                    padding: '2px 4px',
+                                    borderRadius: '99px',
+                                    background: currency === 'USD' ? '#22c55e' : 'transparent',
+                                    color: currency === 'USD' ? 'white' : 'rgba(255,255,255,0.5)',
+                                    fontWeight: currency === 'USD' ? 700 : 500,
+                                    fontSize: '0.7rem',
+                                    minWidth: '18px',
+                                    width: '22px',
+                                    height: '22px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    lineHeight: 1,
+                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                                }}
+                            >
                                 $
                             </div>
                         </div>

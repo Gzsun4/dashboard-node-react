@@ -14,7 +14,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
     if (!name || !email || !password) {
         res.status(400);
-        throw new Error('Please add all fields');
+        throw new Error('POR FAVOR COMPLETA TODOS LOS CAMPOS');
     }
 
     // Check if email domain is valid
@@ -29,7 +29,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
     if (userExists) {
         res.status(400);
-        throw new Error('User already exists');
+        throw new Error('EL USUARIO YA EXISTE');
     }
 
     // Hash password
@@ -56,7 +56,7 @@ const registerUser = asyncHandler(async (req, res) => {
         });
     } else {
         res.status(400);
-        throw new Error('Invalid user data');
+        throw new Error('DATOS DE USUARIO INVÁLIDOS');
     }
 });
 
@@ -86,7 +86,7 @@ const loginUser = asyncHandler(async (req, res) => {
         });
     } else {
         res.status(400);
-        throw new Error('Invalid credentials');
+        throw new Error('ERROR CREDENCIALES INVALIDAS');
     }
 });
 
