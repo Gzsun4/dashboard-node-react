@@ -3,6 +3,13 @@ import cron from 'node-cron';
 import User from '../models/User.js';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import OpenAI from 'openai'; // Groq uses OpenAI SDK
+import fs from 'fs';
+import path from 'path';
+import axios from 'axios';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // ... existing imports ...
 
@@ -459,6 +466,63 @@ export const initializeBot = () => {
 
     // Manejar Fotos
     bot.on('photo', handlePhoto);
+
+    // Manejar Mensajes de Voz
+    bot.on('voice', async (msg) => {
+        const chatId = msg.chat.id;
+        try {
+            const user = await User.findOne({ telegramChatId: String(chatId) });
+            if (!user) {
+                return bot.sendMessage(chatId, `⛔ Cuenta no vinculada. ID: <code>${chatId}</code>`, { parse_mode: 'HTML' });
+            }
+
+            bot.sendChatAction(chatId, 'typing');
+
+            // 1. Obtener el link del archivo
+            const fileId = msg.voice.file_id;
+            const fileLink = await bot.getFileLink(fileId);
+
+            // 2. Descargar el archivo temporalmente
+            const tempFile = path.join(__dirname, `voice_${Date.now()}.ogg`);
+            const response = await axios({
+                method: 'get',
+                url: fileLink,
+                responseType: 'stream'
+            });
+
+            const writer = fs.createWriteStream(tempFile);
+            response.data.pipe(writer);
+
+            await new Promise((resolve, reject) => {
+                writer.on('finish', resolve);
+                writer.on('error', reject);
+            });
+
+            // 3. Transcribir con Groq Whisper
+            console.log("🎙️ Transcribing with Groq Whisper...");
+            const translation = await groq.audio.transcriptions.create({
+                file: fs.createReadStream(tempFile),
+                model: "whisper-large-v3",
+                language: "es", // Opcional: forzar español
+            });
+
+            const transcribedText = translation.text;
+            console.log(`📝 Transcribed: "${transcribedText}"`);
+
+            // 4. Limpiar archivo temporal
+            fs.unlinkSync(tempFile);
+
+            // 5. Procesar como un mensaje normal
+            if (transcribedText) {
+                await bot.sendMessage(chatId, `🎤 <i>"${transcribedText}"</i>`, { parse_mode: 'HTML' });
+                await handleMessage({ ...msg, text: transcribedText });
+            }
+
+        } catch (error) {
+            console.error('Error handling voice message:', error);
+            bot.sendMessage(chatId, '❌ No pude procesar tu mensaje de voz.');
+        }
+    });
 
     // Manejar Callbacks
     bot.on('callback_query', async (callbackQuery) => {
