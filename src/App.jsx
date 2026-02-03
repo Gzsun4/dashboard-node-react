@@ -16,7 +16,7 @@ import { CurrencyProvider } from './context/CurrencyContext';
 import { DebtProvider } from './context/DebtContext';
 import { TransactionProvider } from './context/TransactionContext';
 import InstallPrompt from './components/InstallPrompt';
-import './App.css';
+import CreditSimulator from './pages/CreditSimulator';
 
 function App() {
 
@@ -50,6 +50,7 @@ function App() {
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/activity" element={<Activity />} />
                         <Route path="/planning" element={<Planning />} />
+                        <Route path="/simulator" element={<CreditSimulator />} />
                         <Route path="/settings" element={<Settings />} />
 
                         {/* Admin Route - Can be kept accessible seamlessly or moved to settings */}

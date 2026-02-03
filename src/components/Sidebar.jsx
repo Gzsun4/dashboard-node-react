@@ -4,7 +4,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useDebts } from '../context/DebtContext';
-import { LayoutDashboard, TrendingUp, TrendingDown, PiggyBank, Wallet, Users, LogOut, Menu, Bell, Repeat, CreditCard } from 'lucide-react';
+import { LayoutDashboard, TrendingUp, TrendingDown, PiggyBank, Wallet, Users, LogOut, Menu, Bell, Repeat, CreditCard, Calculator } from 'lucide-react';
 import './Sidebar.css';
 
 const HomeIcon = ({ className }) => (
@@ -31,6 +31,7 @@ const Sidebar = React.forwardRef(({ isOpen, closeSidebar }, ref) => {
 
     const navItems = [
         { path: '/', label: 'Panel', icon: HomeIcon },
+        { path: '/simulator', label: 'Simulador', icon: Calculator },
         { path: '/income', label: 'Ingresos', icon: TrendingUp },
         { path: '/expenses', label: 'Gastos', icon: TrendingDown },
         { path: '/budgets', label: 'Presupuestos', icon: Wallet },

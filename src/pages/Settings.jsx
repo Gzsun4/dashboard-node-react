@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
+import ParticleBackground from '../components/ParticleBackground';
 import MobileHeader from '../components/MobileHeader';
 import { User, Send, ChevronRight, Moon, LogOut, Shield, Instagram, Save, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -129,10 +130,10 @@ const Settings = () => {
                     width: '100vw',
                     overflow: 'hidden',
                     touchAction: 'none',
-                    backgroundColor: 'hsl(220, 30%, 7%)',
                     zIndex: 0
                 }}
             >
+                <ParticleBackground />
                 <MobileHeader
                     title="Ajustes"
                     themeColor="#3b82f6"

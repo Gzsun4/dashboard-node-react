@@ -4,7 +4,9 @@ import {
     getIncomes, createIncome, updateIncome, deleteIncome,
     getExpenses, createExpense, updateExpense, deleteExpense,
     getGoals, createGoal, updateGoal, deleteGoal,
-    getDebts, createDebt, updateDebt, deleteDebt
+    getDebts, createDebt, updateDebt, deleteDebt,
+    analyzeCreditRisk,
+    getFinancialProfile
 } from '../controllers/dataController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -21,4 +23,8 @@ router.route('/goals/:id').put(protect, updateGoal).delete(protect, deleteGoal);
 router.route('/debts').get(protect, getDebts).post(protect, createDebt);
 router.route('/debts/:id').put(protect, updateDebt).delete(protect, deleteDebt);
 
+router.post('/simulation/analyze', protect, analyzeCreditRisk);
+router.get('/simulation/profile', protect, getFinancialProfile);
+
 export default router;
+

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutGrid, ArrowLeftRight, Target, Sliders } from 'lucide-react';
+import { Home, ArrowLeftRight, Target, Sliders, Calculator } from 'lucide-react';
 
 const BottomNavigation = () => {
     const location = useLocation();
@@ -37,8 +37,9 @@ const BottomNavigation = () => {
     }, []); // Listener persistente
 
     const navItems = [
-        { path: '/', icon: LayoutGrid, label: 'Panel' },
+        { path: '/', icon: Home, label: 'Panel' },
         { path: '/activity', icon: ArrowLeftRight, label: 'Actividad' },
+        { path: '/simulator', icon: Calculator, label: 'Simulador' },
         { path: '/planning', icon: Target, label: 'Planificación' },
         { path: '/settings', icon: Sliders, label: 'Ajustes' },
     ];
@@ -95,7 +96,7 @@ const BottomNavigation = () => {
                         background: 'linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%)',
                         boxShadow: '0 0 25px rgba(139, 92, 246, 0.6), 0 0 50px rgba(139, 92, 246, 0.3)',
                         opacity: activeIndex === -1 ? 0 : 1, // Hide if no active tab
-                        left: `${(activeIndex * 25) + 12.5}%`, // Simple percentage based centering
+                        left: `${(activeIndex * 20) + 10}%`, // Simple percentage based centering
                         top: '50%',
                         transform: 'translate(-50%, -50%)',
                         transition: 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
