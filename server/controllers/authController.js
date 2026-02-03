@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import asyncHandler from 'express-async-handler';
 import User from '../models/User.js';
+import { sendTelegramMessage } from '../services/telegramService.js';
 
 // @desc    Register new user
 // @route   POST /api/auth/register
@@ -98,6 +99,13 @@ const updateTelegramChatId = asyncHandler(async (req, res) => {
     if (user) {
         user.telegramChatId = telegramChatId;
         const updatedUser = await user.save();
+
+        // Send confirmation message to Telegram
+        try {
+            await sendTelegramMessage(telegramChatId, `<b>✨ ¡Vinculación Exitosa!</b>\n\nHola <b>${user.name}</b>, tu cuenta de Finanzas ha sido vinculada correctamente con este chat. A partir de ahora recibirás notificaciones aquí.`);
+        } catch (error) {
+            console.error('Could not send Telegram confirmation message:', error);
+        }
 
         res.json({
             _id: updatedUser._id,
