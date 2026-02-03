@@ -2,17 +2,19 @@ import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, LayoutList, Search, X } from 'lucide-react';
 import TransactionItem from './TransactionItem';
 
-const TransactionList = ({ transactions, onEdit, onDelete, type, defaultOpen = false, searchQuery, setSearchQuery }) => {
+const TransactionList = ({ transactions, onEdit, onDelete, type, defaultOpen = false, searchQuery, setSearchQuery, isSearchExpanded, setIsSearchExpanded }) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
-    const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
-    if (!transactions || transactions.length === 0) {
-        return (
-            <div className="text-center p-8 text-gray-500">
-                No hay movimientos
-            </div>
-        );
-    }
+    // Si estamos buscando, forzar que la lista esté abierta para ver resultados
+    React.useEffect(() => {
+        if (isSearchExpanded) {
+            setIsOpen(true);
+        }
+    }, [isSearchExpanded]);
+
+    // Si no hay transacciones y no hay búsqueda, mostramos mensaje simple
+    // Pero si hay búsqueda, queremos mostrar el cabezal con el input
+    const isEmpty = !transactions || transactions.length === 0;
 
     return (
         <>
@@ -132,6 +134,9 @@ const TransactionList = ({ transactions, onEdit, onDelete, type, defaultOpen = f
                                 autoFocus
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
+                                autoComplete="off"
+                                autoCorrect="off"
+                                spellCheck="false"
                                 style={{
                                     background: 'transparent',
                                     border: 'none',
@@ -168,15 +173,21 @@ const TransactionList = ({ transactions, onEdit, onDelete, type, defaultOpen = f
                 // We need to ensure desktop ALWAYS shows.
                 >
                     <div>
-                        {transactions.map((item) => (
-                            <TransactionItem
-                                key={item._id}
-                                data={item}
-                                onEdit={onEdit}
-                                onDelete={onDelete}
-                                type={type}
-                            />
-                        ))}
+                        {isEmpty ? (
+                            <div className="text-center p-8 text-gray-500" style={{ fontSize: '14px' }}>
+                                {searchQuery ? 'No se encontraron resultados' : 'No hay movimientos registrados'}
+                            </div>
+                        ) : (
+                            transactions.map((item) => (
+                                <TransactionItem
+                                    key={item._id}
+                                    data={item}
+                                    onEdit={onEdit}
+                                    onDelete={onDelete}
+                                    type={type}
+                                />
+                            ))
+                        )}
                     </div>
 
 

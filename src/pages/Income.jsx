@@ -47,6 +47,7 @@ const Income = ({ timeFilter: externalTimeFilter, isNested, externalTriggerModal
     const [showModal, setShowModal] = useState(false);
     const [showFilterModal, setShowFilterModal] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isSearchExpanded, setIsSearchExpanded] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [newIncome, setNewIncome] = useState({
         source: '',
@@ -303,10 +304,6 @@ const Income = ({ timeFilter: externalTimeFilter, isNested, externalTriggerModal
                     <div className="transaction-list">
                         {loading ? (
                             <p className="text-center p-4">Cargando...</p>
-                        ) : filteredIncomes.length === 0 ? (
-                            <p className="text-center text-muted p-4">
-                                No se encontraron ingresos {hasActiveFilters && 'con los filtros aplicados'}
-                            </p>
                         ) : (
                             <div className="space-y-4">
                                 <TransactionList
@@ -316,6 +313,8 @@ const Income = ({ timeFilter: externalTimeFilter, isNested, externalTriggerModal
                                     type="income"
                                     searchQuery={searchQuery}
                                     setSearchQuery={setSearchQuery}
+                                    isSearchExpanded={isSearchExpanded}
+                                    setIsSearchExpanded={setIsSearchExpanded}
                                 />
                             </div>
                         )}

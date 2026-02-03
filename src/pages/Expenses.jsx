@@ -49,6 +49,7 @@ const Expenses = ({ timeFilter: externalTimeFilter, isNested, externalTriggerMod
     const [showModal, setShowModal] = useState(false);
     const [showFilterModal, setShowFilterModal] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isSearchExpanded, setIsSearchExpanded] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [newExpense, setNewExpense] = useState({
         description: '',
@@ -486,10 +487,6 @@ const Expenses = ({ timeFilter: externalTimeFilter, isNested, externalTriggerMod
                         <div className="transaction-list">
                             {loading ? (
                                 <p className="text-center p-4">Cargando...</p>
-                            ) : filteredExpenses.length === 0 ? (
-                                <p className="text-center text-muted p-4">
-                                    No se encontraron gastos {hasActiveFilters && 'con los filtros aplicados'}
-                                </p>
                             ) : (
                                 <div className="space-y-4">
                                     <TransactionList
@@ -499,6 +496,8 @@ const Expenses = ({ timeFilter: externalTimeFilter, isNested, externalTriggerMod
                                         type="expense"
                                         searchQuery={searchQuery}
                                         setSearchQuery={setSearchQuery}
+                                        isSearchExpanded={isSearchExpanded}
+                                        setIsSearchExpanded={setIsSearchExpanded}
                                     />
                                 </div>
                             )}
