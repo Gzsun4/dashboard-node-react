@@ -85,12 +85,19 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
+    const updateUserData = (newData) => {
+        const updatedUser = { ...user, ...newData };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+    };
+
     const value = {
         user,
         token,
         login,
         register,
         logout,
+        updateUserData,
         loading
     };
 

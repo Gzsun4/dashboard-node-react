@@ -9,30 +9,30 @@ import CustomTrashIcon from '../components/CustomTrashIcon';
 import MobileHeader from '../components/MobileHeader';
 import MobileStatsGrid from '../components/MobileStatsGrid';
 import Toast from '../components/Toast';
+import { useTransactions } from '../context/TransactionContext';
 
-const Savings = () => {
+const Savings = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
     const { token } = useAuth();
     const { symbol } = useCurrency();
-    const [goals, setGoals] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { goals, setGoals, hasLoaded: globalLoaded, refresh: refreshTransactions } = useTransactions();
+    const [loading, setLoading] = useState(!globalLoaded);
     const [toast, setToast] = useState({ show: false, message: '', type: 'error' });
 
     useEffect(() => {
-        if (token) fetchGoals();
-    }, [token]);
-
-    const fetchGoals = async () => {
-        try {
-            const response = await fetch('/api/data/goals', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await response.json();
-            setGoals(data);
+        if (globalLoaded) {
             setLoading(false);
-        } catch (error) {
-            console.error("Error fetching goals", error);
         }
-    };
+    }, [globalLoaded]);
+
+    useEffect(() => {
+        if (triggerAddModal > 0) {
+            setEditingId(null);
+            setNewGoal({ name: '', target: '', current: '', deadline: '' });
+            setSelectedIcon(0);
+            setShowModal(true);
+        }
+    }, [triggerAddModal]);
+
 
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState(null);
@@ -94,8 +94,8 @@ const Savings = () => {
                 });
                 if (res.ok) {
                     const updated = await res.json();
-                    setGoals(goals.map(g => g._id === editingId ? updated : g));
                     setToast({ show: true, message: 'Meta actualizada', type: 'success' });
+                    refreshTransactions();
                 } else {
                     setToast({ show: true, message: 'Error al actualizar', type: 'error' });
                 }
@@ -106,9 +106,9 @@ const Savings = () => {
                     body
                 });
                 if (res.ok) {
-                    const data = await res.json();
-                    setGoals([...goals, data]);
-                    setToast({ show: true, message: 'Meta creada', type: 'success' });
+                    handleCloseModal();
+                    refreshTransactions();
+                    setToast({ show: true, message: editingId ? 'Meta actualizada' : 'Meta creada', type: 'success' });
                 } else {
                     setToast({ show: true, message: 'Error al crear meta', type: 'error' });
                 }
@@ -138,15 +138,19 @@ const Savings = () => {
 
     const handleDelete = async (id) => {
         try {
-            await fetch(`/api/data/goals/${id}`, {
+            const res = await fetch(`/api/data/goals/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            setGoals(goals.filter(g => g._id !== id));
-            setToast({ show: true, message: 'Meta eliminada', type: 'success' });
+            if (res.ok) {
+                setToast({ show: true, message: 'Meta eliminada', type: 'success' });
+                refreshTransactions();
+            } else {
+                setToast({ show: true, message: 'Error al eliminar', type: 'error' });
+            }
         } catch (error) {
             console.error(error);
-            setToast({ show: true, message: 'Error al eliminar', type: 'error' });
+            setToast({ show: true, message: 'Error de conexión', type: 'error' });
         }
     };
 
@@ -155,6 +159,7 @@ const Savings = () => {
         setEditingId(null);
         setNewGoal({ name: '', target: '', current: '', deadline: '' });
         setSelectedIcon(0);
+        if (onModalReset) onModalReset();
     };
 
     const handleAddMoney = async (e) => {
@@ -194,8 +199,8 @@ const Savings = () => {
 
             if (res.ok) {
                 const updatedGoal = await res.json();
-                setGoals(goals.map(g => g._id === selectedGoal._id ? updatedGoal : g));
-                setToast({ show: true, message: 'Dinero agregado', type: 'success' });
+                setToast({ show: true, message: 'Dinero añadido correctamente', type: 'success' });
+                refreshTransactions();
             } else {
                 setToast({ show: true, message: 'Error al agregar dinero', type: 'error' });
             }
@@ -315,25 +320,23 @@ const Savings = () => {
                     onClose={() => setToast({ ...toast, show: false })}
                 />
             )}
-            <div className="animate-fade-in">
+            <div className={!isNested ? 'animate-fade-in' : ''}>
 
-                <MobileHeader
-                    title="Ahorros"
-                    // Botón eliminado por solicitud
-                    themeColor="#2563eb"
-                />
+
 
                 <MobileStatsGrid stats={mobileStats} />
 
-                <div className="page-header hidden-mobile">
-                    <div className="flex justify-between items-center w-full">
-                        <div>
-                            <h2 className="page-title">Ahorros</h2>
-                            <p className="page-subtitle">Visualiza y alcanza tus metas financieras.</p>
-                        </div>
+                {!isNested && (
+                    <div className="page-header hidden-mobile">
+                        <div className="flex justify-between items-center w-full">
+                            <div>
+                                <h2 className="page-title">Ahorros</h2>
+                                <p className="page-subtitle">Visualiza y alcanza tus metas financieras.</p>
+                            </div>
 
+                        </div>
                     </div>
-                </div>
+                )}
 
                 <div className="savings-grid">
                     {loading ? <p>Cargando...</p> : goals.length === 0 ? <p>No hay metas de ahorro.</p> : goals.map((goal) => {
@@ -418,22 +421,24 @@ const Savings = () => {
                         );
                     })}
 
-                    <button
-                        className="glass-card flex-col flex-center p-6"
-                        style={{
-                            border: '2px dashed rgba(255,255,255,0.2)',
-                            background: 'transparent',
-                            minHeight: '200px',
-                            width: '100%',
-                            cursor: 'pointer'
-                        }}
-                        onClick={() => setShowModal(true)}
-                    >
-                        <div className="w-12 h-12 rounded-full mb-4 flex-center" style={{ background: 'rgba(255,255,255,0.1)' }}>
-                            <Plus size={24} className="text-secondary" />
-                        </div>
-                        <p className="text-secondary" style={{ fontWeight: 600 }}>Nueva Meta</p>
-                    </button>
+                    {!isNested && (
+                        <button
+                            className="glass-card flex-col flex-center p-6"
+                            style={{
+                                border: '2px dashed rgba(255,255,255,0.2)',
+                                background: 'transparent',
+                                minHeight: '200px',
+                                width: '100%',
+                                cursor: 'pointer'
+                            }}
+                            onClick={() => setShowModal(true)}
+                        >
+                            <div className="w-12 h-12 rounded-full mb-4 flex-center" style={{ background: 'rgba(255,255,255,0.1)' }}>
+                                <Plus size={24} className="text-secondary" />
+                            </div>
+                            <p className="text-secondary" style={{ fontWeight: 600 }}>Nueva Meta</p>
+                        </button>
+                    )}
                 </div >
 
             </div >

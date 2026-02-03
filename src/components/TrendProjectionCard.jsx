@@ -50,7 +50,7 @@ const TrendProjectionCard = ({ data, estimatedTotal, trendPercentage, currentTot
             onClick={() => setIsFlipped(!isFlipped)}
             style={{
                 borderRadius: '1.5rem',
-                marginBottom: '-20px',
+                marginBottom: '-28px',
                 position: 'relative',
                 zIndex: 10,
                 userSelect: 'none', // Prevent text/graph selection on tap

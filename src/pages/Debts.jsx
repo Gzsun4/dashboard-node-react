@@ -10,13 +10,21 @@ import CustomPencilIcon from '../components/CustomPencilIcon';
 import CustomTrashIcon from '../components/CustomTrashIcon';
 import Toast from '../components/Toast';
 
-const Debts = () => {
+const Debts = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
     const { token } = useAuth();
     const { symbol } = useCurrency();
     const { debts, loading, fetchDebts } = useDebts(); // Use Context
     const [toast, setToast] = useState({ show: false, message: '', type: 'error' });
 
     // Mock/Fetch logic removed since it is handled by Context
+    useEffect(() => {
+        if (triggerAddModal > 0) {
+            setEditingId(null);
+            setNewDebt({ name: '', totalAmount: '', paidAmount: '', deadline: '' });
+            setSelectedIcon(0);
+            setShowModal(true);
+        }
+    }, [triggerAddModal]);
 
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState(null);
@@ -141,6 +149,7 @@ const Debts = () => {
         setEditingId(null);
         setNewDebt({ name: '', totalAmount: '', paidAmount: '', deadline: '' });
         setSelectedIcon(0);
+        if (onModalReset) onModalReset();
     };
 
     const handlePayment = async (e) => {
@@ -184,6 +193,7 @@ const Debts = () => {
                 await fetchDebts(); // Update global context
                 setToast({ show: true, message: 'Abono realizado exitosamente', type: 'success' });
                 setShowPayModal(false);
+                if (onModalReset) onModalReset();
             } else {
                 setToast({ show: true, message: 'Error al realizar el abono', type: 'error' });
             }
@@ -219,23 +229,22 @@ const Debts = () => {
                     onClose={() => setToast({ ...toast, show: false })}
                 />
             )}
-            <div className="animate-fade-in">
-                <MobileHeader
-                    title="Deudas"
-                    themeColor="#ef4444" // Red for debts
-                />
+            <div className={!isNested ? 'animate-fade-in' : ''}>
+
 
                 <MobileStatsGrid stats={mobileStats} />
 
-                <div className="page-header hidden-mobile">
-                    <div className="flex justify-between items-center w-full">
-                        <div>
-                            <h2 className="page-title">Deudas</h2>
-                            <p className="page-subtitle">Gestiona y elimina tus deudas.</p>
-                        </div>
+                {!isNested && (
+                    <div className="page-header hidden-mobile">
+                        <div className="flex justify-between items-center w-full">
+                            <div>
+                                <h2 className="page-title">Deudas</h2>
+                                <p className="page-subtitle">Gestiona y elimina tus deudas.</p>
+                            </div>
 
+                        </div>
                     </div>
-                </div>
+                )}
 
                 <div className="savings-grid"> {/* Reusing grid class or create new debts-grid */}
                     {loading ? <p>Cargando...</p> : debts.length === 0 ? <p className="text-muted text-center py-8">No tienes deudas registradas. ¡Bien hecho!</p> : debts.map((debt) => {
@@ -319,29 +328,31 @@ const Debts = () => {
                         );
                     })}
 
-                    <button
-                        className="glass-card flex-col flex-center p-6"
-                        style={{
-                            border: '2px dashed rgba(255,255,255,0.2)',
-                            background: 'transparent',
-                            minHeight: '200px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center'
-                        }}
-                        onClick={() => {
-                            setEditingId(null);
-                            setNewDebt({ name: '', totalAmount: '', paidAmount: '', deadline: '' });
-                            setShowModal(true);
-                        }}
-                    >
-                        <div className="p-4 rounded-full bg-danger-soft mb-3" style={{ background: 'rgba(239, 68, 68, 0.1)' }}>
-                            <Plus size={32} className="text-danger" style={{ color: '#ef4444' }} />
-                        </div>
-                        <h3 className="text-lg mb-1">Nueva Deuda</h3>
-                        <p className="text-sm text-muted">Registra una nueva deuda</p>
-                    </button>
+                    {!isNested && (
+                        <button
+                            className="glass-card flex-col flex-center p-6"
+                            style={{
+                                border: '2px dashed rgba(255,255,255,0.2)',
+                                background: 'transparent',
+                                minHeight: '200px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center'
+                            }}
+                            onClick={() => {
+                                setEditingId(null);
+                                setNewDebt({ name: '', totalAmount: '', paidAmount: '', deadline: '' });
+                                setShowModal(true);
+                            }}
+                        >
+                            <div className="p-4 rounded-full bg-danger-soft mb-3" style={{ background: 'rgba(239, 68, 68, 0.1)' }}>
+                                <Plus size={32} className="text-danger" style={{ color: '#ef4444' }} />
+                            </div>
+                            <h3 className="text-lg mb-1">Nueva Deuda</h3>
+                            <p className="text-sm text-muted">Registra una nueva deuda</p>
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -350,7 +361,7 @@ const Debts = () => {
                 <div className="modal-backdrop">
                     <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '400px', position: 'relative' }}>
                         <button
-                            onClick={() => setShowModal(false)}
+                            onClick={handleCloseModal}
                             style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}
                         >
                             <X size={24} />

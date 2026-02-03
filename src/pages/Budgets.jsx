@@ -5,13 +5,19 @@ import { useCurrency } from '../context/CurrencyContext';
 import MobileHeader from '../components/MobileHeader';
 import MobileStatsGrid from '../components/MobileStatsGrid';
 import Toast from '../components/Toast';
+import { useTransactions } from '../context/TransactionContext';
 
-const Budgets = () => {
-    console.log("Budgets.jsx: Rendering component");
+const Budgets = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
     const { user, token } = useAuth();
     const { symbol } = useCurrency();
-    const [budgets, setBudgets] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { budgets, setBudgets, hasLoaded: globalLoaded, refresh: refreshTransactions } = useTransactions();
+    const [loading, setLoading] = useState(!globalLoaded);
+
+    useEffect(() => {
+        if (globalLoaded) {
+            setLoading(false);
+        }
+    }, [globalLoaded]);
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState({
         category: '',
@@ -24,27 +30,20 @@ const Budgets = () => {
     // Suggested categories (Standardized across the app)
     const commonCategories = ["Alimentación", "Transporte", "Servicios", "Entretenimiento", "Salud", "Educación", "Hogar", "Otros"];
 
-    useEffect(() => {
-        if (token) fetchBudgets();
-    }, [token]);
 
-    const fetchBudgets = async () => {
-        try {
-            const res = await fetch('/api/budgets', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            const data = await res.json();
-            if (Array.isArray(data)) {
-                setBudgets(data);
-            }
-        } catch (error) {
-            console.error("Error fetching budgets:", error);
-        } finally {
-            setLoading(false);
+    useEffect(() => {
+        if (triggerAddModal > 0) {
+            setEditingId(null);
+            setFormData({ category: '', limit: '' });
+            setShowModal(true);
         }
+    }, [triggerAddModal]);
+
+    const handleCloseModal = () => {
+        setShowModal(false);
+        if (onModalReset) onModalReset();
     };
+
 
     // Calculate Totals for Bento Grid
     const totalLimit = budgets.reduce((acc, b) => acc + b.limit, 0);
@@ -56,7 +55,7 @@ const Budgets = () => {
             title: "Disponible Global",
             value: `${symbol}${totalAvailable.toFixed(2)}`,
             icon: <Wallet />,
-            color: "bg-purple-500"
+            color: "bg-orange-500"
         },
         {
             title: "Presupuesto Total",
@@ -101,8 +100,9 @@ const Budgets = () => {
                 setShowModal(false);
                 setFormData({ category: '', limit: '' });
                 setEditingId(null);
-                fetchBudgets();
+                refreshTransactions();
                 setToast({ show: true, message: editingId ? 'Presupuesto actualizado' : 'Presupuesto creado', type: 'success' });
+                if (onModalReset) onModalReset();
             } else {
                 const err = await res.json();
                 console.error("Server error:", err);
@@ -122,7 +122,7 @@ const Budgets = () => {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            fetchBudgets();
+            refreshTransactions();
             setToast({ show: true, message: 'Presupuesto eliminado', type: 'success' });
         } catch (error) {
             console.error("Error deleting budget:", error);
@@ -142,8 +142,6 @@ const Budgets = () => {
         return 'bg-danger'; // Red
     };
 
-    // ... 
-
     return (
         <>
             {toast.show && (
@@ -153,34 +151,32 @@ const Budgets = () => {
                     onClose={() => setToast({ ...toast, show: false })}
                 />
             )}
-            <div className="animate-fade-in relative z-10 w-full h-full pb-20 md:pb-0">
-                {/* Mobile Header (Hamburger + Title + Add Button) */}
-                <MobileHeader
-                    title="Presupuestos"
-                    themeColor="#c084fc" // Purple to match the gradient
-                />
+            <div className={`${!isNested ? 'animate-fade-in' : ''} w-full h-full pb-20 md:pb-0`}>
+
 
                 {/* Mobile Bento Grid Stats */}
                 <MobileStatsGrid stats={stats} />
 
                 {/* Desktop Header (Hidden on Mobile) */}
-                <div className="flex justify-between items-center mb-6 hidden-mobile">
-                    <div>
-                        <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Presupuestos</h1>
-                        <p className="text-secondary text-sm">Controla tus límites de gasto mensual</p>
+                {!isNested && (
+                    <div className="flex justify-between items-center mb-6 hidden-mobile">
+                        <div>
+                            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Presupuestos</h1>
+                            <p className="text-secondary text-sm">Controla tus límites de gasto mensual</p>
+                        </div>
+                        <button
+                            onClick={() => {
+                                setEditingId(null);
+                                setFormData({ category: '', limit: '' });
+                                setShowModal(true);
+                            }}
+                            className="btn-responsive-action glass hover:bg-white/10 text-white border border-white/10 transition-all active:scale-95"
+                        >
+                            <Plus className="icon" />
+                            <span>Nuevo Presupuesto</span>
+                        </button>
                     </div>
-                    <button
-                        onClick={() => {
-                            setEditingId(null);
-                            setFormData({ category: '', limit: '' });
-                            setShowModal(true);
-                        }}
-                        className="btn-responsive-action glass hover:bg-white/10 text-white border border-white/10 transition-all active:scale-95"
-                    >
-                        <Plus className="icon" />
-                        <span>Nuevo Presupuesto</span>
-                    </button>
-                </div>
+                )}
 
                 {loading ? (
                     <div className="flex justify-center p-8">
@@ -201,7 +197,6 @@ const Budgets = () => {
                                         <Wallet className="w-10 h-10 opacity-30 text-white" />
                                     </div>
                                     <h3 className="text-xl font-semibold text-white mb-2">No tienes presupuestos</h3>
-                                    <p className="mb-6 max-w-sm mx-auto">Define límites para tus gastos y mantén tu economía bajo control.</p>
 
                                 </div>
                             ) : (
@@ -316,23 +311,25 @@ const Budgets = () => {
                 )}
 
                 {/* FAB Button - Mobile Only */}
-                <button
-                    className="fab-button fab-primary fab-purple"
-                    onClick={() => {
-                        setEditingId(null);
-                        setFormData({ category: '', limit: '' });
-                        setShowModal(true);
-                    }}
-                    aria-label="Nuevo Presupuesto"
-                >
-                    <Plus size={24} />
-                </button>
+                {!isNested && (
+                    <button
+                        className="fab-button fab-primary fab-purple"
+                        onClick={() => {
+                            setEditingId(null);
+                            setFormData({ category: '', limit: '' });
+                            setShowModal(true);
+                        }}
+                        aria-label="Nuevo Presupuesto"
+                    >
+                        <Plus size={24} />
+                    </button>
+                )}
 
                 {showModal && (
                     <div className="modal-backdrop">
                         <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '500px', position: 'relative' }}>
                             <button
-                                onClick={() => setShowModal(false)}
+                                onClick={handleCloseModal}
                                 style={{
                                     position: 'absolute',
                                     top: '1rem',

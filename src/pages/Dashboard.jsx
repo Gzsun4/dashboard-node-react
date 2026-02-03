@@ -6,11 +6,13 @@ import { DollarSign, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, ArrowDow
 import MobileMenuButton from '../components/MobileMenuButton';
 import MobileHeader from '../components/MobileHeader';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useTransactions } from '../context/TransactionContext';
 import './Dashboard.css';
 
 const Dashboard = () => {
     const { token, user } = useAuth();
     const { symbol } = useCurrency();
+    const { incomes, expenses, goals, loading: globalLoading, hasLoaded } = useTransactions();
     const [stats, setStats] = useState({
         totalIncome: 0,
         totalExpenses: 0,
@@ -19,95 +21,57 @@ const Dashboard = () => {
     });
     const [transactions, setTransactions] = useState([]);
     const [chartData, setChartData] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!hasLoaded);
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const headers = { 'Authorization': `Bearer ${token}` };
+        if (hasLoaded) {
+            // Process Stats
+            const totalIncome = incomes.reduce((sum, item) => sum + item.amount, 0);
+            const totalExpenses = expenses.reduce((sum, item) => sum + item.amount, 0);
+            const totalSavings = goals.reduce((sum, item) => sum + item.current, 0);
+            const balance = totalIncome - totalExpenses;
 
-                const [incomesRes, expensesRes, goalsRes] = await Promise.all([
-                    fetch('/api/data/incomes', { headers }),
-                    fetch('/api/data/expenses', { headers }),
-                    fetch('/api/data/goals', { headers })
-                ]);
+            setStats({ totalIncome, totalExpenses, totalSavings, balance });
 
-                const incomes = await incomesRes.json();
-                const expenses = await expensesRes.json();
-                const goals = await goalsRes.json();
+            // Process Recent Transactions
+            const allTransactions = [
+                ...incomes.map(i => ({ ...i, type: 'income', description: i.source, createdAt: i.createdAt })),
+                ...expenses.map(e => ({ ...e, type: 'expense', description: e.description, createdAt: e.createdAt }))
+            ].sort((a, b) => {
+                if (b.date !== a.date) return b.date.localeCompare(a.date);
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            });
+            setTransactions(allTransactions.slice(0, 10));
 
-                // Calculate Totals
-                const totalIncome = incomes.reduce((sum, item) => sum + item.amount, 0);
-                const totalExpenses = expenses.reduce((sum, item) => sum + item.amount, 0);
-                const totalSavings = goals.reduce((sum, item) => sum + item.current, 0);
-                const balance = totalIncome - totalExpenses;
+            // Process Chart Data (Last 7 Days)
+            const daysOfWeek = ["Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"];
+            const chartMap = new Map();
+            const today = new Date();
 
-                setStats({ totalIncome, totalExpenses, totalSavings, balance });
-
-                // Process Transactions
-                const allTransactions = [
-                    ...incomes.map(i => ({ ...i, type: 'income', description: i.source, createdAt: i.createdAt })),
-                    ...expenses.map(e => ({ ...e, type: 'expense', description: e.description, createdAt: e.createdAt }))
-                ].sort((a, b) => {
-                    // 1. Sort by Date (descending)
-                    if (b.date !== a.date) {
-                        return b.date.localeCompare(a.date);
-                    }
-                    // 2. Tie-breaker: Sort by Creation Time (newest uploaded first)
-                    return new Date(b.createdAt) - new Date(a.createdAt);
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(today.getDate() - i);
+                const dayKey = d.toISOString().split('T')[0];
+                chartMap.set(dayKey, {
+                    name: daysOfWeek[d.getDay()],
+                    income: 0,
+                    expense: 0,
+                    order: d.getTime()
                 });
-
-                setTransactions(allTransactions.slice(0, 10));
-
-                // Process Chart Data (Last 6 Months)
-                // Process Chart Data (Last 7 Days)
-                const daysOfWeek = ["Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"];
-                const chartMap = new Map();
-                const today = new Date();
-
-                // Initialize last 7 days with 0
-                for (let i = 6; i >= 0; i--) {
-                    const d = new Date();
-                    d.setDate(today.getDate() - i);
-                    const dayKey = d.toISOString().split('T')[0]; // YYYY-MM-DD
-                    chartMap.set(dayKey, {
-                        name: daysOfWeek[d.getDay()],
-                        income: 0,
-                        expense: 0,
-                        order: d.getTime()
-                    });
-                }
-
-                [...incomes, ...expenses].forEach(item => {
-                    const date = new Date(item.date + 'T12:00:00'); // Ensure middle of day to avoid timezone shift
-                    const dayKey = item.date; // Use the raw date string from DB if it matches YYYY-MM-DD
-
-                    // Fallback if dayKey needs to be derived securely
-                    // const dayKey = date.toISOString().split('T')[0]; 
-
-                    if (chartMap.has(dayKey)) {
-                        if (item.source) { // Is Income
-                            chartMap.get(dayKey).income += item.amount;
-                        } else {
-                            chartMap.get(dayKey).expense += item.amount;
-                        }
-                    }
-                });
-
-                const processedChartData = Array.from(chartMap.values())
-                    .sort((a, b) => a.order - b.order);
-
-                setChartData(processedChartData);
-                setLoading(false);
-
-            } catch (error) {
-                console.error("Error fetching data:", error);
-                setLoading(false);
             }
-        };
 
-        if (token) fetchData();
-    }, [token]);
+            [...incomes, ...expenses].forEach(item => {
+                const dayKey = item.date;
+                if (chartMap.has(dayKey)) {
+                    if (item.source) chartMap.get(dayKey).income += item.amount;
+                    else chartMap.get(dayKey).expense += item.amount;
+                }
+            });
+
+            setChartData(Array.from(chartMap.values()).sort((a, b) => a.order - b.order));
+            setLoading(false);
+        }
+    }, [hasLoaded, incomes, expenses, goals]);
 
     return (
         <div className="animate-fade-in">

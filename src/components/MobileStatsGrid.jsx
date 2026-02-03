@@ -1,6 +1,6 @@
 import React from 'react';
 
-const MobileStatsGrid = ({ stats }) => {
+const MobileStatsGrid = ({ stats, style }) => {
     // We expect 3 stats: [Total, BigStat, SmallStat]
     // Stat 0 is the main featured card (Full width)
     // Stat 1 and 2 are secondary cards (Half width)
@@ -22,6 +22,7 @@ const MobileStatsGrid = ({ stats }) => {
         if (colorClass.includes('red')) return { background: '#ef4444', color: 'white' }; // Red 500
         if (colorClass.includes('blue')) return { background: '#3b82f6', color: 'white' }; // Blue 500
         if (colorClass.includes('purple')) return { background: '#a855f7', color: 'white' }; // Purple 500
+        if (colorClass.includes('orange')) return { background: '#f97316', color: 'white' }; // Orange 500
         if (colorClass.startsWith('#')) return { background: colorClass, color: 'white' };
         return { background: 'hsl(var(--bg-secondary) / 0.8)' }; // Fallback
     };
@@ -33,8 +34,10 @@ const MobileStatsGrid = ({ stats }) => {
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '0.75rem', // gap-3
-                marginBottom: '1.5rem', // mb-6
-                width: '100%'
+                marginBottom: '10px', // mb-6
+                width: '100%',
+                marginTop: '20px',
+                ...style // Allow overrides
             }}
         >
             {/* Main Card (Top) - Full Width */}

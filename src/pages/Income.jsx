@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Card from '../components/Card';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
-import { Plus, Search, Filter, X, Menu, DollarSign, TrendingUp, PieChart as PieIcon, Briefcase, Lightbulb, Wallet, Activity } from 'lucide-react';
+import { Plus, Search, Filter, X, Menu, DollarSign, TrendingUp, PieChart as PieIcon, Briefcase, Lightbulb, Wallet, Activity, List, ChevronDown, ChevronUp } from 'lucide-react';
 import MobileMenuButton from '../components/MobileMenuButton';
 import CustomPencilIcon from '../components/CustomPencilIcon';
 import CustomTrashIcon from '../components/CustomTrashIcon';
@@ -14,34 +14,38 @@ import TransactionList from '../components/TransactionList';
 import TimeFilter from '../components/TimeFilter';
 import Toast from '../components/Toast';
 import { calculateTrend } from '../utils/trendUtils';
+import { useTransactions } from '../context/TransactionContext';
 
-const Income = () => {
+const Income = ({ timeFilter: externalTimeFilter, isNested, externalTriggerModal, onModalReset }) => {
     const { token } = useAuth();
     const { symbol } = useCurrency();
-    const [incomes, setIncomes] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [timeFilter, setTimeFilter] = useState('7days'); // Default internally
+
+    // Sync external timeFilter if provided
+    useEffect(() => {
+        if (externalTimeFilter) {
+            setTimeFilter(externalTimeFilter);
+        }
+    }, [externalTimeFilter]);
+
+    // Handle external modal trigger from parent (Activity.jsx)
+    useEffect(() => {
+        if (externalTriggerModal > 0) {
+            setShowModal(true);
+        }
+    }, [externalTriggerModal]);
+    const { incomes, setIncomes, hasLoaded: globalLoaded, refresh: refreshTransactions } = useTransactions();
+    const [loading, setLoading] = useState(!globalLoaded);
     const [toast, setToast] = useState({ show: false, message: '', type: 'error' });
 
     useEffect(() => {
-        if (token) fetchIncomes();
-    }, [token]);
-
-    const fetchIncomes = async () => {
-        try {
-            const response = await fetch('/api/data/incomes', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await response.json();
-            setIncomes(data);
+        if (globalLoaded) {
             setLoading(false);
-        } catch (error) {
-            console.error("Error fetching incomes", error);
         }
-    };
+    }, [globalLoaded]);
 
     const [showModal, setShowModal] = useState(false);
     const [showFilterModal, setShowFilterModal] = useState(false);
-    const [showBottomSheet, setShowBottomSheet] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [editingId, setEditingId] = useState(null);
     const [newIncome, setNewIncome] = useState({
@@ -63,7 +67,7 @@ const Income = () => {
         dateTo: ''
     });
 
-    const [timeFilter, setTimeFilter] = useState('7days'); // Default to 7 days
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -106,7 +110,8 @@ const Income = () => {
                     setToast({ show: true, message: 'Error al registrar', type: 'error' });
                 }
             }
-            fetchIncomes();
+            // Update global state
+            refreshTransactions();
         } catch (error) {
             console.error("Error saving income", error);
             setToast({ show: true, message: 'Error de conexión', type: 'error' });
@@ -115,6 +120,7 @@ const Income = () => {
         setShowModal(false);
         setEditingId(null);
         setNewIncome({ source: '', date: new Date().toLocaleDateString('en-CA'), amount: '', category: '' });
+        if (onModalReset) onModalReset();
     };
 
     const handleEdit = (income) => {
@@ -137,8 +143,9 @@ const Income = () => {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
-                setIncomes(incomes.filter(i => i._id !== id));
                 setToast({ show: true, message: 'Ingreso eliminado', type: 'success' });
+                // Use functional update to avoid stale state if needed, but context provides setter
+                setIncomes(prev => prev.filter(i => i._id !== id));
             } else {
                 setToast({ show: true, message: 'Error al eliminar', type: 'error' });
             }
@@ -152,7 +159,9 @@ const Income = () => {
         setShowModal(false);
         setEditingId(null);
         setNewIncome({ source: '', date: new Date().toLocaleDateString('en-CA'), amount: '', category: '' });
+        if (onModalReset) onModalReset();
     };
+
 
     const handleApplyFilters = () => {
         setActiveFilters({ ...filters });
@@ -200,7 +209,7 @@ const Income = () => {
 
             if (timeFilter === '7days') {
                 cutoffDate.setDate(today.getDate() - 7);
-            } else if (timeFilter === '1month') {
+            } else if (timeFilter === 'month') {
                 cutoffDate.setMonth(today.getMonth() - 1);
             } else if (timeFilter === '3months') {
                 cutoffDate.setMonth(today.getMonth() - 3);
@@ -265,54 +274,30 @@ const Income = () => {
             )}
             <div className="animate-fade-in">
 
-                <MobileHeader
-                    title="Ingresos"
-                    themeColor="#10b981" // Cambiado a verde por solicitud
-                >
-                    <TimeFilter
-                        onFilterChange={(filter) => setTimeFilter(filter)}
-                        themeColor="#10b981"
-                    />
-                </MobileHeader>
 
-                <MobileStatsGrid stats={mobileStats} />
 
-                <div className="page-header hidden-mobile">
-                    <div className="flex justify-between items-center w-full">
-                        <div>
-                            <h2 className="page-title">Ingresos</h2>
-                            <p className="page-subtitle">Gestiona tus fuentes de ingresos.</p>
+                <MobileStatsGrid stats={mobileStats} style={{ marginTop: '20px', marginBottom: '-28px' }} />
+
+                {!isNested && (
+                    <div className="page-header hidden-mobile">
+                        <div className="flex justify-between items-center w-full">
+                            <div>
+                                <h2 className="page-title">Ingresos</h2>
+                                <p className="page-subtitle">Gestiona tus fuentes de ingresos.</p>
+                            </div>
+                            <button
+                                className="btn btn-primary btn-responsive-action"
+                                onClick={() => setShowModal(true)}
+                            >
+                                <Plus className="icon" />
+                                <span className="hidden-mobile">Nuevo Ingreso</span>
+                            </button>
                         </div>
-                        <button
-                            className="btn btn-primary btn-responsive-action"
-                            onClick={() => setShowModal(true)}
-                        >
-                            <Plus className="icon" />
-                            <span className="hidden-mobile">Nuevo Ingreso</span>
-                        </button>
                     </div>
-                </div>
+                )}
 
-                <div className="mb-6 flex gap-4 search-filter-container">
-                    <div className="relative w-full search-container-mobile" style={{ maxWidth: '400px' }}>
-                        <div className="absolute" style={{ left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--text-muted))' }}>
-                            <Search size={18} />
-                        </div>
-                        <input type="text" placeholder="Buscar ingresos..." className="input-field" style={{ paddingLeft: '2.5rem' }} />
-                    </div>
-                    <button
-                        className="btn glass btn-mobile-full"
-                        onClick={() => setShowFilterModal(true)}
-                        style={{
-                            background: hasActiveFilters ? 'hsl(var(--accent-primary) / 0.2)' : undefined,
-                            borderColor: hasActiveFilters ? 'hsl(var(--accent-primary))' : undefined
-                        }}
-                    >
-                        <Filter size={18} /> Filtrar {hasActiveFilters && `(${Object.values(activeFilters).filter(v => v).length})`}
-                    </button>
-                </div>
                 {/* Tabla de Ingresos + Vista Móvil combinadas en una sola Tarjeta */}
-                <Card>
+                <Card style={{ marginTop: '45px' }}>
                     <h3 className="mb-4 hidden-mobile" style={{ fontSize: '1.2rem' }}>Historial de Ingresos</h3>
 
                     <div className="transaction-list">
@@ -329,6 +314,8 @@ const Income = () => {
                                     onEdit={handleEdit}
                                     onDelete={handleDelete}
                                     type="income"
+                                    searchQuery={searchQuery}
+                                    setSearchQuery={setSearchQuery}
                                 />
                             </div>
                         )}
@@ -337,95 +324,6 @@ const Income = () => {
 
             </div>
 
-            {/* Floating Action Button (FAB) - Search (Secondary) */}
-            <button
-                className="fab-button fab-secondary"
-                onClick={() => setShowBottomSheet(true)}
-                aria-label="Buscar y filtrar"
-            >
-                <Search size={20} />
-            </button>
-
-            {/* Floating Action Button (FAB) - Add (Primary) */}
-            <button
-                className="fab-button fab-primary fab-green"
-                onClick={() => setShowModal(true)}
-                aria-label="Nuevo Ingreso"
-            >
-                <Plus size={24} />
-            </button>
-
-            {/* Bottom Sheet Modal - Mobile Only */}
-            {showBottomSheet && (
-                <div
-                    className="bottom-sheet-backdrop"
-                    onClick={() => setShowBottomSheet(false)}
-                >
-                    <div
-                        className="bottom-sheet-content"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="bottom-sheet-handle"></div>
-
-                        <div className="bottom-sheet-header">
-                            <h3 className="bottom-sheet-title">Buscar y Filtrar</h3>
-                            <button
-                                className="bottom-sheet-close"
-                                onClick={() => setShowBottomSheet(false)}
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        {/* Search Input */}
-                        <div className="mb-4">
-                            <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                Buscar
-                            </label>
-                            <div className="relative">
-                                <div className="absolute" style={{ left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--text-muted))' }}>
-                                    <Search size={18} />
-                                </div>
-                                <input
-                                    type="text"
-                                    placeholder="Buscar ingresos..."
-                                    className="input-field"
-                                    style={{ paddingLeft: '2.5rem' }}
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Filter Button */}
-                        <div className="flex gap-3 mt-4">
-                            {/* Filter Button */}
-                            <button
-                                className="btn glass flex-1"
-                                onClick={() => {
-                                    setShowBottomSheet(false);
-                                    setShowFilterModal(true);
-                                }}
-                                style={{
-                                    background: hasActiveFilters ? 'hsl(var(--accent-primary) / 0.2)' : undefined,
-                                    borderColor: hasActiveFilters ? 'hsl(var(--accent-primary))' : undefined,
-                                    justifyContent: 'center'
-                                }}
-                            >
-                                <Filter size={18} /> Filtrar {hasActiveFilters && `(${Object.values(activeFilters).filter(v => v).length})`}
-                            </button>
-
-                            {/* Close Button */}
-                            <button
-                                className="btn btn-primary flex-1"
-                                onClick={() => setShowBottomSheet(false)}
-                            >
-                                Listo
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Modal Agregar/Editar */}
             {showModal && (

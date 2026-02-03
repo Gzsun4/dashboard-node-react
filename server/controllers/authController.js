@@ -85,6 +85,32 @@ const loginUser = asyncHandler(async (req, res) => {
     }
 });
 
+// @desc    Update telegram chat ID
+// @route   PUT /api/auth/telegram
+// @access  Private
+const updateTelegramChatId = asyncHandler(async (req, res) => {
+    const { telegramChatId } = req.body;
+
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+        user.telegramChatId = telegramChatId;
+        const updatedUser = await user.save();
+
+        res.json({
+            _id: updatedUser._id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            role: updatedUser.role,
+            telegramChatId: updatedUser.telegramChatId,
+            token: generateToken(updatedUser._id, updatedUser.role)
+        });
+    } else {
+        res.status(404);
+        throw new Error('User not found');
+    }
+});
+
 // Generate JWT
 const generateToken = (id, role) => {
     return jwt.sign({ id, role }, process.env.JWT_SECRET, {
@@ -95,4 +121,5 @@ const generateToken = (id, role) => {
 export {
     registerUser,
     loginUser,
+    updateTelegramChatId
 };

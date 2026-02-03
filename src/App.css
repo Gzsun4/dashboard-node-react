@@ -1,29 +1,22 @@
 .app-container {
-  display: flex;
+  display: block;
+  /* Changed from flex */
   min-height: 100vh;
   touch-action: pan-y;
-  /* Disable horizontal browser swipes (Back/Forward) */
+  position: relative;
 }
 
 .main-content {
-  flex: 1;
-  margin-left: 280px;
-  /* Width of sidebar */
-  padding: 2rem;
-  padding-bottom: 4rem;
-  max-width: 1600px;
   width: 100%;
-  /* Ensure it doesn't overflow horizontally */
+  max-width: 1600px;
+  margin: 0 auto;
+  /* Center content */
+  padding: 1.5rem;
+  padding-bottom: 8rem;
+  /* Space for bottom nav */
 }
 
-@media (max-width: 768px) {
-  .main-content {
-    margin-left: 0;
-    padding: 1.5rem;
-    padding-top: 2rem;
-    /* Space for hamburger button */
-  }
-}
+/* Removed media query as it's no longer needed for sidebar toggle */
 
 /* Page transitions could go here */
 .page-header {

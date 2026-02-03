@@ -13,13 +13,19 @@
   --accent-success: 150 70% 45%;
   /* Green */
   --accent-danger: 340 75% 55%;
+
   /* Red */
+
+  --text-primary: 220 10% 95%;
 
   --text-primary: 220 10% 95%;
   --text-secondary: 220 10% 70%;
   --text-muted: 220 10% 50%;
 
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Inter',
+    system-ui,
+    -apple-system,
+    sans-serif;
 
   --radius-lg: 1.5rem;
   --radius-md: 1rem;
@@ -37,7 +43,7 @@
 
 html,
 body {
-  font-size: 125%;
+  font-size: 90%;
   /* Scale everything to 125% */
   height: 100%;
   width: 100%;
@@ -770,6 +776,20 @@ tr:hover td {
 
 .animate-slide-in-right {
   animation: slideInRight 0.4s ease-out forwards;
+}
+
+@keyframes pureFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-pure-fade {
+  animation: pureFadeIn 0.3s ease-out forwards;
 }
 
 .animate-scale-in {

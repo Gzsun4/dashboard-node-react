@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import Card from '../components/Card';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
-import { Plus, Search, Filter, X, Menu, DollarSign, TrendingUp, PieChart as PieIcon, Coffee, Car, Zap, Film, ShoppingBag, HeartPulse, Edit2 } from 'lucide-react';
+import { Plus, Search, Filter, X, Menu, DollarSign, TrendingUp, PieChart as PieIcon, Coffee, Car, Zap, Film, ShoppingBag, HeartPulse, Edit2, History, List, ChevronDown, ChevronUp } from 'lucide-react';
 import MobileMenuButton from '../components/MobileMenuButton';
 import CustomPencilIcon from '../components/CustomPencilIcon';
 import CustomTrashIcon from '../components/CustomTrashIcon';
@@ -16,34 +16,38 @@ import TimeFilter from '../components/TimeFilter';
 import Toast from '../components/Toast';
 import { calculateTrend, calculateLinearRegression } from '../utils/trendUtils';
 import TrendProjectionCard from '../components/TrendProjectionCard';
+import { useTransactions } from '../context/TransactionContext';
 
-const Expenses = () => {
+const Expenses = ({ timeFilter: externalTimeFilter, isNested, externalTriggerModal, onModalReset }) => {
     const { token } = useAuth();
     const { symbol } = useCurrency();
-    const [expenses, setExpenses] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [timeFilter, setTimeFilter] = useState('7days'); // Default internally
+
+    // Sync external timeFilter if provided
+    useEffect(() => {
+        if (externalTimeFilter) {
+            setTimeFilter(externalTimeFilter);
+        }
+    }, [externalTimeFilter]);
+
+    // Handle external modal trigger from parent (Activity.jsx)
+    useEffect(() => {
+        if (externalTriggerModal > 0) {
+            setShowModal(true);
+        }
+    }, [externalTriggerModal]);
+    const { expenses, setExpenses, hasLoaded: globalLoaded, refresh: refreshTransactions } = useTransactions();
+    const [loading, setLoading] = useState(!globalLoaded);
     const [toast, setToast] = useState({ show: false, message: '', type: 'error' });
 
     useEffect(() => {
-        if (token) fetchExpenses();
-    }, [token]);
-
-    const fetchExpenses = async () => {
-        try {
-            const response = await fetch('/api/data/expenses', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await response.json();
-            setExpenses(data);
+        if (globalLoaded) {
             setLoading(false);
-        } catch (error) {
-            console.error("Error fetching expenses", error);
         }
-    };
+    }, [globalLoaded]);
 
     const [showModal, setShowModal] = useState(false);
     const [showFilterModal, setShowFilterModal] = useState(false);
-    const [showBottomSheet, setShowBottomSheet] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [editingId, setEditingId] = useState(null);
     const [newExpense, setNewExpense] = useState({
@@ -65,7 +69,7 @@ const Expenses = () => {
         dateTo: ''
     });
 
-    const [timeFilter, setTimeFilter] = useState('7days'); // Default to 7 days
+
 
     // Colores para cada categoría
     const CATEGORY_COLORS = {
@@ -99,7 +103,7 @@ const Expenses = () => {
                 });
                 if (res.ok) {
                     const updatedExpense = await res.json();
-                    setExpenses(expenses.map(e => e._id === editingId ? updatedExpense : e));
+                    setExpenses(expenses.map(e => i._id === editingId ? updatedExpense : e));
                     setToast({ show: true, message: 'Gasto actualizado', type: 'success' });
                 } else {
                     setToast({ show: true, message: 'Error al actualizar', type: 'error' });
@@ -118,7 +122,7 @@ const Expenses = () => {
                     setToast({ show: true, message: 'Error al registrar', type: 'error' });
                 }
             }
-            fetchExpenses();
+            refreshTransactions();
         } catch (error) {
             console.error("Error saving expense", error);
             setToast({ show: true, message: 'Error de conexión', type: 'error' });
@@ -127,6 +131,7 @@ const Expenses = () => {
         setShowModal(false);
         setEditingId(null);
         setNewExpense({ description: '', date: new Date().toLocaleDateString('en-CA'), amount: '', category: '' });
+        if (onModalReset) onModalReset();
     };
 
     const handleEdit = (expense) => {
@@ -147,8 +152,8 @@ const Expenses = () => {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
-                setExpenses(expenses.filter(e => e._id !== id));
                 setToast({ show: true, message: 'Gasto eliminado', type: 'success' });
+                setExpenses(prev => prev.filter(e => e._id !== id));
             } else {
                 setToast({ show: true, message: 'Error al eliminar', type: 'error' });
             }
@@ -162,7 +167,9 @@ const Expenses = () => {
         setShowModal(false);
         setEditingId(null);
         setNewExpense({ description: '', date: new Date().toLocaleDateString('en-CA'), amount: '', category: '' });
+        if (onModalReset) onModalReset();
     };
+
 
     const handleApplyFilters = () => {
         setActiveFilters({ ...filters });
@@ -210,7 +217,7 @@ const Expenses = () => {
 
             if (timeFilter === '7days') {
                 cutoffDate.setDate(today.getDate() - 7);
-            } else if (timeFilter === '1month') {
+            } else if (timeFilter === 'month') {
                 cutoffDate.setMonth(today.getMonth() - 1);
             } else if (timeFilter === '3months') {
                 cutoffDate.setMonth(today.getMonth() - 3);
@@ -307,69 +314,35 @@ const Expenses = () => {
             )}
             <div className="animate-fade-in">
 
-                <MobileHeader
-                    title="Gastos"
-                    themeColor="#ff4d6d"
-                >
-                    <TimeFilter
-                        onFilterChange={(filter) => setTimeFilter(filter)}
-                        themeColor="#ff4d6d"
-                    />
-                </MobileHeader>
+
 
                 <MobileStatsGrid stats={mobileStats} />
 
-                <div className="page-header hidden-mobile"> {/* Original header for desktop only */}
-                    <div className="flex justify-between items-center w-full">
-                        <div>
-                            <h2 className="page-title">Gastos</h2>
-                            <p className="page-subtitle">Controla a dónde va tu dinero.</p>
+                {!isNested && (
+                    <div className="page-header hidden-mobile"> {/* Original header for desktop only */}
+                        <div className="flex justify-between items-center w-full">
+                            <div>
+                                <h2 className="page-title">Gastos</h2>
+                                <p className="page-subtitle">Controla a dónde va tu dinero.</p>
+                            </div>
+                            <button
+                                className="btn btn-responsive-action text-white"
+                                style={{
+                                    background: 'linear-gradient(135deg, hsl(var(--accent-danger)), #ff6b6b)',
+                                    border: 'none'
+                                }}
+                                onClick={() => setShowModal(true)}
+                            >
+                                <Plus className="icon" />
+                                <span className="hidden-mobile">Nuevo Gasto</span>
+                            </button>
                         </div>
-                        <button
-                            className="btn btn-responsive-action text-white"
-                            style={{
-                                background: 'linear-gradient(135deg, hsl(var(--accent-danger)), #ff6b6b)',
-                                border: 'none'
-                            }}
-                            onClick={() => setShowModal(true)}
-                        >
-                            <Plus className="icon" />
-                            <span className="hidden-mobile">Nuevo Gasto</span>
-                        </button>
                     </div>
-                </div>
-
-                <div className="flex gap-4 search-filter-container" style={{ marginBottom: '10px' }}>
-                    <div className="relative w-full search-container-mobile" style={{ maxWidth: '400px' }}>
-                        <div className="absolute" style={{ left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--text-muted))' }}>
-                            <Search size={18} />
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Buscar gastos..."
-                            className="input-field"
-                            style={{ paddingLeft: '2.5rem' }}
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-                    <button
-                        className="btn glass btn-mobile-full"
-                        onClick={() => setShowFilterModal(true)}
-                        style={{
-                            background: hasActiveFilters ? 'hsl(var(--accent-primary) / 0.2)' : undefined,
-                            borderColor: hasActiveFilters ? 'hsl(var(--accent-primary))' : undefined
-                        }}
-                    >
-                        <Filter size={18} /> Filtrar {hasActiveFilters && `(${Object.values(activeFilters).filter(v => v).length})`}
-                    </button>
-                </div>
+                )}
 
                 {/* Layout Grid: Gráfica a la izquierda, Tabla a la derecha 
-                    UPDATE: Gráfica "Gastos por Categoría" eliminada.
-                    UPDATE: Reemplazada por "TrendProjectionCard".
-                */}
-                <div className="expenses-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 350px) 1fr', gap: '8px 1.5rem', alignItems: 'start' }}>
+                   En móviles el CSS hace flex-direction: column */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
                     {/* Nueva Tarjeta de Tendencia y Proyección */}
 
@@ -389,9 +362,12 @@ const Expenses = () => {
                             const today = new Date();
                             today.setHours(0, 0, 0, 0);
 
-                            // Initialize last 7 days with 0 (or selected range)
-                            // Let's assume standard 7 days graph for visual niceness
-                            const daysToShow = 7;
+                            // Adjust days to show in the small trend chart based on filter
+                            let daysToShow = 7;
+                            if (timeFilter === 'month') daysToShow = 14; // Weekly view-ish
+                            if (timeFilter === 'year') daysToShow = 12; // Monthly later? keep 7 for now
+                            if (timeFilter === 'today') daysToShow = 1;
+
                             const templateData = [];
 
                             for (let i = daysToShow - 1; i >= 0; i--) {
@@ -444,8 +420,8 @@ const Expenses = () => {
                         // We project based on the active time filter using the current chart data (last 7 days trend)
                         let projectionDays = 7;
                         if (timeFilter === 'month') projectionDays = 30;
-                        if (timeFilter === 'year') projectionDays = 365;
-                        if (timeFilter === 'today') projectionDays = 1;
+                        if (timeFilter === '3months') projectionDays = 90;
+                        if (timeFilter === 'all') projectionDays = 365;
 
                         const estimatedTotal = calculateLinearRegression(chartData.map(d => d.value), projectionDays);
 
@@ -480,10 +456,9 @@ const Expenses = () => {
 
                         const periodLabel = useMemo(() => {
                             switch (timeFilter) {
-                                case 'today': return 'HOY';
-                                case '7days': return 'ESTA SEMANA'; // Actually means last 7 days but fits context
+                                case '7days': return 'ESTA SEMANA';
                                 case 'month': return 'ESTE MES';
-                                case 'year': return 'ESTE AÑO';
+                                case '3months': return 'ESTOS 3 MESES';
                                 case 'all': return 'HISTÓRICO';
                                 default: return 'ESTE PERIODO';
                             }
@@ -505,7 +480,7 @@ const Expenses = () => {
                     })()}
 
                     {/* Tabla de Gastos + Vista Móvil combinadas en una sola Tarjeta */}
-                    <Card style={{ marginTop: '0' }}>
+                    <Card style={{ marginTop: '45px' }}>
                         <h3 className="mb-4 hidden-mobile" style={{ fontSize: '1.2rem' }}>Historial de Gastos</h3>
 
                         <div className="transaction-list">
@@ -522,6 +497,8 @@ const Expenses = () => {
                                         onEdit={handleEdit}
                                         onDelete={handleDelete}
                                         type="expense"
+                                        searchQuery={searchQuery}
+                                        setSearchQuery={setSearchQuery}
                                     />
                                 </div>
                             )}
@@ -531,95 +508,6 @@ const Expenses = () => {
 
             </div>
 
-            {/* Floating Action Button (FAB) - Search (Secondary) */}
-            <button
-                className="fab-button fab-secondary"
-                onClick={() => setShowBottomSheet(true)}
-                aria-label="Buscar y filtrar"
-            >
-                <Search size={20} />
-            </button>
-
-            {/* Floating Action Button (FAB) - Add (Primary) */}
-            <button
-                className="fab-button fab-primary fab-red"
-                onClick={() => setShowModal(true)}
-                aria-label="Nuevo Gasto"
-            >
-                <Plus size={24} />
-            </button>
-
-            {/* Bottom Sheet Modal - Mobile Only */}
-            {showBottomSheet && (
-                <div
-                    className="bottom-sheet-backdrop"
-                    onClick={() => setShowBottomSheet(false)}
-                >
-                    <div
-                        className="bottom-sheet-content"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="bottom-sheet-handle"></div>
-
-                        <div className="bottom-sheet-header">
-                            <h3 className="bottom-sheet-title">Buscar y Filtrar</h3>
-                            <button
-                                className="bottom-sheet-close"
-                                onClick={() => setShowBottomSheet(false)}
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        {/* Search Input */}
-                        <div className="mb-4">
-                            <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                Buscar
-                            </label>
-                            <div className="relative">
-                                <div className="absolute" style={{ left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--text-muted))' }}>
-                                    <Search size={18} />
-                                </div>
-                                <input
-                                    type="text"
-                                    placeholder="Buscar gastos..."
-                                    className="input-field"
-                                    style={{ paddingLeft: '2.5rem' }}
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Filter Button */}
-                        <div className="flex gap-3 mt-4">
-                            {/* Filter Button */}
-                            <button
-                                className="btn glass flex-1"
-                                onClick={() => {
-                                    setShowBottomSheet(false);
-                                    setShowFilterModal(true);
-                                }}
-                                style={{
-                                    background: hasActiveFilters ? 'hsl(var(--accent-primary) / 0.2)' : undefined,
-                                    borderColor: hasActiveFilters ? 'hsl(var(--accent-primary))' : undefined,
-                                    justifyContent: 'center'
-                                }}
-                            >
-                                <Filter size={18} /> Filtrar {hasActiveFilters && `(${Object.values(activeFilters).filter(v => v).length})`}
-                            </button>
-
-                            {/* Close Button */}
-                            <button
-                                className="btn btn-primary flex-1"
-                                onClick={() => setShowBottomSheet(false)}
-                            >
-                                Listo
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Modal Agregar/Editar */}
             {

@@ -12,12 +12,12 @@ export const calculateTrend = (data, timeFilter) => {
     // If 'all', we default to showing "Last 30 Days" trend vs previous 30 days
     // This gives the user *some* trend info instead of a broken empty state
     if (timeFilter === 'all') {
-        daysInPeriod = 30;
-        periodLabel = "vs mes ant.";
+        daysInPeriod = 365; // Show trend vs last year if all
+        periodLabel = "vs año ant.";
     } else if (timeFilter === '7days') {
         daysInPeriod = 7;
         periodLabel = "vs 7 días ant.";
-    } else if (timeFilter === '1month') {
+    } else if (timeFilter === 'month') {
         daysInPeriod = 30;
         periodLabel = "vs mes ant.";
     } else if (timeFilter === '3months') {
