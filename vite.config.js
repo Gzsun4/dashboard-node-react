@@ -9,25 +9,31 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: ['app-icon.png'],
       manifest: {
         name: 'Finanzas Personales',
         short_name: 'Finanzas',
         description: 'Gestiona tus finanzas personales',
-        theme_color: '#ffffff',
+        theme_color: '#020617',
         start_url: '/',
         display: 'standalone',
-        background_color: '#ffffff',
+        background_color: '#020617',
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: 'app-icon.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'app-icon.png',
             sizes: '512x512',
             type: 'image/png'
+          },
+          {
+            src: 'app-icon.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable'
           }
         ]
       }
