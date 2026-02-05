@@ -1,42 +1,32 @@
-import pkg from 'whatsapp-web.js';
-const { Client, LocalAuth } = pkg;
+import makeWASocket, {
+    useMultiFileAuthState,
+    DisconnectReason,
+    downloadMediaMessage,
+    fetchLatestBaileysVersion
+} from '@whiskeysockets/baileys';
+import { Boom } from '@hapi/boom';
 import qrcode from 'qrcode-terminal';
+import pino from 'pino';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import OpenAI from 'openai';
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
 import User from '../models/User.js';
 import Expense from '../models/Expense.js';
 import Income from '../models/Income.js';
 import Debt from '../models/Debt.js';
 import Goal from '../models/Goal.js';
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import OpenAI from 'openai';
-import { fileURLToPath } from 'url';
-import path from 'path';
-import fs from 'fs';
 import { getFinancialContext } from './financialService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-let client;
+let sock;
 let groq;
 
-/**
- * Envía un mensaje de WhatsApp a un ID específico
- */
-export const sendWhatsAppMessage = async (to, message) => {
-    if (!client || !client.info) {
-        console.warn('⚠️ No se puede enviar mensaje WA: Cliente no listo');
-        return false;
-    }
-    try {
-        await client.sendMessage(to, message);
-        return true;
-    } catch (error) {
-        console.error('Error enviando mensaje WA:', error);
-        return false;
-    }
-};
-
-// Reutilizamos los triggers y el mapa de categorías del bot de Telegram
+// Map categories and triggers (Shared with Telegram)
 const CATEGORY_MAP = {
     'Alimentación': ['comida', 'almuerzo', 'cena', 'desayuno', 'snack', 'restaurante', 'mercado', 'supermercado', 'burger', 'pizza', 'pollo', 'bebida', 'menu', 'menú', 'fruta'],
     'Transporte': ['pasaje', 'bus', 'taxi', 'uber', 'tren', 'gasolina', 'combustible', 'peaje', 'combi', 'moto', 'colectivo', 'metro'],
@@ -82,15 +72,12 @@ const parseSmartMessage = (text) => {
         type = 'goal';
     }
 
-    console.log(`🔍 WA Parser: [${text}] -> Type: ${type} (I:${hasIncomeTrigger}, D:${hasDebtTrigger}, S:${hasSavingsTrigger})`);
-
     const amountMatch = text.match(/(\d+(\.\d{1,2})?)/);
     const amount = amountMatch ? parseFloat(amountMatch[0]) : null;
 
     let category = detectCategory(text);
     if (!category) category = type === 'expense' ? 'Varios' : 'Otros';
 
-    // 4. Limpiar Descripción
     let description = text;
     if (amountMatch) {
         description = description.replace(amountMatch[0], '').trim();
@@ -107,7 +94,6 @@ const parseSmartMessage = (text) => {
     if (!description) description = category;
     description = description.charAt(0).toUpperCase() + description.slice(1);
 
-    // 3. Detectar Fecha (Ayer/Hoy/Anteayer)
     const dateObj = new Date();
     if (normalized.includes('ayer') && !normalized.includes('anteayer')) {
         dateObj.setDate(dateObj.getDate() - 1);
@@ -116,40 +102,29 @@ const parseSmartMessage = (text) => {
     }
 
     const dateStr = dateObj.toLocaleDateString("en-CA", { timeZone: "America/Lima" });
-    console.log(`📅 WA Date Generated: ${dateStr} (UTC: ${dateObj.toISOString()})`);
-
     return { type, amount, category, description, date: dateStr };
 };
 
-export const initializeWhatsAppBot = () => {
-    console.log('🚀 Iniciando WhatsApp Bot...');
+export const initializeWhatsAppBot = async () => {
+    console.log('🚀 Iniciando WhatsApp Bot (Lightweight via Baileys)...');
 
-    client = new Client({
-        authStrategy: new LocalAuth({
-            dataPath: path.join(__dirname, '../../.wwebjs_auth')
-        }),
-        webVersionCache: {
-            type: 'remote',
-            remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
-        },
-        puppeteer: {
-            headless: true,
-            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || (process.env.RENDER ? '/opt/render/project/src/chrome-bin' : null),
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
-                '--no-first-run',
-                '--no-zygote',
-                '--disable-gpu',
-                '--disable-extensions',
-                '--disable-software-rasterizer'
-            ]
-        }
+    const authPath = path.join(__dirname, '../../.baileys_auth');
+    if (!fs.existsSync(authPath)) {
+        fs.mkdirSync(authPath, { recursive: true });
+    }
+
+    const { state, saveCreds } = await useMultiFileAuthState(authPath);
+    const { version } = await fetchLatestBaileysVersion();
+
+    sock = makeWASocket({
+        version,
+        auth: state,
+        printQRInTerminal: false,
+        logger: pino({ level: 'silent' }),
+        browser: ['GZSun Finanzas', 'MacOS', '3.0']
     });
 
-    // Inicializar Groq
+    // Initialize Groq
     if (process.env.GROQ_API_KEY) {
         groq = new OpenAI({
             apiKey: process.env.GROQ_API_KEY,
@@ -157,167 +132,138 @@ export const initializeWhatsAppBot = () => {
         });
     }
 
-    client.on('qr', (qr) => {
-        console.log('📲 ESCANEA ESTE CÓDIGO QR PARA CONECTAR WHATSAPP:');
-        qrcode.generate(qr, { small: true });
+    sock.ev.on('creds.update', saveCreds);
+
+    sock.ev.on('connection.update', (update) => {
+        const { connection, lastDisconnect, qr } = update;
+
+        if (qr) {
+            console.log('📲 ESCANEA ESTE CÓDIGO QR PARA CONECTAR WHATSAPP:');
+            qrcode.generate(qr, { small: true });
+        }
+
+        if (connection === 'close') {
+            const shouldReconnect = (lastDisconnect.error instanceof Boom)?.output?.statusCode !== DisconnectReason.loggedOut;
+            console.log('❌ WhatsApp: Conexión cerrada. Reconectando:', shouldReconnect);
+            if (shouldReconnect) {
+                initializeWhatsAppBot();
+            }
+        } else if (connection === 'open') {
+            console.log('✅ WhatsApp Bot: Conexión abierta con éxito!');
+        }
     });
 
-    client.on('authenticated', () => {
-        console.log('🔓 WhatsApp: Autenticación exitosa!');
-    });
+    sock.ev.on('messages.upsert', async (m) => {
+        if (m.type !== 'notify') return;
+        const msg = m.messages[0];
+        if (!msg.message || msg.key.fromMe) return;
 
-    client.on('auth_failure', msg => {
-        console.error('❌ WhatsApp: Fallo en la autenticación', msg);
-    });
+        const senderId = msg.key.remoteJid;
+        if (senderId.endsWith('@g.us') || senderId === 'status@broadcast') return;
 
-    client.on('loading_screen', (percent, message) => {
-        console.log('⏳ WhatsApp: Cargando...', percent, '% -', message);
-    });
-
-    client.on('ready', () => {
-        console.log('✅ WhatsApp Bot está listo!');
-    });
-
-    client.on('message', async (msg) => {
         try {
-            const senderId = msg.from; // Formato: 51987654321@c.us
+            let text = msg.message.conversation || msg.message.extendedTextMessage?.text || "";
+            const isAudio = msg.message.audioMessage;
 
-            // IGNORAR ESTADOS / HISTORIAS y GRUPOS
-            if (senderId === 'status@broadcast' || senderId.endsWith('@g.us')) return;
-
-            let text = msg.body;
-
-            // MANEJO DE AUDIOS
-            if (msg.hasMedia && (msg.type === 'audio' || msg.type === 'ptt')) {
+            // Handle Audio/Voice Messages
+            if (isAudio && groq) {
                 console.log("🎙️ Recibí un audio de WhatsApp...");
                 try {
-                    const media = await msg.downloadMedia();
-                    if (!media) throw new Error("No se pudo descargar el medio");
-
+                    const buffer = await downloadMediaMessage(msg, 'buffer', {}, { logger: pino({ level: 'silent' }), reuploadRequest: sock.updateMediaMessage });
                     const tempFile = path.join(__dirname, `../../voice_wa_${Date.now()}.ogg`);
-                    fs.writeFileSync(tempFile, Buffer.from(media.data, 'base64'));
+                    fs.writeFileSync(tempFile, buffer);
 
                     console.log("🎙️ Transcribiendo audio con Groq Whisper...");
-                    const translation = await groq.audio.transcriptions.create({
+                    const trans = await groq.audio.transcriptions.create({
                         file: fs.createReadStream(tempFile),
                         model: "whisper-large-v3",
                         language: "es",
                     });
 
-                    text = translation.text;
-                    console.log(`📝 Transcripción WA: "${text}"`);
-
-                    // Limpiar temporal
+                    text = trans.text;
                     fs.unlinkSync(tempFile);
 
-                    // Avisar al usuario qué entendimos
-                    await msg.reply(`🎤 _"${text}"_`);
-
-                } catch (audioErr) {
-                    console.error("Error procesando audio WA:", audioErr);
-                    return msg.reply("❌ No pude procesar tu mensaje de voz.");
+                    await sock.sendMessage(senderId, { text: `🎤 _"${text}"_` }, { quoted: msg });
+                } catch (err) {
+                    console.error("Error processing audio:", err);
+                    await sock.sendMessage(senderId, { text: "❌ No pude procesar tu mensaje de voz." });
+                    return;
                 }
             }
 
-            if (!text && !msg.hasMedia) return;
+            if (!text) return;
 
-            // Buscar usuario por whatsappId
-            let user = await User.findOne({ whatsappId: senderId });
+            // Search user
+            const user = await User.findOne({ whatsappId: senderId });
 
-            if (text && text.toLowerCase() === '/start') {
+            if (text.toLowerCase() === '/start') {
                 if (!user) {
-                    return msg.reply(`👋 ¡Hola! Soy tu asistente de Finanzas.\n\nPara vincular tu cuenta, ingresa este ID en el panel web: ${senderId}`);
+                    return sock.sendMessage(senderId, { text: `👋 ¡Hola! Soy tu asistente de Finanzas.\n\nPara vincular tu cuenta, ingresa este ID en el panel web: ${senderId}` });
                 }
-                return msg.reply(`👋 ¡Hola de nuevo, ${user.name}! Estoy listo para tus gastos.`);
+                return sock.sendMessage(senderId, { text: `👋 ¡Hola de nuevo, ${user.name}! Estoy listo para tus gastos.` });
             }
 
             if (!user) {
-                return msg.reply(`⛔ Cuenta no vinculada. Por favor, regístrate en la web y vincula tu WhatsApp usando este ID: ${senderId}`);
+                return sock.sendMessage(senderId, { text: `⛔ Cuenta no vinculada. Por favor, regístrate en la web y vincula tu WhatsApp usando este ID: ${senderId}` });
             }
 
-            // Lógica de transacciones inteligentes (Mismo que Telegram)
-            if (text && /\d/.test(text)) {
+            // Smart Transactions
+            if (/\d/.test(text)) {
                 const parsed = parseSmartMessage(text);
                 if (parsed.amount) {
                     if (parsed.type === 'expense') {
-                        await Expense.create({
-                            user: user._id,
-                            amount: parsed.amount,
-                            category: parsed.category,
-                            description: parsed.description,
-                            date: parsed.date
-                        });
-                        return msg.reply(`✅ *Gasto Registrado*\n💰 Monto: S/. ${parsed.amount.toFixed(2)}\n🏷️ Categoría: ${parsed.category}\n📝 Detalle: ${parsed.description}`);
+                        await Expense.create({ user: user._id, amount: parsed.amount, category: parsed.category, description: parsed.description, date: parsed.date });
+                        return sock.sendMessage(senderId, { text: `✅ *Gasto Registrado*\n💰 Monto: S/. ${parsed.amount.toFixed(2)}\n🏷️ Categoría: ${parsed.category}\n📝 Detalle: ${parsed.description}` });
                     } else if (parsed.type === 'income') {
-                        await Income.create({
-                            user: user._id,
-                            amount: parsed.amount,
-                            category: parsed.category,
-                            source: parsed.description,
-                            date: parsed.date
-                        });
-                        return msg.reply(`✅ *Ingreso Registrado*\n💰 Monto: S/. ${parsed.amount.toFixed(2)}\n🏷️ Fuente: ${parsed.description}`);
+                        await Income.create({ user: user._id, amount: parsed.amount, category: parsed.category, source: parsed.description, date: parsed.date });
+                        return sock.sendMessage(senderId, { text: `✅ *Ingreso Registrado*\n💰 Monto: S/. ${parsed.amount.toFixed(2)}\n🏷️ Fuente: ${parsed.description}` });
                     } else if (parsed.type === 'debt') {
-                        await Debt.create({
-                            user: user._id,
-                            name: parsed.description,
-                            target: parsed.amount,
-                            current: 0,
-                            date: parsed.date
-                        });
-                        return msg.reply(`🚩 *Deuda Registrada*\n👤 Detalle: ${parsed.description}\n💰 Monto: S/. ${parsed.amount.toFixed(2)}\n\n💡 _Dime "Abonar a ${parsed.description} 10" cuando hagas un pago._`);
+                        await Debt.create({ user: user._id, name: parsed.description, target: parsed.amount, current: 0, date: parsed.date });
+                        return sock.sendMessage(senderId, { text: `🚩 *Deuda Registrada*\n👤 Detalle: ${parsed.description}\n💰 Monto: S/. ${parsed.amount.toFixed(2)}\n\n💡 _Dime "Abonar a ${parsed.description} 10" cuando hagas un pago._` });
                     } else if (parsed.type === 'goal') {
                         let goal = await Goal.findOne({ user: user._id, name: new RegExp(parsed.description, 'i') });
                         if (!goal) goal = await Goal.findOne({ user: user._id });
-
                         if (goal) {
                             goal.current += parsed.amount;
-                            goal.history.push({ amount: parsed.amount, date: parsed.date, note: 'Desde WhatsApp' });
+                            goal.history.push({ amount: parsed.amount, date: parsed.date, note: 'WhatsApp' });
                             await goal.save();
-                            return msg.reply(`🎯 *Ahorro Registrado*\n💰 +S/. ${parsed.amount.toFixed(2)} para *${goal.name}*\n📈 Progreso: S/. ${goal.current} / S/. ${goal.target}`);
-                        } else {
-                            return msg.reply(`⚠️ No encontré una meta de ahorro llamada "${parsed.description}". Regístrala primero en la web.`);
+                            return sock.sendMessage(senderId, { text: `🎯 *Ahorro Registrado*\n💰 +S/. ${parsed.amount.toFixed(2)} para *${goal.name}*\n📈 Progreso: S/. ${goal.current} / S/. ${goal.target}` });
                         }
                     }
                 }
             }
 
-            // IA Fallback
-            if (text && (process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY)) {
+            // AI Fallback
+            if (process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY) {
                 const aiResponse = await processAIQuery(text, user);
-                msg.reply(aiResponse);
+                await sock.sendMessage(senderId, { text: aiResponse });
             }
 
-        } catch (error) {
-            console.error('Error en WhatsApp Bot:', error);
+        } catch (err) {
+            console.error('Error handling message:', err);
         }
     });
+};
 
-    client.initialize();
+export const sendWhatsAppMessage = async (to, message) => {
+    if (!sock) return false;
+    try {
+        await sock.sendMessage(to, { text: message });
+        return true;
+    } catch (error) {
+        console.error('Error sending message:', error);
+        return false;
+    }
 };
 
 async function processAIQuery(text, user) {
     try {
         const context = await getFinancialContext(user._id);
-        const prompt = `
-        [DATOS FINANCIEROS REALES]:
-        ${context}
-
-        [USUARIO]: ${user.name}
-        [MENSAJE]: "${text}"
-        
-        [INSTRUCCIÓN]: 
-        1. Responde de forma breve y amigable.
-        2. Usa los DATOS FINANCIEROS REALES para responder preguntas sobre balance, gastos o ingresos.
-        3. SI NO hay datos para lo que pide (ej. "ayer"), dile honestamente que no hay registro. No inventes montos.
-        `;
+        const prompt = `[DATOS FINANCIEROS REALES]:\n${context}\n\n[USUARIO]: ${user.name}\n[MENSAJE]: "${text}"\n\n[INSTRUCCIÓN]:\n1. Responde breve y amigable.\n2. Usa los DATOS REALES.\n3. Si no hay datos, sé honesto.`;
 
         if (groq) {
-            const completion = await groq.chat.completions.create({
-                messages: [{ role: "user", content: prompt }],
-                model: "llama-3.1-8b-instant",
-            });
-            return completion.choices[0].message.content;
+            const comp = await groq.chat.completions.create({ messages: [{ role: "user", content: prompt }], model: "llama-3.1-8b-instant" });
+            return comp.choices[0].message.content;
         } else {
             const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
             const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -325,7 +271,6 @@ async function processAIQuery(text, user) {
             return result.response.text();
         }
     } catch (err) {
-        console.error("Error in WA AI Query:", err);
-        return "⚠️ Lo siento, tuve un problema procesando tu mensaje.";
+        return "⚠️ Tuve un problema procesando tu mensaje.";
     }
 }
