@@ -57,9 +57,9 @@ const Planning = () => {
             />
 
             {/* Custom Tab Switcher - Premium Design */}
-            <div className="px-4 mb-16">
+            <div className="px-4 mb-14">
                 <div
-                    className="flex p-1.5"
+                    className="flex p-1.5 relative overflow-hidden"
                     style={{
                         background: '#0a0a0a',
                         border: '1.5px solid rgba(255, 255, 255, 0.15)',
@@ -68,55 +68,97 @@ const Planning = () => {
                         borderRadius: '24px'
                     }}
                 >
+                    {/* Sliding Highlighter */}
+                    <div
+                        className="absolute transition-all duration-500"
+                        style={{
+                            top: '6px',
+                            left: '6px',
+                            width: 'calc((100% - 12px) / 3)',
+                            height: 'calc(100% - 12px)',
+                            background:
+                                activeTab === 'budgets' ? 'linear-gradient(180deg, #f97316 0%, #ea580c 100%)' :
+                                    activeTab === 'savings' ? 'linear-gradient(180deg, #3b82f6 0%, #2563eb 100%)' :
+                                        'linear-gradient(180deg, #f43f5e 0%, #e11d48 100%)',
+                            borderRadius: '18px',
+                            transform:
+                                activeTab === 'budgets' ? 'translateX(0)' :
+                                    activeTab === 'savings' ? 'translateX(100%)' :
+                                        'translateX(200%)',
+                            boxShadow:
+                                activeTab === 'budgets' ? '0 0 20px rgba(249, 115, 22, 0.4)' :
+                                    activeTab === 'savings' ? '0 0 20px rgba(59, 130, 246, 0.4)' :
+                                        '0 0 20px rgba(244, 63, 94, 0.4)',
+                            border: '1px solid rgba(255, 255, 255, 0.3)',
+                            zIndex: 1,
+                            transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
+                        }}
+                    />
+
                     <button
                         onClick={() => setActiveTab('budgets')}
-                        className="flex-1 flex items-center justify-center gap-2 text-[14px] font-bold transition-all duration-300"
+                        className="flex-1 flex items-center justify-center gap-2 text-[12px] font-bold transition-all duration-300 active:scale-95 relative px-1"
                         style={{
-                            background: activeTab === 'budgets' ? 'linear-gradient(180deg, #f97316 0%, #ea580c 100%)' : 'transparent',
                             color: activeTab === 'budgets' ? '#ffffff' : '#6b7280',
-                            border: activeTab === 'budgets' ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid transparent',
-                            boxShadow: activeTab === 'budgets' ? '0 0 15px rgba(249, 115, 22, 0.3)' : 'none',
-                            borderRadius: '18px'
+                            zIndex: 2,
+                            background: 'transparent',
+                            border: 'none'
                         }}
                     >
-                        <Wallet size={20} strokeWidth={2.5} />
-                        Presupuesto
+                        <Wallet
+                            size={17}
+                            strokeWidth={2.5}
+                            className={activeTab === 'budgets' ? 'icon-pop' : ''}
+                        />
+                        Proyección
                     </button>
 
                     <button
                         onClick={() => setActiveTab('savings')}
-                        className="flex-1 flex items-center justify-center gap-2 text-[14px] font-bold transition-all duration-300"
+                        className="flex-1 flex items-center justify-center gap-2 text-[12px] font-bold transition-all duration-300 active:scale-95 relative px-1"
                         style={{
-                            background: activeTab === 'savings' ? 'linear-gradient(180deg, #3b82f6 0%, #2563eb 100%)' : 'transparent',
                             color: activeTab === 'savings' ? '#ffffff' : '#6b7280',
-                            border: activeTab === 'savings' ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid transparent',
-                            boxShadow: activeTab === 'savings' ? '0 0 15px rgba(59, 130, 246, 0.3)' : 'none',
-                            borderRadius: '18px'
+                            zIndex: 2,
+                            background: 'transparent',
+                            border: 'none'
                         }}
                     >
-                        <PiggyBank size={20} strokeWidth={2.5} />
+                        <PiggyBank
+                            size={17}
+                            strokeWidth={2.5}
+                            className={activeTab === 'savings' ? 'icon-pop' : ''}
+                        />
                         Ahorros
                     </button>
 
                     <button
                         onClick={() => setActiveTab('debts')}
-                        className="flex-1 flex items-center justify-center gap-2 text-[14px] font-bold transition-all duration-300"
+                        className="flex-1 flex items-center justify-center gap-2 text-[12px] font-bold transition-all duration-300 active:scale-95 relative px-1"
                         style={{
-                            background: activeTab === 'debts' ? 'linear-gradient(180deg, #f43f5e 0%, #e11d48 100%)' : 'transparent',
                             color: activeTab === 'debts' ? '#ffffff' : '#6b7280',
-                            border: activeTab === 'debts' ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid transparent',
-                            boxShadow: activeTab === 'debts' ? '0 0 15px rgba(244, 63, 94, 0.3)' : 'none',
-                            borderRadius: '18px'
+                            zIndex: 2,
+                            background: 'transparent',
+                            border: 'none'
                         }}
                     >
-                        <CreditCard size={20} strokeWidth={2.5} />
+                        <CreditCard
+                            size={17}
+                            strokeWidth={2.5}
+                            className={activeTab === 'debts' ? 'icon-pop' : ''}
+                        />
                         Deudas
                     </button>
                 </div>
             </div>
 
-            {/* Content Area */}
-            <div className="relative">
+            {/* Content Area - Animated Transition */}
+            <div
+                key={activeTab}
+                className={`relative ${activeTab === 'budgets' ? 'slide-from-left' :
+                    activeTab === 'debts' ? 'slide-from-right' :
+                        'slide-up-fade' // Center tab (savings) uses a fade/up instead of lateral
+                    }`}
+            >
                 {activeTab === 'budgets' && (
                     <Budgets
                         isNested={true}

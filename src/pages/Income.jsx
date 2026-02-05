@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import Card from '../components/Card';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
@@ -15,6 +16,8 @@ import TimeFilter from '../components/TimeFilter';
 import Toast from '../components/Toast';
 import { calculateTrend } from '../utils/trendUtils';
 import { useTransactions } from '../context/TransactionContext';
+
+import SwipeableModal from '../components/SwipeableModal';
 
 const Income = ({ timeFilter: externalTimeFilter, isNested, externalTriggerModal, onModalReset }) => {
     const { token } = useAuth();
@@ -251,6 +254,16 @@ const Income = ({ timeFilter: externalTimeFilter, isNested, externalTriggerModal
 
     const trendData = useMemo(() => calculateTrend(incomes, timeFilter), [incomes, timeFilter]);
 
+    const getIncomeCategoryIcon = (cat) => {
+        switch (cat) {
+            case 'Trabajo': return <Briefcase className="text-blue-500" />;
+            case 'Proyectos': return <Lightbulb className="text-yellow-500" />;
+            case 'Ventas': return <Search className="text-purple-500" />;
+            case 'Inversiones': return <TrendingUp className="text-emerald-500" />;
+            default: return <TrendingUp className="text-blue-500" />;
+        }
+    };
+
     const mobileStats = [
         {
             title: "Ingreso Total",
@@ -260,7 +273,12 @@ const Income = ({ timeFilter: externalTimeFilter, isNested, externalTriggerModal
             trend: trendData?.trend,
             trendLabel: trendData?.trendLabel
         },
-        { title: "Fuente Top", value: topCategory, icon: <TrendingUp className="text-blue-500" />, color: "bg-blue-500" },
+        {
+            title: "Fuente Top",
+            value: topCategory,
+            icon: getIncomeCategoryIcon(topCategory),
+            color: "bg-blue-500"
+        },
         { title: "Movimientos", value: incomes.length.toString(), icon: <PieIcon className="text-purple-500" />, color: "bg-purple-500" }
     ];
 
@@ -277,7 +295,7 @@ const Income = ({ timeFilter: externalTimeFilter, isNested, externalTriggerModal
 
 
 
-                <MobileStatsGrid stats={mobileStats} style={{ marginTop: '20px', marginBottom: '-28px' }} />
+                <MobileStatsGrid stats={mobileStats} style={{ marginTop: '-3px', marginBottom: '-28px' }} />
 
                 {!isNested && (
                     <div className="page-header hidden-mobile">
@@ -298,7 +316,7 @@ const Income = ({ timeFilter: externalTimeFilter, isNested, externalTriggerModal
                 )}
 
                 {/* Tabla de Ingresos + Vista Móvil combinadas en una sola Tarjeta */}
-                <Card style={{ marginTop: '45px' }}>
+                <Card style={{ marginTop: '38px' }}>
                     <h3 className="mb-4 hidden-mobile" style={{ fontSize: '1.2rem' }}>Historial de Ingresos</h3>
 
                     <div className="transaction-list">
@@ -324,59 +342,36 @@ const Income = ({ timeFilter: externalTimeFilter, isNested, externalTriggerModal
             </div>
 
 
+
             {/* Modal Agregar/Editar */}
-            {showModal && (
-                <div className="modal-backdrop" style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0, 0, 0, 0.7)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000
-                }}>
-                    <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '500px', position: 'relative' }}>
-                        <button
-                            onClick={handleCloseModal}
-                            style={{
-                                position: 'absolute',
-                                top: '1rem',
-                                right: '1rem',
-                                background: 'transparent',
-                                border: 'none',
-                                color: 'white',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            <X size={24} />
-                        </button>
+            {showModal && createPortal(
+                <SwipeableModal onClose={() => setShowModal(false)} editingId={editingId}>
+                    <h3 className="premium-title green">
+                        {editingId ? 'Editar Ingreso' : 'Agregar Nuevo Ingreso'}
+                    </h3>
 
-                        <h3 className="mb-6">{editingId ? 'Editar Ingreso' : 'Agregar Nuevo Ingreso'}</h3>
+                    <form onSubmit={handleSubmit}>
+                        <div className="premium-input-group">
+                            <label className="premium-label">
+                                Fuente de Ingreso
+                            </label>
+                            <input
+                                type="text"
+                                className="premium-input"
+                                placeholder="Ej: Salario, Freelance, Venta"
+                                value={newIncome.source}
+                                onChange={(e) => setNewIncome({ ...newIncome, source: e.target.value })}
+                                required
+                            />
+                        </div>
 
-                        <form onSubmit={handleSubmit}>
-                            <div className="mb-4">
-                                <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                    Fuente de Ingreso
-                                </label>
-                                <input
-                                    type="text"
-                                    className="input-field"
-                                    placeholder="Ej: Salario, Freelance, Venta"
-                                    value={newIncome.source}
-                                    onChange={(e) => setNewIncome({ ...newIncome, source: e.target.value })}
-                                    required
-                                />
-                            </div>
-
-                            <div className="mb-4">
-                                <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
+                        <div className="form-grid-2">
+                            <div className="premium-input-group">
+                                <label className="premium-label">
                                     Categoría
                                 </label>
                                 <select
-                                    className="input-field"
+                                    className="premium-input"
                                     value={newIncome.category}
                                     onChange={(e) => setNewIncome({ ...newIncome, category: e.target.value })}
                                     required
@@ -390,14 +385,29 @@ const Income = ({ timeFilter: externalTimeFilter, isNested, externalTriggerModal
                                 </select>
                             </div>
 
-                            <div className="mb-4">
-                                <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
+                            <div className="premium-input-group">
+                                <label className="premium-label">
+                                    Fecha
+                                </label>
+                                <input
+                                    type="date"
+                                    className="premium-input"
+                                    value={newIncome.date}
+                                    onChange={(e) => setNewIncome({ ...newIncome, date: e.target.value })}
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className="form-grid-2" style={{ alignItems: 'center' }}>
+                            <div className="premium-input-group">
+                                <label className="premium-label">
                                     Monto
                                 </label>
                                 <input
                                     type="number"
                                     step="0.01"
-                                    className="input-field"
+                                    className="premium-input"
                                     placeholder="0.00"
                                     value={newIncome.amount}
                                     onChange={(e) => setNewIncome({ ...newIncome, amount: e.target.value })}
@@ -405,20 +415,7 @@ const Income = ({ timeFilter: externalTimeFilter, isNested, externalTriggerModal
                                 />
                             </div>
 
-                            <div className="mb-6">
-                                <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                    Fecha
-                                </label>
-                                <input
-                                    type="date"
-                                    className="input-field"
-                                    value={newIncome.date}
-                                    onChange={(e) => setNewIncome({ ...newIncome, date: e.target.value })}
-                                    required
-                                />
-                            </div>
-
-                            <div className="flex gap-3 justify-end w-full">
+                            <div className="flex gap-2 w-full">
                                 {editingId && (
                                     <button
                                         type="button"
@@ -431,52 +428,51 @@ const Income = ({ timeFilter: externalTimeFilter, isNested, externalTriggerModal
                                             background: 'rgba(239, 68, 68, 0.2)',
                                             border: '1px solid rgba(239, 68, 68, 0.5)',
                                             color: '#fca5a5',
-                                            marginRight: 'auto'
+                                            padding: '0 1rem'
                                         }}
                                     >
                                         <CustomTrashIcon size={18} />
                                     </button>
                                 )}
-                                <button type="submit" className="btn btn-primary">
+                                <button type="submit" className="btn btn-primary w-full" style={{ background: 'linear-gradient(135deg, hsl(150, 90%, 60%), hsl(150, 90%, 45%))' }}>
                                     {editingId ? <><CustomPencilIcon size={18} /> Actualizar</> : <><Plus size={18} /> Agregar</>}
                                 </button>
                             </div>
-                        </form>
-                    </div>
-                </div>
+                        </div>
+                    </form>
+                </SwipeableModal>,
+                document.body
             )}
 
             {/* Modal Filtros */}
-            {showFilterModal && (
-                <div className="modal-backdrop" style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0, 0, 0, 0.7)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000
-                }}>
-                    <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '500px', position: 'relative' }}>
+            {showFilterModal && createPortal(
+                <div className="modal-wrapper">
+                    <div className="modal-content-responsive">
+                        <div className="modal-pull-handle" />
                         <button
                             onClick={() => setShowFilterModal(false)}
                             style={{
                                 position: 'absolute',
-                                top: '1rem',
-                                right: '1rem',
-                                background: 'transparent',
+                                top: '1.25rem',
+                                right: '1.25rem',
+                                background: 'rgba(255, 255, 255, 0.05)',
                                 border: 'none',
-                                color: 'white',
-                                cursor: 'pointer'
+                                color: 'rgba(255, 255, 255, 0.5)',
+                                cursor: 'pointer',
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
                             }}
                         >
-                            <X size={24} />
+                            <X size={18} />
                         </button>
 
-                        <h3 className="mb-6">Filtrar Ingresos</h3>
+                        <h3 className="premium-title blue">
+                            Filtrar Ingresos
+                        </h3>
 
                         <div className="mb-4">
                             <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
@@ -486,6 +482,14 @@ const Income = ({ timeFilter: externalTimeFilter, isNested, externalTriggerModal
                                 className="input-field"
                                 value={filters.category}
                                 onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                                style={{
+                                    width: '100%',
+                                    padding: '0.75rem',
+                                    borderRadius: '12px',
+                                    background: 'rgba(255,255,255,0.05)',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    color: 'white'
+                                }}
                             >
                                 <option value="">Todas las categorías</option>
                                 <option value="Trabajo">Trabajo</option>
@@ -505,6 +509,14 @@ const Income = ({ timeFilter: externalTimeFilter, isNested, externalTriggerModal
                                 className="input-field"
                                 value={filters.dateFrom}
                                 onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
+                                style={{
+                                    width: '100%',
+                                    padding: '0.75rem',
+                                    borderRadius: '12px',
+                                    background: 'rgba(255,255,255,0.05)',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    color: 'white'
+                                }}
                             />
                         </div>
 
@@ -517,6 +529,14 @@ const Income = ({ timeFilter: externalTimeFilter, isNested, externalTriggerModal
                                 className="input-field"
                                 value={filters.dateTo}
                                 onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
+                                style={{
+                                    width: '100%',
+                                    padding: '0.75rem',
+                                    borderRadius: '12px',
+                                    background: 'rgba(255,255,255,0.05)',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    color: 'white'
+                                }}
                             />
                         </div>
 
@@ -525,6 +545,7 @@ const Income = ({ timeFilter: externalTimeFilter, isNested, externalTriggerModal
                                 type="button"
                                 className="btn glass"
                                 onClick={handleClearFilters}
+                                style={{ background: 'rgba(255,255,255,0.05)', border: 'none', color: 'white' }}
                             >
                                 Limpiar Filtros
                             </button>
@@ -537,7 +558,8 @@ const Income = ({ timeFilter: externalTimeFilter, isNested, externalTriggerModal
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </>
     );

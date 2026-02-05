@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Card from '../components/Card';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { Plus, Target, Car, Home, Smartphone, X, History, DollarSign, TrendingUp, Menu } from 'lucide-react';
+import SwipeableModal from '../components/SwipeableModal';
 import MobileMenuButton from '../components/MobileMenuButton';
 import CustomPencilIcon from '../components/CustomPencilIcon';
 import CustomTrashIcon from '../components/CustomTrashIcon';
@@ -53,10 +55,10 @@ const Savings = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
     const [selectedIcon, setSelectedIcon] = useState(0);
 
     const iconOptions = [
-        { name: 'Coche', icon: Car, color: 'hsl(var(--accent-primary))' },
-        { name: 'Casa', icon: Home, color: 'hsl(var(--accent-secondary))' },
-        { name: 'Teléfono', icon: Smartphone, color: 'hsl(var(--accent-success))' },
-        { name: 'Objetivo', icon: Target, color: 'hsl(var(--accent-primary))' },
+        { name: 'Coche', icon: Car, color: '#3b82f6' }, // Blue
+        { name: 'Casa', icon: Home, color: '#10b981' }, // Green
+        { name: 'Teléfono', icon: Smartphone, color: '#f59e0b' }, // Orange
+        { name: 'Objetivo', icon: Target, color: '#ef4444' }, // Red
     ];
 
     const handleSubmit = async (e) => {
@@ -225,11 +227,11 @@ const Savings = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
         setShowHistoryModal(true);
     };
 
-    const handleDeleteHistory = async (index, amount) => {
+    const handleDeleteHistory = async (originalIndex, amount) => {
 
 
         const newHistory = [...selectedGoal.history];
-        newHistory.splice(index, 1);
+        newHistory.splice(originalIndex, 1);
         const newCurrent = selectedGoal.current - amount;
 
         try {
@@ -324,7 +326,7 @@ const Savings = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
 
 
 
-                <MobileStatsGrid stats={mobileStats} />
+                <MobileStatsGrid stats={mobileStats} style={{ marginTop: '10px' }} />
 
                 {!isNested && (
                     <div className="page-header hidden-mobile">
@@ -392,11 +394,11 @@ const Savings = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
                                                     color: 'hsl(var(--accent-success))',
                                                     cursor: 'default',
                                                     textAlign: 'center',
-                                                    display: 'flex',
                                                     justifyContent: 'center',
                                                     alignItems: 'center',
                                                     fontWeight: 'bold',
-                                                    fontSize: '1.1rem'
+                                                    fontSize: '1.1rem',
+                                                    display: 'flex'
                                                 }}
                                             >
                                                 Completado
@@ -445,51 +447,36 @@ const Savings = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
 
             {/* Modal Crear/Editar Meta */}
             {
-                showModal && (
-                    <div className="modal-backdrop">
-                        <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '500px', position: 'relative' }}>
-                            <button
-                                onClick={handleCloseModal}
-                                style={{
-                                    position: 'absolute',
-                                    top: '1rem',
-                                    right: '1rem',
-                                    background: 'transparent',
-                                    border: 'none',
-                                    color: 'white',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                <X size={24} />
-                            </button>
+                showModal && createPortal(
+                    <SwipeableModal onClose={handleCloseModal} editingId={editingId}>
+                        <h3 className="premium-title blue">
+                            {editingId ? 'Editar Meta' : 'Nueva Meta'}
+                        </h3>
 
-                            <h3 className="mb-6 text-center">{editingId ? 'Editar Meta' : 'Nueva Meta'}</h3>
+                        <form onSubmit={handleSubmit}>
+                            <div className="premium-input-group">
+                                <label className="premium-label">
+                                    Nombre de la Meta
+                                </label>
+                                <input
+                                    type="text"
+                                    className="premium-input"
+                                    placeholder="Ej: Nuevo Coche, Vacaciones, Casa"
+                                    value={newGoal.name}
+                                    onChange={(e) => setNewGoal({ ...newGoal, name: e.target.value })}
+                                    required
+                                />
+                            </div>
 
-                            <form onSubmit={handleSubmit}>
-                                <div className="mb-4">
-                                    <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                        Nombre de la Meta
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="input-field"
-                                        placeholder="Ej: Nuevo Coche, Vacaciones, Casa"
-                                        value={newGoal.name}
-                                        onChange={(e) => setNewGoal({ ...newGoal, name: e.target.value })}
-                                        required
-                                    />
-                                </div>
-
-
-
-                                <div className="mb-4">
-                                    <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
+                            <div className="form-grid-2">
+                                <div className="premium-input-group">
+                                    <label className="premium-label">
                                         Meta (Monto Total)
                                     </label>
                                     <input
                                         type="number"
                                         step="0.01"
-                                        className="input-field"
+                                        className="premium-input"
                                         placeholder="0.00"
                                         value={newGoal.target}
                                         onChange={(e) => setNewGoal({ ...newGoal, target: e.target.value })}
@@ -497,76 +484,110 @@ const Savings = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
                                     />
                                 </div>
 
-                                <div className="mb-6">
-                                    <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                        Monto Actual (Opcional)
+                                <div className="premium-input-group">
+                                    <label className="premium-label">
+                                        Monto Actual
                                     </label>
                                     <input
                                         type="number"
                                         step="0.01"
-                                        className="input-field"
+                                        className="premium-input"
                                         placeholder="0.00"
                                         value={newGoal.current}
                                         onChange={(e) => setNewGoal({ ...newGoal, current: e.target.value })}
                                     />
                                 </div>
+                            </div>
 
-                                <div className="flex flex-col gap-3">
+                            <div className="premium-input-group" style={{ marginTop: '-20px' }}>
+                                <label className="premium-label">
+                                    Fecha Objetivo
+                                </label>
+                                <input
+                                    type="date"
+                                    required
+                                    className="premium-input"
+                                    value={newGoal.deadline}
+                                    onChange={(e) => setNewGoal({ ...newGoal, deadline: e.target.value })}
+                                />
+                            </div>
+
+
+
+                            <div className="flex flex-col gap-3 mt-4">
+                                {editingId && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowHistoryModal(true)}
+                                        className="btn w-full flex justify-center items-center gap-2"
+                                        style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white' }}
+                                    >
+                                        <History size={18} /> Historial
+                                    </button>
+                                )}
+
+                                <div className="flex gap-3">
                                     {editingId && (
                                         <button
                                             type="button"
-                                            onClick={() => setShowHistoryModal(true)}
-                                            className="btn w-full flex justify-center items-center gap-2"
-                                            style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white' }}
+                                            onClick={() => {
+                                                handleDelete(editingId);
+                                                setShowModal(false);
+                                            }}
+                                            className="btn flex-1 flex justify-center items-center gap-2"
+                                            style={{ background: 'rgba(220, 38, 38, 0.2)', color: '#fca5a5', border: '1px solid rgba(220, 38, 38, 0.5)' }}
                                         >
-                                            <History size={18} /> Historial
+                                            <CustomTrashIcon size={18} /> Eliminar
                                         </button>
                                     )}
-
-                                    <div className="flex gap-3">
-                                        {editingId && (
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    handleDelete(editingId);
-                                                    setShowModal(false);
-                                                }}
-                                                className="btn flex-1 flex justify-center items-center gap-2"
-                                                style={{ background: 'rgba(220, 38, 38, 0.2)', color: '#fca5a5', border: '1px solid rgba(220, 38, 38, 0.5)' }}
-                                            >
-                                                <CustomTrashIcon size={18} /> Eliminar
-                                            </button>
-                                        )}
-                                        <button type="submit" className={`btn btn-primary flex justify-center items-center ${editingId ? 'flex-1' : 'w-full'}`}>
-                                            {editingId ? 'Actualizar' : 'Registrar'}
-                                        </button>
-                                    </div>
+                                    <button type="submit" className={`btn btn-primary flex justify-center items-center ${editingId ? 'flex-1' : 'w-full'}`} style={{ background: 'linear-gradient(135deg, hsl(217, 100%, 70%), hsl(221, 100%, 60%))' }}>
+                                        {editingId ? 'Actualizar' : 'Registrar'}
+                                    </button>
                                 </div>
-                            </form>
-                        </div>
-                    </div>
+                            </div>
+                        </form>
+                    </SwipeableModal>,
+                    document.body
                 )
             }
 
             {/* Modal Agregar Dinero */}
             {
-                showAddMoneyModal && (
-                    <div className="modal-backdrop">
-                        <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '400px', position: 'relative' }}>
+                showAddMoneyModal && createPortal(
+                    <div className="modal-wrapper">
+                        <div className="modal-content-responsive" style={{ maxWidth: '400px' }}>
+                            <div className="modal-pull-handle" />
                             <button
                                 onClick={() => setShowAddMoneyModal(false)}
-                                style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}
+                                style={{
+                                    position: 'absolute',
+                                    top: '1.25rem',
+                                    right: '1.25rem',
+                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    border: 'none',
+                                    color: 'rgba(255, 255, 255, 0.5)',
+                                    cursor: 'pointer',
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}
                             >
-                                <X size={24} />
+                                <X size={18} />
                             </button>
-                            <h3 className="mb-6">Agregar Dinero a {selectedGoal?.name}</h3>
+                            <h3 className="premium-title blue">
+                                Agregar Dinero
+                            </h3>
+                            <p className="text-secondary text-sm mb-6 mt-[-1rem]">Ahorrando para: <strong>{selectedGoal?.name}</strong></p>
                             <form onSubmit={handleAddMoney}>
-                                <div className="mb-6">
-                                    <label className="text-sm text-secondary mb-2 block">Monto a agregar</label>
+                                <div className="premium-input-group">
+                                    <label className="premium-label">Monto a agregar</label>
                                     <input
                                         type="number"
                                         step="0.01"
-                                        className="input-field"
+                                        className="premium-input"
                                         placeholder="0.00"
                                         value={amountToAdd}
                                         onChange={(e) => setAmountToAdd(e.target.value)}
@@ -579,22 +600,41 @@ const Savings = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
                                 </button>
                             </form>
                         </div>
-                    </div>
+                    </div>,
+                    document.body
                 )
             }
 
             {/* Modal Historial */}
             {
-                showHistoryModal && (
-                    <div className="modal-backdrop">
-                        <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '400px', position: 'relative' }}>
+                showHistoryModal && createPortal(
+                    <div className="modal-wrapper">
+                        <div className="modal-content-responsive" style={{ maxWidth: '400px' }}>
+                            <div className="modal-pull-handle" />
                             <button
                                 onClick={() => setShowHistoryModal(false)}
-                                style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}
+                                style={{
+                                    position: 'absolute',
+                                    top: '1.25rem',
+                                    right: '1.25rem',
+                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    border: 'none',
+                                    color: 'rgba(255, 255, 255, 0.5)',
+                                    cursor: 'pointer',
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}
                             >
-                                <X size={24} />
+                                <X size={18} />
                             </button>
-                            <h3 className="mb-6">Historial: {selectedGoal?.name}</h3>
+                            <h3 className="premium-title blue">
+                                Historial
+                            </h3>
+                            <p className="text-secondary text-sm mb-6 mt-[-1rem]">Meta: <strong>{selectedGoal?.name}</strong></p>
                             <div className="flex flex-col gap-3" style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '5px' }}>
                                 {selectedGoal?.history && selectedGoal.history.slice().reverse().length > 0 ? (
                                     selectedGoal.history.slice().reverse().map((entry, i) => {
@@ -656,7 +696,8 @@ const Savings = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
                                 )}
                             </div>
                         </div>
-                    </div>
+                    </div>,
+                    document.body
                 )
             }
         </>

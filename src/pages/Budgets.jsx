@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { Plus, Trash2, Edit2, Wallet, PieChart, TrendingUp, DollarSign, X, EllipsisVertical, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
 import { useCurrency } from '../context/CurrencyContext';
 import MobileHeader from '../components/MobileHeader';
+import SwipeableModal from '../components/SwipeableModal';
 import MobileStatsGrid from '../components/MobileStatsGrid';
 import Toast from '../components/Toast';
 import { useTransactions } from '../context/TransactionContext';
@@ -155,7 +157,7 @@ const Budgets = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
 
 
                 {/* Mobile Bento Grid Stats */}
-                <MobileStatsGrid stats={stats} />
+                <MobileStatsGrid stats={stats} style={{ marginTop: '10px' }} />
 
                 {/* Desktop Header (Hidden on Mobile) */}
                 {!isNested && (
@@ -325,97 +327,76 @@ const Budgets = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
                     </button>
                 )}
 
-                {showModal && (
-                    <div className="modal-backdrop">
-                        <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '500px', position: 'relative' }}>
-                            <button
-                                onClick={handleCloseModal}
-                                style={{
-                                    position: 'absolute',
-                                    top: '1rem',
-                                    right: '1rem',
-                                    background: 'transparent',
-                                    border: 'none',
-                                    color: 'white',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                <X size={24} />
-                            </button>
+                {showModal && createPortal(
+                    <SwipeableModal onClose={handleCloseModal} editingId={editingId}>
+                        <h3 className="premium-title orange">
+                            {editingId ? 'Editar Presupuesto' : 'Nuevo Presupuesto'}
+                        </h3>
 
-                            <h3 className="mb-6 text-center text-xl font-bold text-white">
-                                {editingId ? 'Editar Presupuesto' : 'Nuevo Presupuesto'}
-                            </h3>
+                        <form onSubmit={handleSubmit}>
+                            <div className="premium-input-group">
+                                <label className="premium-label">
+                                    Categoría
+                                </label>
+                                <input
+                                    list="categories"
+                                    type="text"
+                                    required
+                                    className="premium-input"
+                                    placeholder="Ej. Alimentos"
+                                    value={formData.category}
+                                    onChange={e => setFormData({ ...formData, category: e.target.value })}
+                                />
+                                <datalist id="categories">
+                                    {commonCategories.map(cat => <option key={cat} value={cat} />)}
+                                </datalist>
+                            </div>
 
-                            <form onSubmit={handleSubmit}>
-                                <div className="mb-4">
-                                    <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                        Categoría
-                                    </label>
-                                    <input
-                                        list="categories"
-                                        type="text"
-                                        required
-                                        className="input-field w-full"
-                                        placeholder="Ej. Alimentos"
-                                        value={formData.category}
-                                        onChange={e => setFormData({ ...formData, category: e.target.value })}
-                                    />
-                                    <datalist id="categories">
-                                        {commonCategories.map(cat => <option key={cat} value={cat} />)}
-                                    </datalist>
-                                </div>
+                            <div className="premium-input-group">
+                                <label className="premium-label">
+                                    Límite Mensual ({symbol})
+                                </label>
+                                <input
+                                    type="number"
+                                    required
+                                    min="1"
+                                    step="0.01"
+                                    className="premium-input"
+                                    placeholder="0.00"
+                                    value={formData.limit}
+                                    onChange={e => setFormData({ ...formData, limit: e.target.value })}
+                                />
+                            </div>
 
-                                <div className="mb-6">
-                                    <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                        Límite Mensual ({symbol})
-                                    </label>
-                                    <input
-                                        type="number"
-                                        required
-                                        min="1"
-                                        step="0.01"
-                                        className="input-field w-full"
-                                        placeholder="0.00"
-                                        value={formData.limit}
-                                        onChange={e => setFormData({ ...formData, limit: e.target.value })}
-                                    />
-                                </div>
+                            <div className="flex flex-col gap-2 mt-4">
+                                <button type="submit" className="btn btn-primary flex justify-center items-center w-full" style={{ background: 'linear-gradient(135deg, hsl(36, 100%, 60%), hsl(30, 100%, 50%))' }}>
+                                    {editingId ? 'Actualizar Presupuesto' : 'Crear Presupuesto'}
+                                </button>
 
-                                <div className="flex flex-col gap-1">
-                                    <button type="submit" className="btn btn-primary flex justify-center items-center w-full">
-                                        {editingId ? 'Actualizar' : 'Registrar'}
+                                {editingId && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setShowModal(false);
+                                            handleDelete(editingId);
+                                        }}
+                                        className="btn w-full flex justify-center items-center gap-2"
+                                        style={{
+                                            background: 'rgba(239, 68, 68, 0.1)',
+                                            border: '1px solid rgba(239, 68, 68, 0.5)',
+                                            color: '#fca5a5'
+                                        }}
+                                    >
+                                        <Trash2 size={18} />
+                                        Eliminar Presupuesto
                                     </button>
-
-                                    {editingId && (
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setShowModal(false);
-                                                handleDelete(editingId);
-                                            }}
-                                            className="flex justify-center items-center w-full transition-colors duration-200"
-                                            style={{
-                                                background: 'transparent',
-                                                border: '1px solid #ef4444',
-                                                borderRadius: '0.5rem',
-                                                color: '#ef4444',
-                                                fontWeight: 'bold',
-                                                padding: '12px',
-                                                marginTop: '8px',
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            <Trash2 size={18} className="mr-2" />
-                                            Eliminar Presupuesto
-                                        </button>
-                                    )}
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+                                )}
+                            </div>
+                        </form>
+                    </SwipeableModal>,
+                    document.body
                 )}
-            </div>
+            </div >
         </>
     );
 };

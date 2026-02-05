@@ -16,23 +16,48 @@
 
     /* Mobile Text Adjustments */
     .bento-value {
-        font-size: 2rem !important;
+        font-size: 1.4rem !important;
         /* Smaller big number */
     }
 
     .bento-value.small {
-        font-size: 1.5rem !important;
+        font-size: 1.1rem !important;
         /* Smaller card numbers */
     }
 
     .bento-label {
-        font-size: 0.75rem !important;
+        font-size: 0.65rem !important;
     }
 
     .bento-card {
-        padding: 1rem !important;
+        padding: 0.75rem !important;
         /* Tighter padding on mobile */
-        min-height: 150px !important;
+        min-height: 85px !important;
+    }
+
+    .icon-box {
+        width: 36px !important;
+        height: 36px !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .icon-box svg {
+        width: 18px !important;
+        height: 18px !important;
+    }
+
+    .bento-badge {
+        padding: 0.35rem 0.75rem !important;
+        font-size: 0.7rem !important;
+    }
+
+    .bento-badge svg {
+        width: 14px !important;
+        height: 14px !important;
+    }
+
+    .balance-section span.text-sm {
+        font-size: 0.7rem !important;
     }
 
     .large-wallet-icon {
@@ -61,6 +86,25 @@
     flex-direction: column;
     justify-content: space-between;
     min-height: 180px;
+}
+
+.bento-card-income {
+    background: #10b981 !important;
+    /* Vibrant Emerald Green */
+    border: none !important;
+}
+
+.bento-card-expense {
+    background: #ef4444 !important;
+    /* Vibrant Red */
+    border: none !important;
+}
+
+.bento-card-income .bento-label,
+.bento-card-expense .bento-label,
+.bento-card-income .bento-value,
+.bento-card-expense .bento-value {
+    color: white !important;
 }
 
 /* Large Card Specifics */
@@ -156,12 +200,13 @@
 .charts-section {
     display: grid;
     grid-template-columns: 2fr 1fr;
-    gap: 1.5rem;
-    margin-top: -10px;
+    gap: 1rem;
+    /* Reduced from 1.5rem to move transactions up */
+    margin-top: -20px;
 }
 
 .chart-container {
-    height: 300px;
+    height: 220px;
     width: 100%;
 }
 
@@ -195,4 +240,27 @@
     .charts-section {
         grid-template-columns: 1fr;
     }
+}
+
+.small-bento-icon {
+    position: absolute;
+    right: -15px;
+    bottom: -20px;
+    opacity: 0.15;
+    /* Adjusted to exactly 15% */
+    transform: rotate(-15deg);
+    transition: all 0.5s ease;
+    pointer-events: none;
+    z-index: 0;
+    /* Behind content */
+}
+
+.bento-icon-tilt {
+    transform: rotate(-35deg) translateY(10px);
+    /* More tilted for expenses */
+}
+
+.bento-card:hover .small-bento-icon {
+    transform: rotate(0deg) scale(1.2);
+    opacity: 0.3;
 }

@@ -30,7 +30,7 @@ const MobileHeader = ({ title, onAddClick, themeColor = 'hsl(var(--accent-primar
             }}
         >
             {/* Lado Izquierdo - Spacer o Contenido Personalizado */}
-            <div style={{ width: '60px', display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
+            <div style={{ minWidth: '60px', width: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
                 {leftContent}
             </div>
 
@@ -60,7 +60,7 @@ const MobileHeader = ({ title, onAddClick, themeColor = 'hsl(var(--accent-primar
             </div>
 
             {/* Lado Derecho - Botón Agregar o Spacer */}
-            <div style={{ width: '60px', display: 'flex', justifyContent: 'flex-end', position: 'relative', zIndex: 10 }}>
+            <div style={{ minWidth: '60px', width: 'auto', display: 'flex', justifyContent: 'flex-end', position: 'relative', zIndex: 10 }}>
                 {children ? (
                     children
                 ) : onAddClick ? (

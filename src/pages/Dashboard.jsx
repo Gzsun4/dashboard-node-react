@@ -74,98 +74,107 @@ const Dashboard = () => {
         }
     }, [hasLoaded, incomes, expenses, goals]);
 
+    const getGreeting = () => {
+        const peruTime = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'America/Lima',
+            hour: 'numeric',
+            hour12: false
+        }).format(new Date());
+        const hour = parseInt(peruTime);
+        let greeting = 'Buenos días';
+        if (hour >= 12 && hour < 19) greeting = 'Buenas tardes';
+        if (hour >= 19) greeting = 'Buenas noches';
+
+        const firstName = user?.name?.split(' ')[0] || 'Usuario';
+        return `${greeting}, ${firstName}`;
+    };
     return (
         <div className="animate-fade-in">
             <MobileHeader
-                title="Panel"
+                title=""
                 themeColor="#3b82f6"
+                leftContent={
+                    <div className="flex flex-col items-start leading-tight">
+                        <span style={{
+                            fontSize: '11px',
+                            color: '#94a3b8',
+                            fontWeight: '600'
+                        }}>
+                            {(() => {
+                                const peruTime = new Intl.DateTimeFormat('en-US', {
+                                    timeZone: 'America/Lima',
+                                    hour: 'numeric',
+                                    hour12: false
+                                }).format(new Date());
+                                const hour = parseInt(peruTime);
+                                if (hour >= 12 && hour < 19) return 'Buenas tardes,';
+                                if (hour >= 19) return 'Buenas noches,';
+                                return 'Buenos días,';
+                            })()}
+                        </span>
+                        <span style={{
+                            fontSize: '16px',
+                            color: 'white',
+                            fontWeight: '800'
+                        }}>
+                            {user?.name?.split(' ')[0] || 'Usuario'}
+                        </span>
+                    </div>
+                }
             >
                 <button
                     onClick={toggleCurrency}
-                    className="relative flex items-center p-1 cursor-pointer overflow-hidden group"
+                    className="relative flex items-center cursor-pointer overflow-hidden group"
                     style={{
-                        height: '36px',
-                        minWidth: '84px',
+                        height: '22px',
+                        minWidth: '60px',
                         backgroundColor: '#000000',
                         border: '1px solid #27272a',
                         borderRadius: '9999px',
-                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5)'
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5)',
+                        padding: '1px'
                     }}
                 >
                     {/* The Sliding Background (Flags) */}
                     <div
                         style={{
                             position: 'absolute',
-                            top: '4px',
-                            bottom: '4px',
-                            width: '36px',
+                            top: '1px',
+                            bottom: '1px',
+                            width: '26px',
                             borderRadius: '9999px',
                             background: currency === 'USD'
-                                ? 'linear-gradient(90deg, #3C3B6E 40%, #B22234 40%, #B22234 60%, #FFFFFF 60%, #FFFFFF 80%, #B22234 80%)' // USA: Blue Field + Red/White Stripes
-                                : 'linear-gradient(90deg, #D91023 30%, #FFFFFF 30%, #FFFFFF 70%, #D91023 70%)', // Peru: Red-White-Red
+                                ? 'linear-gradient(90deg, #3C3B6E 40%, #B22234 40%, #B22234 60%, #FFFFFF 60%, #FFFFFF 80%, #B22234 80%)'
+                                : 'linear-gradient(90deg, #D91023 30%, #FFFFFF 30%, #FFFFFF 70%, #D91023 70%)',
                             transition: 'all 300ms cubic-bezier(0.2, 0.8, 0.2, 1)',
-                            left: currency === 'USD' ? '4px' : 'calc(100% - 40px)',
+                            left: currency === 'USD' ? '1px' : 'calc(100% - 27px)',
                             boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.2)'
                         }}
-                    ></div>
+                    />
 
-                    {/* Text Layers */}
-                    {/* Text Layers */}
-                    <div style={{ position: 'relative', zIndex: 20, display: 'flex', width: '100%' }}>
-                        <div style={{
-                            flex: 1,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '0.75rem',
-                            fontWeight: 900,
-                            transition: 'all 300ms',
-                            color: currency === 'USD' ? '#000000' : '#6b7280',
-                            textShadow: currency === 'USD' ? '0 0 10px rgba(255,255,255,0.9), 0 0 2px rgba(255,255,255,1)' : 'none'
-                        }}>
-                            USD
-                        </div>
-                        <div style={{
-                            flex: 1,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '0.75rem',
-                            fontWeight: 900,
-                            transition: 'all 300ms',
-                            color: currency === 'PEN' ? '#000000' : '#6b7280',
-                            textShadow: currency === 'PEN' ? '0 0 10px rgba(255,255,255,0.9), 0 0 2px rgba(255,255,255,1)' : 'none'
-                        }}>
-                            PEN
-                        </div>
+                    {/* Left Icon/Symbol (USD) */}
+                    <div className="flex-1 flex justify-center items-center z-10">
+                        <span style={{
+                            fontSize: '9px',
+                            fontWeight: '700',
+                            color: currency === 'USD' ? 'white' : '#71717a',
+                            transition: 'color 300ms'
+                        }}>USD</span>
+                    </div>
+
+                    {/* Right Icon/Symbol (PEN) */}
+                    <div className="flex-1 flex justify-center items-center z-10">
+                        <span style={{
+                            fontSize: '9px',
+                            fontWeight: '700',
+                            color: currency === 'PEN' ? 'white' : '#71717a',
+                            transition: 'color 300ms'
+                        }}>PEN</span>
                     </div>
                 </button>
             </MobileHeader>
 
             {/* Desktop Header removed as requested */}
-
-            {/* Mobile Greeting - Inserted here */}
-            <div className="mb-6 mt-4 px-1 md:hidden">
-                <h1 className="text-2xl font-bold text-white mb-1">
-                    {(() => {
-                        const peruTime = new Intl.DateTimeFormat('en-US', {
-                            timeZone: 'America/Lima',
-                            hour: 'numeric',
-                            hour12: false
-                        }).format(new Date());
-                        const hour = parseInt(peruTime);
-                        let greeting = 'Buenos días';
-                        if (hour >= 12 && hour < 19) greeting = 'Buenas tardes';
-                        if (hour >= 19) greeting = 'Buenas noches';
-
-                        const firstName = user?.name?.split(' ')[0] || 'Usuario';
-                        return `${greeting}, ${firstName}`;
-                    })()}
-                </h1>
-                <p className="text-gray-400 text-sm font-medium">
-                    Tu Resumen Financiero
-                </p>
-            </div>
 
             <div className="dashboard-grid">
                 {/* Large Balance Card */}
@@ -190,38 +199,28 @@ const Dashboard = () => {
                 </div>
 
                 {/* Income Card */}
-                <div className="glass-card bento-card bento-card-small">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="icon-box" style={{ background: 'rgba(34, 197, 94, 0.1)', marginBottom: 0 }}>
-                            <TrendingUp size={24} style={{ color: '#00ff9d' }} />
-                        </div>
-                        <span className="flex items-center gap-1 text-xs font-medium" style={{ color: '#4ade80', paddingLeft: '8px' }}>
-                            Acumulado
-                        </span>
-                    </div>
-                    <div>
-                        <p className="bento-label" style={{ marginBottom: '0.25rem', color: '#94a3b8' }}>INGRESOS</p>
+                <div className="glass-card bento-card bento-card-small bento-card-income">
+                    <div className="relative z-10">
+                        <p className="bento-label" style={{ marginBottom: '0.25rem' }}>Ingreso Total</p>
                         <h3 className="bento-value small" style={{ marginBottom: 0 }}>
                             {symbol} {stats.totalIncome.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </h3>
                     </div>
+                    <div className="small-bento-icon">
+                        <TrendingUp size={140} color="white" />
+                    </div>
                 </div>
 
                 {/* Expenses Card */}
-                <div className="glass-card bento-card bento-card-small">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="icon-box" style={{ background: 'rgba(239, 68, 68, 0.1)', marginBottom: 0 }}>
-                            <TrendingDown size={24} style={{ color: '#ff4d4d' }} />
-                        </div>
-                        <span className="flex items-center gap-1 text-xs font-medium" style={{ color: '#f87171', paddingLeft: '8px' }}>
-                            Total gastado
-                        </span>
-                    </div>
-                    <div>
-                        <p className="bento-label" style={{ marginBottom: '0.25rem', color: '#94a3b8' }}>GASTOS</p>
+                <div className="glass-card bento-card bento-card-small bento-card-expense">
+                    <div className="relative z-10">
+                        <p className="bento-label" style={{ marginBottom: '0.25rem' }}>Gasto Total</p>
                         <h3 className="bento-value small" style={{ marginBottom: 0 }}>
                             {symbol} {stats.totalExpenses.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </h3>
+                    </div>
+                    <div className="small-bento-icon bento-icon-tilt">
+                        <TrendingDown size={140} color="white" />
                     </div>
                 </div>
             </div>
@@ -348,7 +347,7 @@ const Dashboard = () => {
                     </div>
                 </Card>
             </div>
-        </div>
+        </div >
     );
 };
 

@@ -106,10 +106,10 @@ const Activity = () => {
             )}
 
 
-            {/* Custom Tab Switcher - Minimal Clean Design */}
-            <div className="px-4 mb-24">
+            {/* Custom Tab Switcher - Premium Animated Design */}
+            <div className="px-4 mb-2" style={{ marginTop: '-10px' }}>
                 <div
-                    className="flex p-1.5"
+                    className="flex p-1.5 relative overflow-hidden"
                     style={{
                         background: '#0a0a0a',
                         border: '1.5px solid rgba(255, 255, 255, 0.15)',
@@ -118,21 +118,46 @@ const Activity = () => {
                         borderRadius: '24px'
                     }}
                 >
+                    {/* Sliding Highlighter */}
+                    <div
+                        className="absolute transition-all duration-500"
+                        style={{
+                            top: '6px',
+                            left: '6px',
+                            width: 'calc(50% - 6px)',
+                            height: 'calc(100% - 12px)',
+                            background: activeTab === 'income'
+                                ? 'linear-gradient(180deg, #10b981 0%, #059669 100%)'
+                                : 'linear-gradient(180deg, #ef4444 0%, #dc2626 100%)',
+                            borderRadius: '18px',
+                            transform: activeTab === 'income' ? 'translateX(0)' : 'translateX(100%)',
+                            boxShadow: activeTab === 'income'
+                                ? '0 0 20px rgba(16, 185, 129, 0.4)'
+                                : '0 0 20px rgba(239, 68, 68, 0.4)',
+                            border: '1px solid rgba(255, 255, 255, 0.3)',
+                            zIndex: 1,
+                            transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
+                        }}
+                    />
+
                     <button
                         onClick={() => {
                             setActiveTab('income');
                             resetModalTrigger();
                         }}
-                        className="flex-1 flex items-center justify-center gap-3 text-[16px] font-bold transition-all duration-300"
+                        className="flex-1 flex items-center justify-center gap-3 text-[16px] font-bold transition-all duration-300 active:scale-95 relative"
                         style={{
-                            background: activeTab === 'income' ? 'linear-gradient(180deg, #10b981 0%, #059669 100%)' : 'transparent',
                             color: activeTab === 'income' ? '#ffffff' : '#9ca3af',
-                            border: activeTab === 'income' ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid transparent',
-                            boxShadow: activeTab === 'income' ? '0 0 15px rgba(16, 185, 129, 0.3)' : 'none',
-                            borderRadius: '18px'
+                            zIndex: 2,
+                            background: 'transparent',
+                            border: 'none'
                         }}
                     >
-                        <TrendingUp size={22} strokeWidth={2.5} />
+                        <TrendingUp
+                            size={22}
+                            strokeWidth={2.5}
+                            className={activeTab === 'income' ? 'icon-pop' : ''}
+                        />
                         Ingresos
                     </button>
 
@@ -141,23 +166,29 @@ const Activity = () => {
                             setActiveTab('expenses');
                             resetModalTrigger();
                         }}
-                        className="flex-1 flex items-center justify-center gap-3 text-[16px] font-bold transition-all duration-300"
+                        className="flex-1 flex items-center justify-center gap-3 text-[16px] font-bold transition-all duration-300 active:scale-95 relative"
                         style={{
-                            background: activeTab === 'expenses' ? 'linear-gradient(180deg, #ef4444 0%, #dc2626 100%)' : 'transparent',
                             color: activeTab === 'expenses' ? '#ffffff' : '#9ca3af',
-                            border: activeTab === 'expenses' ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid transparent',
-                            boxShadow: activeTab === 'expenses' ? '0 0 15px rgba(239, 68, 68, 0.3)' : 'none',
-                            borderRadius: '18px'
+                            zIndex: 2,
+                            background: 'transparent',
+                            border: 'none'
                         }}
                     >
-                        <TrendingDown size={22} strokeWidth={2.5} />
+                        <TrendingDown
+                            size={22}
+                            strokeWidth={2.5}
+                            className={activeTab === 'expenses' ? 'icon-pop' : ''}
+                        />
                         Gastos
                     </button>
                 </div>
             </div>
 
-            {/* Content Area */}
-            <div className="relative">
+            {/* Content Area - Animated Transition */}
+            <div
+                key={activeTab}
+                className={`relative ${activeTab === 'income' ? 'slide-from-left' : 'slide-from-right'}`}
+            >
                 {activeTab === 'income' ? (
                     <Income
                         isNested={true}

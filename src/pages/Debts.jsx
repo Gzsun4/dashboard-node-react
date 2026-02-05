@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Card from '../components/Card';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useDebts } from '../context/DebtContext';
 import { Plus, Target, Car, Home, Smartphone, X, History, DollarSign, TrendingUp, CreditCard, AlertCircle } from 'lucide-react';
 import MobileHeader from '../components/MobileHeader';
+import SwipeableModal from '../components/SwipeableModal';
 import MobileStatsGrid from '../components/MobileStatsGrid';
 import CustomPencilIcon from '../components/CustomPencilIcon';
 import CustomTrashIcon from '../components/CustomTrashIcon';
 import Toast from '../components/Toast';
 
 const Debts = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
-    const { token } = useAuth();
+
+    const { user, token: authToken } = useAuth();
     const { symbol } = useCurrency();
     const { debts, loading, fetchDebts } = useDebts(); // Use Context
     const [toast, setToast] = useState({ show: false, message: '', type: 'error' });
@@ -53,7 +56,7 @@ const Debts = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
         try {
             const headers = {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${authToken}`
             };
             const target = parseFloat(newDebt.totalAmount); // Mapping total to target
             const current = parseFloat(newDebt.paidAmount || 0); // Mapping paid to current
@@ -79,26 +82,16 @@ const Debts = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
             const method = editingId ? 'PUT' : 'POST';
             const url = editingId ? `/api/data/debts/${editingId}` : '/api/data/debts';
 
-            // Fallback for UI demo if backend fails
-            const mockDebt = {
-                _id: editingId || Date.now().toString(),
-                name: newDebt.name,
-                target: parseFloat(newDebt.totalAmount),
-                current: parseFloat(newDebt.paidAmount || 0),
-                color: iconOptions[selectedIcon].color,
-                deadline: newDebt.deadline
-            };
-
-            // Optimistic update removed - relying on fast context refresh
-
             // Actual call - BACKGROUND SYNC
             try {
                 const res = await fetch(url, { method, headers, body });
                 if (res.ok) {
                     await fetchDebts(); // Update global context
+                    setToast({ show: true, message: editingId ? 'Deuda actualizada' : 'Deuda creada', type: 'success' });
                 }
             } catch (err) {
                 console.error("Failed to sync debt", err);
+                setToast({ show: true, message: 'Error al conectar con el servidor', type: 'error' });
             }
 
         } catch (error) {
@@ -109,6 +102,7 @@ const Debts = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
         setEditingId(null);
         setNewDebt({ name: '', totalAmount: '', paidAmount: '', deadline: '' });
         setSelectedIcon(0);
+        if (onModalReset) onModalReset();
     };
 
     const [showHistoryModal, setShowHistoryModal] = useState(false);
@@ -126,11 +120,10 @@ const Debts = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
     };
 
     const handleDelete = async (id) => {
-
         try {
             const response = await fetch(`/api/data/debts/${id}`, {
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${authToken}` }
             });
 
             if (response.ok) {
@@ -184,7 +177,7 @@ const Debts = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${authToken}`
                 },
                 body: JSON.stringify(updatedDebt)
             });
@@ -232,7 +225,7 @@ const Debts = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
             <div className={!isNested ? 'animate-fade-in' : ''}>
 
 
-                <MobileStatsGrid stats={mobileStats} />
+                <MobileStatsGrid stats={mobileStats} style={{ marginTop: '10px' }} />
 
                 {!isNested && (
                     <div className="page-header hidden-mobile">
@@ -247,7 +240,11 @@ const Debts = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
                 )}
 
                 <div className="savings-grid"> {/* Reusing grid class or create new debts-grid */}
-                    {loading ? <p>Cargando...</p> : debts.length === 0 ? <p className="text-muted text-center py-8">No tienes deudas registradas. ¡Bien hecho!</p> : debts.map((debt) => {
+                    {loading ? <p>Cargando...</p> : debts.length === 0 ? (
+                        <div className="col-span-full py-12 text-center text-secondary">
+                            <p className="mb-4">No tienes deudas registradas. ¡Bien hecho!</p>
+                        </div>
+                    ) : debts.map((debt) => {
                         const progress = (debt.current / debt.target) * 100; // Paid percentage
                         const isPaid = progress >= 100;
                         const DebtIcon = CreditCard;
@@ -337,6 +334,7 @@ const Debts = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
                                 minHeight: '200px',
                                 cursor: 'pointer',
                                 display: 'flex',
+                                flexDirection: 'column',
                                 justifyContent: 'center',
                                 alignItems: 'center'
                             }}
@@ -357,92 +355,119 @@ const Debts = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
             </div>
 
             {/* Modal Nueva/Editar Deuda */}
-            {showModal && (
-                <div className="modal-backdrop">
-                    <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '400px', position: 'relative' }}>
-                        <button
-                            onClick={handleCloseModal}
-                            style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}
-                        >
-                            <X size={24} />
-                        </button>
-                        <h3 className="mb-6 text-center">{editingId ? 'Editar Deuda' : 'Nueva Deuda'}</h3>
-                        <form onSubmit={handleSubmit}>
-                            <div className="mb-4">
-                                <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                    Nombre de la deuda
-                                </label>
-                                <input type="text" className="input-field" placeholder="Ej. Tarjeta Crédito" value={newDebt.name} onChange={(e) => setNewDebt({ ...newDebt, name: e.target.value })} required />
-                            </div>
-                            <div className="mb-4">
-                                <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
+            {showModal && createPortal(
+                <SwipeableModal onClose={handleCloseModal} editingId={editingId}>
+                    <h3 className="premium-title red">
+                        {editingId ? 'Editar Deuda' : 'Nueva Deuda'}
+                    </h3>
+                    <form onSubmit={handleSubmit}>
+                        <div className="premium-input-group">
+                            <label className="premium-label">
+                                Nombre de la deuda
+                            </label>
+                            <input type="text" className="premium-input" placeholder="Ej. Tarjeta Crédito" value={newDebt.name} onChange={(e) => setNewDebt({ ...newDebt, name: e.target.value })} required />
+                        </div>
+
+                        <div className="form-grid-2">
+                            <div className="premium-input-group">
+                                <label className="premium-label">
                                     Monto Total
                                 </label>
-                                <input type="number" step="0.01" className="input-field" placeholder="0.00" value={newDebt.totalAmount} onChange={(e) => setNewDebt({ ...newDebt, totalAmount: e.target.value })} required />
+                                <input type="number" step="0.01" className="premium-input" placeholder="0.00" value={newDebt.totalAmount} onChange={(e) => setNewDebt({ ...newDebt, totalAmount: e.target.value })} required />
                             </div>
-                            {/* Icon Selection could be added here similar to Savings */}
-                            <div className="mb-6">
-                                <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                    {editingId ? 'Monto Pagado Actual' : 'Monto Pagado Inicial'}
+                            <div className="premium-input-group">
+                                <label className="premium-label">
+                                    {editingId ? 'Monto Pagado' : 'Pago Inicial'}
                                 </label>
-                                <input type="number" step="0.01" className="input-field" placeholder="0.00" value={newDebt.paidAmount} onChange={(e) => setNewDebt({ ...newDebt, paidAmount: e.target.value })} />
+                                <input type="number" step="0.01" className="premium-input" placeholder="0.00" value={newDebt.paidAmount} onChange={(e) => setNewDebt({ ...newDebt, paidAmount: e.target.value })} />
                             </div>
+                        </div>
 
-                            <div className="flex flex-col gap-3">
+                        <div className="premium-input-group">
+                            <label className="premium-label">
+                                Fecha Límite
+                            </label>
+                            <input
+                                type="date"
+                                className="premium-input"
+                                value={newDebt.deadline}
+                                onChange={(e) => setNewDebt({ ...newDebt, deadline: e.target.value })}
+                            />
+                        </div>
+
+                        <div className="flex flex-col gap-3 mt-4">
+                            {editingId && (
+                                <button
+                                    type="button"
+                                    onClick={() => setShowHistoryModal(true)}
+                                    className="btn w-full flex justify-center items-center gap-2"
+                                    style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white' }}
+                                >
+                                    <History size={18} /> Historial
+                                </button>
+                            )}
+
+                            <div className="flex gap-3">
                                 {editingId && (
                                     <button
                                         type="button"
-                                        onClick={() => setShowHistoryModal(true)}
-                                        className="btn w-full flex justify-center items-center gap-2"
-                                        style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white' }}
+                                        onClick={() => {
+                                            handleDelete(editingId);
+                                            setShowModal(false);
+                                        }}
+                                        className="btn flex-1 flex justify-center items-center gap-2"
+                                        style={{ background: 'rgba(220, 38, 38, 0.2)', color: '#fca5a5', border: '1px solid rgba(220, 38, 38, 0.5)' }}
                                     >
-                                        <History size={18} /> Historial
+                                        <CustomTrashIcon size={18} /> Eliminar
                                     </button>
                                 )}
-
-                                <div className="flex gap-3">
-                                    {editingId && (
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                handleDelete(editingId);
-                                                setShowModal(false);
-                                            }}
-                                            className="btn flex-1 flex justify-center items-center gap-2"
-                                            style={{ background: 'rgba(220, 38, 38, 0.2)', color: '#fca5a5', border: '1px solid rgba(220, 38, 38, 0.5)' }}
-                                        >
-                                            <CustomTrashIcon size={18} /> Eliminar
-                                        </button>
-                                    )}
-                                    <button type="submit" className={`btn btn-primary flex justify-center items-center ${editingId ? 'flex-1' : 'w-full'}`}>
-                                        {editingId ? 'Actualizar' : 'Registrar Deuda'}
-                                    </button>
-                                </div>
+                                <button type="submit" className={`btn btn-primary flex justify-center items-center ${editingId ? 'flex-1' : 'w-full'}`} style={{ background: 'linear-gradient(135deg, hsl(350, 90%, 65%), hsl(350, 90%, 55%))' }}>
+                                    {editingId ? 'Actualizar' : 'Registrar Deuda'}
+                                </button>
                             </div>
-                        </form>
-                    </div >
-                </div >
+                        </div>
+                    </form>
+                </SwipeableModal>,
+                document.body
             )}
 
             {/* Modal Abonar */}
             {
-                showPayModal && (
-                    <div className="modal-backdrop">
-                        <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '400px', position: 'relative' }}>
+                showPayModal && createPortal(
+                    <div className="modal-wrapper">
+                        <div className="modal-content-responsive" style={{ maxWidth: '400px' }}>
+                            <div className="modal-pull-handle" />
                             <button
                                 onClick={() => setShowPayModal(false)}
-                                style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}
+                                style={{
+                                    position: 'absolute',
+                                    top: '1.25rem',
+                                    right: '1.25rem',
+                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    border: 'none',
+                                    color: 'rgba(255, 255, 255, 0.5)',
+                                    cursor: 'pointer',
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}
                             >
-                                <X size={24} />
+                                <X size={18} />
                             </button>
-                            <h3 className="mb-6">Abonar a {selectedDebt?.name}</h3>
+                            <h3 className="premium-title red">
+                                Abonar Pago
+                            </h3>
+                            <p className="text-secondary text-sm mb-6 mt-[-1rem]">Deuda: <strong>{selectedDebt?.name}</strong></p>
                             <form onSubmit={handlePayment}>
-                                <div className="mb-6">
-                                    <label className="text-sm text-secondary mb-2 block">Monto a abonar</label>
+                                <div className="premium-input-group">
+                                    <label className="premium-label">Monto a abonar</label>
                                     <input
                                         type="number"
                                         step="0.01"
-                                        className="input-field"
+                                        className="premium-input"
                                         placeholder="0.00"
                                         value={amountToPay}
                                         onChange={(e) => setAmountToPay(e.target.value)}
@@ -455,22 +480,41 @@ const Debts = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
                                 </button>
                             </form>
                         </div>
-                    </div>
+                    </div>,
+                    document.body
                 )
             }
 
             {/* Modal Historial */}
             {
-                showHistoryModal && (
-                    <div className="modal-backdrop">
-                        <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '400px', position: 'relative' }}>
+                showHistoryModal && createPortal(
+                    <div className="modal-wrapper">
+                        <div className="modal-content-responsive" style={{ maxWidth: '400px' }}>
+                            <div className="modal-pull-handle" />
                             <button
                                 onClick={() => setShowHistoryModal(false)}
-                                style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}
+                                style={{
+                                    position: 'absolute',
+                                    top: '1.25rem',
+                                    right: '1.25rem',
+                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    border: 'none',
+                                    color: 'rgba(255, 255, 255, 0.5)',
+                                    cursor: 'pointer',
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}
                             >
-                                <X size={24} />
+                                <X size={18} />
                             </button>
-                            <h3 className="mb-6">Historial: {selectedDebt?.name}</h3>
+                            <h3 className="premium-title red">
+                                Historial
+                            </h3>
+                            <p className="text-secondary text-sm mb-6 mt-[-1rem]">Deuda: <strong>{selectedDebt?.name}</strong></p>
                             <div className="flex flex-col gap-3" style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '5px' }}>
                                 {selectedDebt?.history && selectedDebt.history.slice().reverse().length > 0 ? (
                                     selectedDebt.history.slice().reverse().map((entry, i) => (
@@ -489,7 +533,8 @@ const Debts = ({ isNested = false, triggerAddModal = 0, onModalReset }) => {
                                 )}
                             </div>
                         </div>
-                    </div>
+                    </div>,
+                    document.body
                 )
             }
         </>

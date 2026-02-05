@@ -1,8 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Card from '../components/Card';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { Plus, Search, Filter, X, Menu, DollarSign, TrendingUp, PieChart as PieIcon, Coffee, Car, Zap, Film, ShoppingBag, HeartPulse, Edit2, History, List, ChevronDown, ChevronUp } from 'lucide-react';
+import SwipeableModal from '../components/SwipeableModal';
 import MobileMenuButton from '../components/MobileMenuButton';
 import CustomPencilIcon from '../components/CustomPencilIcon';
 import CustomTrashIcon from '../components/CustomTrashIcon';
@@ -237,7 +239,7 @@ const Expenses = ({ timeFilter: externalTimeFilter, isNested, externalTriggerMod
     }).sort((a, b) => new Date(b.date) - new Date(a.date));
 
     // Calcular datos para la gráfica
-    const chartData = useMemo(() => {
+    const chartDataBreakdown = useMemo(() => {
         const categoryTotals = {};
 
         filteredExpenses.forEach(expense => {
@@ -256,7 +258,7 @@ const Expenses = ({ timeFilter: externalTimeFilter, isNested, externalTriggerMod
     }, [filteredExpenses]);
 
     const hasActiveFilters = activeFilters.category || activeFilters.dateFrom || activeFilters.dateTo;
-    const totalExpenses = chartData.reduce((sum, item) => sum + item.value, 0);
+    const totalExpenses = chartDataBreakdown.reduce((sum, item) => sum + item.value, 0);
 
     // --- Mobile Stats Logic ---
     const totalSpent = useMemo(() => expenses.reduce((acc, curr) => acc + curr.amount, 0), [expenses]);
@@ -300,9 +302,106 @@ const Expenses = ({ timeFilter: externalTimeFilter, isNested, externalTriggerMod
             trend: trendData?.trend,
             trendLabel: trendData?.trendLabel
         },
-        { title: "Categoría Top", value: topCategory, icon: <TrendingUp className="text-[#ff4d6d]" />, color: "bg-[#ff4d6d]" },
+        {
+            title: "Categoría Top",
+            value: topCategory,
+            icon: getCategoryIcon(topCategory),
+            color: "bg-[#ff4d6d]"
+        },
         { title: "Movimientos", value: expenses.length.toString(), icon: <PieIcon className="text-blue-500" />, color: "bg-blue-500" }
     ];
+
+    const chartData = useMemo(() => {
+        const dailyMap = {};
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        let daysToShow = 7;
+        if (timeFilter === 'month') daysToShow = 14;
+        if (timeFilter === 'year') daysToShow = 12;
+        if (timeFilter === 'today') daysToShow = 1;
+
+        const templateData = [];
+
+        for (let i = daysToShow - 1; i >= 0; i--) {
+            const d = new Date(today);
+            d.setDate(today.getDate() - i);
+            const dateStr = d.toLocaleDateString('es-ES', { weekday: 'short' });
+            const key = d.toISOString().split('T')[0];
+
+            templateData.push({
+                name: dateStr.charAt(0).toUpperCase() + dateStr.slice(1),
+                fullDate: key,
+                value: 0
+            });
+            dailyMap[key] = 0;
+        }
+
+        expenses.forEach(exp => {
+            if (!exp.date) return;
+            let expDateStr = "";
+            if (exp.date.includes('-')) expDateStr = exp.date;
+            else expDateStr = new Date(exp.date).toISOString().split('T')[0];
+
+            if (dailyMap.hasOwnProperty(expDateStr)) {
+                const idx = templateData.findIndex(item => item.fullDate === expDateStr);
+                if (idx !== -1) {
+                    templateData[idx].value += exp.amount;
+                }
+            }
+        });
+
+        return templateData;
+    }, [expenses, timeFilter]);
+
+    const currentTotal = useMemo(() => chartData.reduce((acc, curr) => acc + curr.value, 0), [chartData]);
+
+    const estimatedTotal = useMemo(() => {
+        let projectionDays = 7;
+        if (timeFilter === 'month') projectionDays = 30;
+        if (timeFilter === '3months') projectionDays = 90;
+        if (timeFilter === 'all') projectionDays = 365;
+
+        return calculateLinearRegression(chartData.map(d => d.value), projectionDays);
+    }, [chartData, timeFilter]);
+
+    const trendNum = useMemo(() => {
+        if (trendData?.trend) {
+            return parseFloat(trendData.trend.replace('%', '').replace('+', ''));
+        }
+        return 0;
+    }, [trendData]);
+
+    const categoryStats = useMemo(() => {
+        const stats = {};
+        let total = 0;
+        filteredExpenses.forEach(tx => {
+            if (!stats[tx.category]) {
+                stats[tx.category] = { name: tx.category, amount: 0, count: 0 };
+            }
+            stats[tx.category].amount += tx.amount;
+            stats[tx.category].count += 1;
+            total += tx.amount;
+        });
+
+        return Object.values(stats)
+            .map(cat => ({
+                ...cat,
+                percentage: total > 0 ? (cat.amount / total) * 100 : 0
+            }))
+            .sort((a, b) => b.amount - a.amount)
+            .slice(0, 4);
+    }, [filteredExpenses]);
+
+    const periodLabel = useMemo(() => {
+        switch (timeFilter) {
+            case '7days': return 'ESTA SEMANA';
+            case 'month': return 'ESTE MES';
+            case '3months': return 'ESTOS 3 MESES';
+            case 'all': return 'HISTÓRICO';
+            default: return 'ESTE PERIODO';
+        }
+    }, [timeFilter]);
 
     return (
         <>
@@ -315,12 +414,10 @@ const Expenses = ({ timeFilter: externalTimeFilter, isNested, externalTriggerMod
             )}
             <div className="animate-fade-in">
 
-
-
-                <MobileStatsGrid stats={mobileStats} />
+                <MobileStatsGrid stats={mobileStats} style={{ marginTop: '-3px' }} />
 
                 {!isNested && (
-                    <div className="page-header hidden-mobile"> {/* Original header for desktop only */}
+                    <div className="page-header hidden-mobile">
                         <div className="flex justify-between items-center w-full">
                             <div>
                                 <h2 className="page-title">Gastos</h2>
@@ -341,147 +438,19 @@ const Expenses = ({ timeFilter: externalTimeFilter, isNested, externalTriggerMod
                     </div>
                 )}
 
-                {/* Layout Grid: Gráfica a la izquierda, Tabla a la derecha 
-                   En móviles el CSS hace flex-direction: column */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    <div className="w-full">
+                        <TrendProjectionCard
+                            data={chartData}
+                            currentTotal={currentTotal}
+                            estimatedTotal={estimatedTotal}
+                            trendPercentage={trendNum}
+                            categoryData={categoryStats}
+                            periodLabel={periodLabel}
+                        />
+                    </div>
 
-                    {/* Nueva Tarjeta de Tendencia y Proyección */}
-
-
-                    {/* Logic for chart data */}
-                    {(() => {
-                        // Prepare data for TrendProjectionCard
-                        // 1. Group expenses by day for the selected period
-                        // 2. Ideally align to Mon-Sun or just Last 7 days dynamic
-
-                        const processChartData = () => {
-                            // Default to last 7 days view logic for the chart for simplicity if filter is small
-                            // Or respect the timeFilter
-
-                            // Map of date -> amount
-                            const dailyMap = {};
-                            const today = new Date();
-                            today.setHours(0, 0, 0, 0);
-
-                            // Adjust days to show in the small trend chart based on filter
-                            let daysToShow = 7;
-                            if (timeFilter === 'month') daysToShow = 14; // Weekly view-ish
-                            if (timeFilter === 'year') daysToShow = 12; // Monthly later? keep 7 for now
-                            if (timeFilter === 'today') daysToShow = 1;
-
-                            const templateData = [];
-
-                            for (let i = daysToShow - 1; i >= 0; i--) {
-                                const d = new Date(today);
-                                d.setDate(today.getDate() - i);
-                                const dateStr = d.toLocaleDateString('es-ES', { weekday: 'short' }); // "lun", "mar"
-                                const key = d.toISOString().split('T')[0];
-
-                                templateData.push({
-                                    name: dateStr.charAt(0).toUpperCase() + dateStr.slice(1),
-                                    fullDate: key,
-                                    value: 0
-                                });
-                                dailyMap[key] = 0;
-                            }
-
-                            // Fill with real data
-                            expenses.forEach(exp => {
-                                if (!exp.date) return;
-                                let expDateStr = "";
-                                if (exp.date.includes('-')) expDateStr = exp.date; // YYYY-MM-DD
-                                else expDateStr = new Date(exp.date).toISOString().split('T')[0];
-
-                                if (dailyMap.hasOwnProperty(expDateStr)) {
-                                    // Find index
-                                    const idx = templateData.findIndex(item => item.fullDate === expDateStr);
-                                    if (idx !== -1) {
-                                        templateData[idx].value += exp.amount;
-                                    }
-                                }
-                            });
-
-                            return templateData;
-                        };
-
-                        const chartData = processChartData();
-
-                        // Calculate Estimations
-                        // Simple linear projection logic
-                        // If 7 days filter, and we are in day X... actually simple logic:
-                        // Projection = (Avg Daily Spend) * (Days in Month/Period)?
-                        // User prompt image shows "Estimado al Cierre" $35.
-                        // Let's project for the "End of 7 Days" or "End of Month" depending on filter?
-                        // Let's default to "Estimated Weekly Total" if 7 days.
-
-                        const currentTotal = chartData.reduce((acc, curr) => acc + curr.value, 0);
-
-
-                        // Calculate Projection using Linear Regression
-                        // We project based on the active time filter using the current chart data (last 7 days trend)
-                        let projectionDays = 7;
-                        if (timeFilter === 'month') projectionDays = 30;
-                        if (timeFilter === '3months') projectionDays = 90;
-                        if (timeFilter === 'all') projectionDays = 365;
-
-                        const estimatedTotal = calculateLinearRegression(chartData.map(d => d.value), projectionDays);
-
-                        // Use the real trend percentage if available from trendData
-                        // Parsing "+12.5%" -> 12.5
-                        let trendNum = 0;
-                        if (trendData?.trend) {
-                            trendNum = parseFloat(trendData.trend.replace('%', '').replace('+', ''));
-                        }
-
-                        // Calculate Category Breakdown for Back Face
-                        const categoryStats = useMemo(() => {
-                            const stats = {};
-                            let total = 0;
-                            filteredExpenses.forEach(tx => {
-                                if (!stats[tx.category]) {
-                                    stats[tx.category] = { name: tx.category, amount: 0, count: 0 };
-                                }
-                                stats[tx.category].amount += tx.amount;
-                                stats[tx.category].count += 1;
-                                total += tx.amount;
-                            });
-
-                            return Object.values(stats)
-                                .map(cat => ({
-                                    ...cat,
-                                    percentage: total > 0 ? (cat.amount / total) * 100 : 0
-                                }))
-                                .sort((a, b) => b.amount - a.amount)
-                                .slice(0, 4); // Top 4 categories
-                        }, [filteredExpenses]);
-
-                        const periodLabel = useMemo(() => {
-                            switch (timeFilter) {
-                                case '7days': return 'ESTA SEMANA';
-                                case 'month': return 'ESTE MES';
-                                case '3months': return 'ESTOS 3 MESES';
-                                case 'all': return 'HISTÓRICO';
-                                default: return 'ESTE PERIODO';
-                            }
-                        }, [timeFilter]);
-
-                        // Determine grid layout again - on Desktop we want side-by-side
-                        return (
-                            <div className="w-full">
-                                <TrendProjectionCard
-                                    data={chartData}
-                                    currentTotal={currentTotal}
-                                    estimatedTotal={estimatedTotal}
-                                    trendPercentage={trendNum}
-                                    categoryData={categoryStats}
-                                    periodLabel={periodLabel}
-                                />
-                            </div>
-                        );
-                    })()}
-
-                    {/* Tabla de Gastos + Vista Móvil combinadas en una sola Tarjeta */}
-                    <Card style={{ marginTop: '45px' }}>
+                    <Card style={{ marginTop: '38px' }}>
                         <h3 className="mb-4 hidden-mobile" style={{ fontSize: '1.2rem' }}>Historial de Gastos</h3>
 
                         <div className="transaction-list">
@@ -504,185 +473,42 @@ const Expenses = ({ timeFilter: externalTimeFilter, isNested, externalTriggerMod
                         </div>
                     </Card>
                 </div>
-
             </div>
 
+            {/* Modal Agregar Gasto */}
+            {showModal && createPortal(
+                <SwipeableModal onClose={() => setShowModal(false)} editingId={editingId}>
+                    <h3 className="premium-title red">
+                        {editingId ? 'Editar Gasto' : 'Agregar Nuevo Gasto'}
+                    </h3>
 
-            {/* Modal Agregar/Editar */}
-            {
-                showModal && (
-                    <div className="modal-backdrop" style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background: 'rgba(0, 0, 0, 0.7)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 1000
-                    }}>
-                        <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '500px', position: 'relative' }}>
-                            <button
-                                onClick={handleCloseModal}
-                                style={{
-                                    position: 'absolute',
-                                    top: '1rem',
-                                    right: '1rem',
-                                    background: 'transparent',
-                                    border: 'none',
-                                    color: 'white',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                <X size={24} />
-                            </button>
-
-                            <h3 className="mb-6">{editingId ? 'Editar Gasto' : 'Agregar Nuevo Gasto'}</h3>
-
-                            <form onSubmit={handleSubmit}>
-                                <div className="mb-4">
-                                    <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                        Descripción
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="input-field"
-                                        placeholder="Ej: Supermercado, Netflix, Gasolina"
-                                        value={newExpense.description}
-                                        onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
-                                        required
-                                    />
-                                </div>
-
-                                <div className="mb-4">
-                                    <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                        Categoría
-                                    </label>
-                                    <select
-                                        className="input-field"
-                                        value={newExpense.category}
-                                        onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
-                                        required
-                                    >
-                                        <option value="">Selecciona una categoría</option>
-                                        <option value="Alimentación">Alimentación</option>
-                                        <option value="Transporte">Transporte</option>
-                                        <option value="Servicios">Servicios</option>
-                                        <option value="Entretenimiento">Entretenimiento</option>
-                                        <option value="Salud">Salud</option>
-                                        <option value="Educación">Educación</option>
-                                        <option value="Hogar">Hogar</option>
-                                        <option value="Otros">Otros</option>
-                                    </select>
-                                </div>
-
-                                <div className="mb-4">
-                                    <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                        Monto
-                                    </label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        className="input-field"
-                                        placeholder="0.00"
-                                        value={newExpense.amount}
-                                        onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
-                                        required
-                                    />
-                                </div>
-
-                                <div className="mb-6">
-                                    <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                        Fecha
-                                    </label>
-                                    <input
-                                        type="date"
-                                        className="input-field"
-                                        value={newExpense.date}
-                                        onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
-                                        required
-                                    />
-                                </div>
-
-                                <div className="flex gap-3 justify-end w-full">
-                                    {editingId && (
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                handleDelete(editingId);
-                                                setShowModal(false); // Close modal
-                                            }}
-                                            className="btn"
-                                            style={{
-                                                background: 'rgba(239, 68, 68, 0.2)',
-                                                border: '1px solid rgba(239, 68, 68, 0.5)',
-                                                color: '#fca5a5',
-                                                marginRight: 'auto' // Push other button to right
-                                            }}
-                                        >
-                                            <CustomTrashIcon size={18} />
-                                        </button>
-                                    )}
-
-                                    <button
-                                        type="submit"
-                                        className="btn text-white"
-                                        style={{ background: 'linear-gradient(135deg, hsl(var(--accent-danger)), #ff6b6b)' }}
-                                    >
-                                        {editingId ? <><Edit2 size={18} /> Actualizar</> : <><Plus size={18} /> Agregar</>}
-                                    </button>
-                                </div>
-                            </form>
+                    <form onSubmit={handleSubmit}>
+                        <div className="premium-input-group">
+                            <label className="premium-label">
+                                Descripción
+                            </label>
+                            <input
+                                type="text"
+                                className="premium-input"
+                                placeholder="Ej: Supermercado, Netflix, Gasolina"
+                                value={newExpense.description}
+                                onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
+                                required
+                            />
                         </div>
-                    </div>
-                )
-            }
 
-            {/* Modal Filtros */}
-            {
-                showFilterModal && (
-                    <div className="modal-backdrop" style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background: 'rgba(0, 0, 0, 0.7)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 1000
-                    }}>
-                        <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '500px', position: 'relative' }}>
-                            <button
-                                onClick={() => setShowFilterModal(false)}
-                                style={{
-                                    position: 'absolute',
-                                    top: '1rem',
-                                    right: '1rem',
-                                    background: 'transparent',
-                                    border: 'none',
-                                    color: 'white',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                <X size={24} />
-                            </button>
-
-                            <h3 className="mb-6">Filtrar Gastos</h3>
-
-                            <div className="mb-4">
-                                <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
+                        <div className="form-grid-2">
+                            <div className="premium-input-group">
+                                <label className="premium-label">
                                     Categoría
                                 </label>
                                 <select
-                                    className="input-field"
-                                    value={filters.category}
-                                    onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                                    className="premium-input"
+                                    value={newExpense.category}
+                                    onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
+                                    required
                                 >
-                                    <option value="">Todas las categorías</option>
+                                    <option value="">Selecciona una categoría</option>
                                     <option value="Alimentación">Alimentación</option>
                                     <option value="Transporte">Transporte</option>
                                     <option value="Servicios">Servicios</option>
@@ -694,50 +520,165 @@ const Expenses = ({ timeFilter: externalTimeFilter, isNested, externalTriggerMod
                                 </select>
                             </div>
 
-                            <div className="mb-4">
-                                <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                    Fecha Desde
+                            <div className="premium-input-group">
+                                <label className="premium-label">
+                                    Fecha
                                 </label>
                                 <input
                                     type="date"
-                                    className="input-field"
-                                    value={filters.dateFrom}
-                                    onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
+                                    className="premium-input"
+                                    value={newExpense.date}
+                                    onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
+                                    required
                                 />
                             </div>
+                        </div>
 
-                            <div className="mb-6">
-                                <label className="text-sm text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                                    Fecha Hasta
+                        <div className="form-grid-2" style={{ alignItems: 'center' }}>
+                            <div className="premium-input-group">
+                                <label className="premium-label">
+                                    Monto
                                 </label>
                                 <input
-                                    type="date"
-                                    className="input-field"
-                                    value={filters.dateTo}
-                                    onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
+                                    type="number"
+                                    step="0.01"
+                                    className="premium-input"
+                                    placeholder="0.00"
+                                    value={newExpense.amount}
+                                    onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
+                                    required
                                 />
                             </div>
 
-                            <div className="flex gap-3 justify-end">
+                            <div className="flex gap-2 w-full">
+                                {editingId && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            handleDelete(editingId);
+                                            setShowModal(false);
+                                        }}
+                                        className="btn"
+                                        style={{
+                                            background: 'rgba(239, 68, 68, 0.2)',
+                                            border: '1px solid rgba(239, 68, 68, 0.5)',
+                                            color: '#fca5a5',
+                                            padding: '0 1rem'
+                                        }}
+                                    >
+                                        <CustomTrashIcon size={18} />
+                                    </button>
+                                )}
+
                                 <button
-                                    type="button"
-                                    className="btn glass"
-                                    onClick={handleClearFilters}
+                                    type="submit"
+                                    className="btn text-white w-full"
+                                    style={{ background: 'linear-gradient(135deg, hsl(0, 90%, 65%), hsl(0, 90%, 55%))' }}
                                 >
-                                    Limpiar Filtros
-                                </button>
-                                <button
-                                    type="button"
-                                    className="btn btn-primary"
-                                    onClick={handleApplyFilters}
-                                >
-                                    <Filter size={18} /> Aplicar Filtros
+                                    {editingId ? <><Edit2 size={18} /> Actualizar</> : <><Plus size={18} /> Agregar</>}
                                 </button>
                             </div>
                         </div>
+                    </form>
+                </SwipeableModal>,
+                document.body
+            )}
+
+            {/* Modal Filtros */}
+            {showFilterModal && createPortal(
+                <div className="modal-wrapper">
+                    <div className="modal-content-responsive">
+                        <div className="modal-pull-handle" />
+                        <button
+                            onClick={() => setShowFilterModal(false)}
+                            style={{
+                                position: 'absolute',
+                                top: '1.25rem',
+                                right: '1.25rem',
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                border: 'none',
+                                color: 'rgba(255, 255, 255, 0.5)',
+                                cursor: 'pointer',
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                        >
+                            <X size={18} />
+                        </button>
+
+                        <h3 className="premium-title blue">
+                            Filtrar Gastos
+                        </h3>
+
+                        <div className="premium-input-group">
+                            <label className="premium-label">
+                                Categoría
+                            </label>
+                            <select
+                                className="premium-input"
+                                value={filters.category}
+                                onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                            >
+                                <option value="">Todas las categorías</option>
+                                <option value="Alimentación">Alimentación</option>
+                                <option value="Transporte">Transporte</option>
+                                <option value="Servicios">Servicios</option>
+                                <option value="Entretenimiento">Entretenimiento</option>
+                                <option value="Salud">Salud</option>
+                                <option value="Educación">Educación</option>
+                                <option value="Hogar">Hogar</option>
+                                <option value="Otros">Otros</option>
+                            </select>
+                        </div>
+
+                        <div className="premium-input-group">
+                            <label className="premium-label">
+                                Fecha Desde
+                            </label>
+                            <input
+                                type="date"
+                                className="premium-input"
+                                value={filters.dateFrom}
+                                onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
+                            />
+                        </div>
+
+                        <div className="premium-input-group">
+                            <label className="premium-label">
+                                Fecha Hasta
+                            </label>
+                            <input
+                                type="date"
+                                className="premium-input"
+                                value={filters.dateTo}
+                                onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
+                            />
+                        </div>
+
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                type="button"
+                                className="btn glass"
+                                onClick={handleClearFilters}
+                            >
+                                Limpiar Filtros
+                            </button>
+                            <button
+                                type="button"
+                                className="btn btn-primary"
+                                onClick={handleApplyFilters}
+                            >
+                                <Filter size={18} /> Aplicar Filtros
+                            </button>
+                        </div>
                     </div>
-                )
-            }
+                </div>,
+                document.body
+            )}
         </>
     );
 };

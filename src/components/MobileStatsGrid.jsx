@@ -36,7 +36,7 @@ const MobileStatsGrid = ({ stats, style }) => {
                 gap: '0.75rem', // gap-3
                 marginBottom: '10px', // mb-6
                 width: '100%',
-                marginTop: '20px',
+                marginTop: '20px', // Reverted to default to not affect other pages
                 ...style // Allow overrides
             }}
         >
@@ -45,12 +45,12 @@ const MobileStatsGrid = ({ stats, style }) => {
                 style={{
                     ...getBackgroundStyle(mainStat.color),
                     width: '100%',
-                    padding: '1.25rem', // p-5
-                    borderRadius: '2rem', // rounded-[2rem]
+                    padding: '1rem', // Reduced from 1.25rem
+                    borderRadius: '1.75rem', // Slightly reduced from 2rem
                     position: 'relative',
                     overflow: 'hidden',
-                    boxShadow: '0 10px 30px -10px rgba(0,0,0,0.3)',
-                    minHeight: '140px',
+                    boxShadow: '0 8px 25px -10px rgba(0,0,0,0.3)',
+                    minHeight: '120px', // Reduced from 140px
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between'
@@ -64,7 +64,7 @@ const MobileStatsGrid = ({ stats, style }) => {
                         backdropFilter: 'blur(4px)', // backdrop-blur-sm
                         display: 'inline-flex'
                     }}>
-                        {React.cloneElement(mainStat.icon, { size: 24, color: 'white' })}
+                        {React.cloneElement(mainStat.icon, { size: 22, color: 'white' })}
                     </div>
 
                     {/* Sparkline (Decorative) */}
@@ -78,17 +78,18 @@ const MobileStatsGrid = ({ stats, style }) => {
 
                 <div style={{ position: 'relative', zIndex: 2 }}>
                     <p style={{
-                        color: 'rgba(255,255,255,0.9)',
-                        fontSize: '0.875rem', // text-sm
-                        fontWeight: 600,
-                        marginBottom: '0.25rem'
+                        color: 'rgba(255,255,255,0.85)',
+                        fontSize: '0.7rem',
+                        fontWeight: 500,
+                        marginBottom: '0.05rem',
+                        lineHeight: '1.2'
                     }}>
                         {mainStat.title}
                     </p>
                     <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', width: '100%' }}>
                         <h2 style={{
                             color: 'white',
-                            fontSize: 'clamp(1.5rem, 8vw, 2.3rem)', // Dynamic font size
+                            fontSize: 'clamp(1.4rem, 7.5vw, 2.1rem)', // Original tamaño
                             fontWeight: 800,
                             letterSpacing: '-0.025em',
                             lineHeight: '1',
@@ -137,48 +138,52 @@ const MobileStatsGrid = ({ stats, style }) => {
                     <div
                         key={index}
                         style={{
-                            padding: '1rem', // p-4
-                            borderRadius: '1.5rem', // rounded-[1.5rem]
+                            padding: '0.75rem 0.85rem', // More horizontal padding
+                            borderRadius: '1.15rem', // Slightly more compact
                             background: 'hsl(var(--bg-secondary) / 0.5)',
                             border: '1px solid rgba(255,255,255,0.05)',
-                            backdropFilter: 'blur(16px)', // backdrop-blur-lg
+                            backdropFilter: 'blur(16px)',
                             display: 'flex',
-                            flexDirection: 'column',
+                            flexDirection: 'row', // Horizontal layout
+                            alignItems: 'center', // Center vertically
                             justifyContent: 'space-between',
-                            minHeight: '120px'
+                            minHeight: '75px', // Significantly reduced from 100px
+                            gap: '0.5rem'
                         }}
                     >
-                        <div style={{ marginBottom: '0.75rem' }}>
-                            <div
-                                style={{
-                                    padding: '0.5rem',
-                                    borderRadius: '0.75rem', // rounded-xl
-                                    display: 'inline-flex',
-                                    background: 'rgba(255,255,255,0.05)'
-                                }}
-                            >
-                                {React.cloneElement(stat.icon, { size: 20 })}
-                            </div>
-                        </div>
-
-                        <div>
+                        <div style={{ marginTop: '-3px' }}>
                             <p style={{
                                 color: 'hsl(var(--text-secondary))',
-                                fontSize: '0.75rem', // text-xs
+                                fontSize: '0.7rem',
                                 fontWeight: 500,
-                                marginBottom: '0.1rem'
+                                marginBottom: '0.05rem'
                             }}>
                                 {stat.title}
                             </p>
                             <p style={{
                                 color: 'white',
-                                fontSize: 'clamp(0.85rem, 3.8vw, 1rem)', // Smaller to fit
+                                fontSize: 'clamp(0.95rem, 4.2vw, 1.05rem)',
                                 fontWeight: 700,
                                 lineHeight: '1.2',
-                                whiteSpace: 'nowrap'
+                                whiteSpace: 'nowrap',
+                                marginTop: '5px' // Lowered by 5px as requested
                             }}>
                                 {stat.value}
                             </p>
+                        </div>
+
+                        <div
+                            style={{
+                                padding: '0.45rem', // Slightly more padding
+                                borderRadius: '0.65rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: 'rgba(255,255,255,0.08)', // Slightly more visible background
+                                flexShrink: 0
+                            }}
+                        >
+                            {React.cloneElement(stat.icon, { size: 20 })}
                         </div>
                     </div>
                 ))}

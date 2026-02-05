@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
-import { Shield, User, Key, Menu } from 'lucide-react';
+import { Shield, User, Key, Menu, X } from 'lucide-react';
 import MobileMenuButton from '../components/MobileMenuButton';
 import MobileHeader from '../components/MobileHeader';
 import CustomTrashIcon from '../components/CustomTrashIcon';
@@ -38,7 +39,7 @@ const AdminUsers = () => {
     };
 
     const deleteUser = async (id) => {
-
+        if (!window.confirm("¿Seguro que deseas eliminar este usuario?")) return;
 
         try {
             await fetch(`/api/admin/users/${id}`, {
@@ -62,15 +63,20 @@ const AdminUsers = () => {
     const handleCreateUser = async (e) => {
         e.preventDefault();
         try {
-            await fetch('/api/auth/register', {
+            const res = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newUser)
             });
-            fetchUsers();
-            setShowModal(false);
-            setNewUser({ name: '', email: '', password: '' });
-            alert("Usuario creado exitosamente");
+            if (res.ok) {
+                fetchUsers();
+                setShowModal(false);
+                setNewUser({ name: '', email: '', password: '' });
+                alert("Usuario creado exitosamente");
+            } else {
+                const err = await res.json();
+                alert(`Error: ${err.message || 'No se pudo crear el usuario'}`);
+            }
         } catch (error) {
             console.error("Error creating user", error);
             alert("Error al crear usuario");
@@ -80,7 +86,7 @@ const AdminUsers = () => {
     const handleResetPassword = async (e) => {
         e.preventDefault();
         try {
-            await fetch(`/api/admin/users/${selectedUser._id}/reset-password`, {
+            const res = await fetch(`/api/admin/users/${selectedUser._id}/reset-password`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -88,10 +94,15 @@ const AdminUsers = () => {
                 },
                 body: JSON.stringify({ password: newPassword })
             });
-            setShowPasswordModal(false);
-            setNewPassword('');
-            setSelectedUser(null);
-            alert('Contraseña actualizada exitosamente');
+            if (res.ok) {
+                setShowPasswordModal(false);
+                setNewPassword('');
+                setSelectedUser(null);
+                alert('Contraseña actualizada exitosamente');
+            } else {
+                const err = await res.json();
+                alert(`Error: ${err.message || 'No se pudo actualizar la contraseña'}`);
+            }
         } catch (error) {
             console.error('Error resetting password:', error);
             alert('Error al actualizar contraseña');
@@ -409,62 +420,62 @@ const AdminUsers = () => {
                 </div>
             </div>
 
-            {/* Modal Agregar Usuario */}
-            {showModal && (
-                <div className="modal-backdrop" style={{
-                    background: 'rgba(0, 0, 0, 0.7)',
-                    backdropFilter: 'blur(8px)',
-                    zIndex: 9999
-                }}>
-                    <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '500px', position: 'relative' }}>
+            {showModal && createPortal(
+                <div className="modal-wrapper">
+                    <div className="modal-content-responsive">
+                        <div className="modal-pull-handle" />
                         <button
                             onClick={() => setShowModal(false)}
                             style={{
                                 position: 'absolute',
-                                top: '1rem',
-                                right: '1rem',
-                                background: 'transparent',
+                                top: '1.25rem',
+                                right: '1.25rem',
+                                background: 'rgba(255, 255, 255, 0.05)',
                                 border: 'none',
-                                color: 'white',
+                                color: 'rgba(255, 255, 255, 0.5)',
                                 cursor: 'pointer',
-                                fontSize: '1.5rem',
-                                lineHeight: 1
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
                             }}
                         >
-                            ×
+                            <X size={18} />
                         </button>
 
-                        <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                        <h3 className="premium-title blue">
                             Nuevo Usuario
                         </h3>
                         <form onSubmit={handleCreateUser} className="space-y-6">
-                            <div>
-                                <label className="block text-sm font-semibold text-secondary mb-2 ml-1">Nombre</label>
+                            <div className="premium-input-group">
+                                <label className="premium-label">Nombre</label>
                                 <input
                                     type="text"
-                                    className="input-field w-full py-3 px-5 rounded-xl border-white/10"
+                                    className="premium-input"
                                     value={newUser.name}
                                     onChange={e => setNewUser({ ...newUser, name: e.target.value })}
                                     required
                                     placeholder="Nombre completo"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-semibold text-secondary mb-2 ml-1">Email</label>
+                            <div className="premium-input-group">
+                                <label className="premium-label">Email</label>
                                 <input
                                     type="email"
-                                    className="input-field w-full py-3 px-5 rounded-xl border-white/10"
+                                    className="premium-input"
                                     value={newUser.email}
                                     onChange={e => setNewUser({ ...newUser, email: e.target.value })}
                                     required
                                     placeholder="correo@ejemplo.com"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-semibold text-secondary mb-2 ml-1">Contraseña</label>
+                            <div className="premium-input-group">
+                                <label className="premium-label">Contraseña</label>
                                 <input
                                     type="password"
-                                    className="input-field w-full py-3 px-5 rounded-xl border-white/10"
+                                    className="premium-input"
                                     value={newUser.password}
                                     onChange={e => setNewUser({ ...newUser, password: e.target.value })}
                                     required
@@ -478,17 +489,14 @@ const AdminUsers = () => {
                             </div>
                         </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
-            {/* Modal Resetear Contraseña */}
-            {showPasswordModal && selectedUser && (
-                <div className="modal-backdrop" style={{
-                    background: 'rgba(0, 0, 0, 0.7)',
-                    backdropFilter: 'blur(8px)',
-                    zIndex: 9999
-                }}>
-                    <div className="glass-card modal-content p-6" style={{ width: '90%', maxWidth: '500px', position: 'relative' }}>
+            {showPasswordModal && selectedUser && createPortal(
+                <div className="modal-wrapper">
+                    <div className="modal-content-responsive">
+                        <div className="modal-pull-handle" />
                         <button
                             onClick={() => {
                                 setShowPasswordModal(false);
@@ -497,31 +505,35 @@ const AdminUsers = () => {
                             }}
                             style={{
                                 position: 'absolute',
-                                top: '1rem',
-                                right: '1rem',
-                                background: 'transparent',
+                                top: '1.25rem',
+                                right: '1.25rem',
+                                background: 'rgba(255, 255, 255, 0.05)',
                                 border: 'none',
-                                color: 'white',
+                                color: 'rgba(255, 255, 255, 0.5)',
                                 cursor: 'pointer',
-                                fontSize: '1.5rem',
-                                lineHeight: 1
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
                             }}
                         >
-                            ×
+                            <X size={18} />
                         </button>
 
-                        <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                        <h3 className="premium-title blue">
                             Resetear Contraseña
                         </h3>
                         <p className="text-secondary mb-4">
                             Usuario: <strong>{selectedUser.name}</strong> ({selectedUser.email})
                         </p>
                         <form onSubmit={handleResetPassword} className="space-y-6">
-                            <div>
-                                <label className="block text-sm font-semibold text-secondary mb-2 ml-1">Nueva Contraseña</label>
+                            <div className="premium-input-group">
+                                <label className="premium-label">Nueva Contraseña</label>
                                 <input
                                     type="password"
-                                    className="input-field w-full py-3 px-5 rounded-xl border-white/10"
+                                    className="premium-input"
                                     value={newPassword}
                                     onChange={e => setNewPassword(e.target.value)}
                                     required
@@ -536,7 +548,8 @@ const AdminUsers = () => {
                             </div>
                         </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </>
     );
