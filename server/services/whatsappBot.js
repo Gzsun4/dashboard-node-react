@@ -134,7 +134,7 @@ export const initializeWhatsAppBot = () => {
         },
         puppeteer: {
             headless: true,
-            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || null,
+            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || (process.env.RENDER ? '/opt/render/project/src/chrome-bin' : null),
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
