@@ -12,6 +12,7 @@ import budgetRoutes from './routes/budgetRoutes.js';
 import testRoutes from './routes/testRoutes.js';
 import { sendTelegramMessage } from './services/telegramService.js';
 import { initializeBot } from './services/telegramBot.js';
+import { initializeWhatsAppBot } from './services/whatsappBot.js';
 import { initializeSocket } from './services/socketService.js';
 import { errorHandler } from './middleware/errorMiddleware.js';
 
@@ -76,8 +77,9 @@ httpServer.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     console.log('WebSocket server ready for connections');
 
-    // Initialize Telegram bot
+    // Initialize Bots
     initializeBot();
+    initializeWhatsAppBot();
 
-    console.log('Telegram bot service started');
+    console.log('Bot services (Telegram & WhatsApp) started');
 });

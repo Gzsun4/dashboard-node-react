@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import asyncHandler from 'express-async-handler';
 import User from '../models/User.js';
 import { sendTelegramMessage } from '../services/telegramService.js';
+import { sendWhatsAppMessage } from '../services/whatsappBot.js';
 
 // @desc    Register new user
 // @route   POST /api/auth/register
@@ -52,6 +53,7 @@ const registerUser = asyncHandler(async (req, res) => {
             email: user.email,
             role: user.role,
             telegramChatId: user.telegramChatId,
+            whatsappId: user.whatsappId,
             token: generateToken(user._id, user.role)
         });
     } else {
@@ -81,6 +83,7 @@ const loginUser = asyncHandler(async (req, res) => {
             email: user.email,
             role: user.role,
             telegramChatId: user.telegramChatId,
+            whatsappId: user.whatsappId,
             lastLogin: user.lastLogin,
             token: generateToken(user._id, user.role)
         });
@@ -99,7 +102,7 @@ const updateTelegramChatId = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user._id);
 
     if (user) {
-        user.telegramChatId = telegramChatId;
+        user.telegramChatId = telegramChatId ? telegramChatId.trim() : telegramChatId;
         const updatedUser = await user.save();
 
         // Send confirmation message to Telegram
@@ -115,6 +118,41 @@ const updateTelegramChatId = asyncHandler(async (req, res) => {
             email: updatedUser.email,
             role: updatedUser.role,
             telegramChatId: updatedUser.telegramChatId,
+            whatsappId: updatedUser.whatsappId,
+            token: generateToken(updatedUser._id, updatedUser.role)
+        });
+    } else {
+        res.status(404);
+        throw new Error('User not found');
+    }
+});
+
+// @desc    Update whatsapp ID
+// @route   PUT /api/auth/whatsapp
+// @access  Private
+const updateWhatsappId = asyncHandler(async (req, res) => {
+    const { whatsappId } = req.body;
+
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+        user.whatsappId = whatsappId ? whatsappId.trim() : whatsappId;
+        const updatedUser = await user.save();
+
+        // Send confirmation message to WhatsApp
+        try {
+            await sendWhatsAppMessage(whatsappId, `*✨ ¡Vinculación Exitosa!*\n\nHola *${user.name}*, tu cuenta de Finanzas ha sido vinculada correctamente. Ahora puedes registrar tus gastos por aquí.`);
+        } catch (error) {
+            console.error('Could not send WhatsApp confirmation message:', error);
+        }
+
+        res.json({
+            _id: updatedUser._id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            role: updatedUser.role,
+            telegramChatId: updatedUser.telegramChatId,
+            whatsappId: updatedUser.whatsappId,
             token: generateToken(updatedUser._id, updatedUser.role)
         });
     } else {
@@ -146,6 +184,7 @@ const updateProfile = asyncHandler(async (req, res) => {
             email: updatedUser.email,
             role: updatedUser.role,
             telegramChatId: updatedUser.telegramChatId,
+            whatsappId: updatedUser.whatsappId,
             token: generateToken(updatedUser._id, updatedUser.role)
         });
     } else {
@@ -165,5 +204,6 @@ export {
     registerUser,
     loginUser,
     updateTelegramChatId,
+    updateWhatsappId,
     updateProfile
 };

@@ -130,137 +130,7 @@ const REMINDER_TRIGGERS = ['alerta', 'recordatorio', 'avisame', 'acuerdame', 're
 
 // --- FUNCIONES DE AYUDA (NLP) ---
 
-const getFinancialContext = async (userId) => {
-    const now = new Date();
-    // Expand to Last 90 Days (~3 Months)
-    const past90Days = new Date();
-    past90Days.setDate(now.getDate() - 90);
-
-    // Formatting for query
-    const year = past90Days.getFullYear();
-    const month = String(past90Days.getMonth() + 1).padStart(2, '0');
-    const day = String(past90Days.getDate()).padStart(2, '0');
-    const filterDateStr = `${year}-${month}-${day}`;
-
-    // Fetch transactions from last 90 days
-    const expenses = await Expense.find({ user: userId, date: { $gte: filterDateStr } });
-    const incomes = await Income.find({ user: userId, date: { $gte: filterDateStr } });
-
-    // Calculate totals for the *Current Month* specifically for the summary section
-    const currentYear = now.getFullYear();
-    const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
-    const currentMonthStr = `${currentYear}-${currentMonth}-01`;
-
-    // Calculate totals for *Previous Month*
-    const prevDate = new Date(now);
-    prevDate.setMonth(now.getMonth() - 1);
-    const prevYear = prevDate.getFullYear();
-    const prevMonth = String(prevDate.getMonth() + 1).padStart(2, '0');
-    const prevMonthStr = `${prevYear}-${prevMonth}-01`;
-    // End of previous month (for filtering range if needed, though exact "month" check is safer)
-
-    // Filter helper
-    const getMonthData = (data, pYear, pMonth) => {
-        return data.filter(item => item.date.startsWith(`${pYear}-${pMonth}`));
-    };
-
-    // Current Month Totals
-    const curExpenses = getMonthData(expenses, currentYear, currentMonth);
-    const curIncomes = getMonthData(incomes, currentYear, currentMonth);
-    const curTotalExp = curExpenses.reduce((sum, e) => sum + e.amount, 0);
-    const curTotalInc = curIncomes.reduce((sum, i) => sum + i.amount, 0);
-    const curBalance = curTotalInc - curTotalExp;
-
-    // Previous Month Totals
-    const prevExpenses = getMonthData(expenses, prevYear, prevMonth);
-    const prevIncomes = getMonthData(incomes, prevYear, prevMonth);
-    const prevTotalExp = prevExpenses.reduce((sum, e) => sum + e.amount, 0);
-    const prevTotalInc = prevIncomes.reduce((sum, i) => sum + i.amount, 0);
-    const prevBalance = prevTotalInc - prevTotalExp;
-
-    // Top Categories (Based on last 90 days for better trend)
-    const catMap = {};
-    expenses.forEach(e => {
-        catMap[e.category] = (catMap[e.category] || 0) + e.amount;
-    });
-    const topCategories = Object.entries(catMap)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 3)
-        .map(([cat, amount]) => `${cat}: S/.${amount.toFixed(2)}`)
-        .join(', ');
-
-    // Recent Transactions (Last 30) for Context
-    const allTransactions = [
-        ...expenses.map(e => ({ ...e.toObject(), type: 'Gasto' })),
-        ...incomes.map(i => ({ ...i.toObject(), type: 'Ingreso' }))
-    ].sort((a, b) => {
-        if (b.date !== a.date) return b.date.localeCompare(a.date);
-        return new Date(b.createdAt) - new Date(a.createdAt);
-    }).slice(0, 30);
-
-    const yesterday = new Date(now);
-    yesterday.setDate(now.getDate() - 1);
-
-    // Group headers for better context
-    const todayStr = now.toLocaleDateString('es-CA', { timeZone: 'America/Lima' });
-    const yesterdayStr = yesterday.toLocaleDateString('es-CA', { timeZone: 'America/Lima' });
-
-    const groupedTx = {};
-    allTransactions.forEach(t => {
-        if (!groupedTx[t.date]) groupedTx[t.date] = [];
-        groupedTx[t.date].push(t);
-    });
-
-    const recentTxText = Object.keys(groupedTx)
-        .sort((a, b) => b.localeCompare(a))
-        .map(date => {
-            let label = `[${date}]`;
-            if (date === todayStr) label += " (HOY)";
-            if (date === yesterdayStr) label += " (AYER)";
-
-            const txs = groupedTx[date].map(t =>
-                `      * ${t.type}: S/. ${t.amount} (${t.category} - ${t.description || t.source || 'Sin desc.'})`
-            ).join('\n');
-
-            return `${label}:\n${txs}`;
-        }).join('\n\n    ');
-
-    // Pre-calculate daily totals for Prompt Injection
-    const calculateDailyTotal = (dateStr, type) => {
-        return allTransactions
-            .filter(t => t.date === dateStr && t.type === type)
-            .reduce((sum, t) => sum + t.amount, 0)
-            .toFixed(2);
-    };
-
-    const todayInc = calculateDailyTotal(todayStr, 'Ingreso');
-    const todayExp = calculateDailyTotal(todayStr, 'Gasto');
-    const yestInc = calculateDailyTotal(yesterdayStr, 'Ingreso');
-    const yestExp = calculateDailyTotal(yesterdayStr, 'Gasto');
-
-    return `
-    [CONTEXTO DE TIEMPO]
-    Fecha Actual (Hoy): ${now.toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}
-    Fecha de Ayer: ${yesterday.toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}
-    (IMPORTANTE: Si el usuario pregunta por "ayer", busca movimientos ÚNICAMENTE en la sección que dice "(AYER)" abajo.)
-    (ADVERTENCIA: Si la sección "(AYER)" no existe o está vacía, responde "No tuve movimientos ayer".)
-
-    [RESUMEN DIARIO PRE-CALCULADO]
-    HOY (${todayStr}): Ingresos: S/.${todayInc} | Gastos: S/.${todayExp}
-    AYER (${yesterdayStr}): Ingresos: S/.${yestInc} | Gastos: S/.${yestExp}
-
-    Resumen Mes ACTUAL (${currentYear}-${currentMonth}):
-    - Ing: S/. ${curTotalInc.toFixed(2)} | Gas: S/. ${curTotalExp.toFixed(2)} | Bal: S/. ${curBalance.toFixed(2)}
-
-    Resumen Mes ANTERIOR (${prevYear}-${prevMonth}):
-    - Ing: S/. ${prevTotalInc.toFixed(2)} | Gas: S/. ${prevTotalExp.toFixed(2)} | Bal: S/. ${prevBalance.toFixed(2)}
-
-    Top Gastos (90d): ${topCategories || "Ninguno"}
-
-    === HISTORIAL DETALLADO POR DÍA ===
-    ${recentTxText || "No hay movimientos recientes."}
-    `;
-};
+import { getFinancialContext } from './financialService.js';
 
 const normalizeText = (text) => text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
@@ -305,21 +175,15 @@ const parseSmartMessage = (text) => {
     const amount = amountMatch ? parseFloat(amountMatch[0]) : null;
 
     // 3. Detectar Fecha (Ayer/Hoy/Anteayer)
-    // Usamos la hora de Perú para evitar desfases con el servidor (ej. Render en UTC)
-    const nowInPeru = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Lima" }));
-    let date = new Date(nowInPeru);
-
+    const dateObj = new Date();
     if (normalized.includes('ayer') && !normalized.includes('anteayer')) {
-        date.setDate(date.getDate() - 1);
+        dateObj.setDate(dateObj.getDate() - 1);
     } else if (normalized.includes('anteayer') || normalized.includes('antier')) {
-        date.setDate(date.getDate() - 2);
+        dateObj.setDate(dateObj.getDate() - 2);
     }
 
-    // Formato YYYY-MM-DD local a la fecha calculada
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const dateStr = `${year}-${month}-${day}`;
+    const dateStr = dateObj.toLocaleDateString("en-CA", { timeZone: "America/Lima" });
+    console.log(`📅 TG Date Generated: ${dateStr} (UTC: ${dateObj.toISOString()})`);
 
     // 4. Detectar Categoría
     let category = detectCategory(text);

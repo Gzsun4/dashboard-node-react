@@ -24,6 +24,11 @@ const userSchema = new mongoose.Schema({
         unique: true,
         sparse: true // Allows multiple null values
     },
+    whatsappId: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
     lastLogin: {
         type: Date
     }

@@ -52,7 +52,7 @@ const Dashboard = () => {
             for (let i = 6; i >= 0; i--) {
                 const d = new Date();
                 d.setDate(today.getDate() - i);
-                const dayKey = d.toISOString().split('T')[0];
+                const dayKey = d.toLocaleDateString('en-CA', { timeZone: 'America/Lima' });
                 chartMap.set(dayKey, {
                     name: daysOfWeek[d.getDay()],
                     income: 0,
@@ -148,7 +148,12 @@ const Dashboard = () => {
             <div className="mb-6 mt-4 px-1 md:hidden">
                 <h1 className="text-2xl font-bold text-white mb-1">
                     {(() => {
-                        const hour = new Date().getHours();
+                        const peruTime = new Intl.DateTimeFormat('en-US', {
+                            timeZone: 'America/Lima',
+                            hour: 'numeric',
+                            hour12: false
+                        }).format(new Date());
+                        const hour = parseInt(peruTime);
                         let greeting = 'Buenos días';
                         if (hour >= 12 && hour < 19) greeting = 'Buenas tardes';
                         if (hour >= 19) greeting = 'Buenas noches';

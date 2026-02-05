@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import ParticleBackground from '../components/ParticleBackground';
 import MobileHeader from '../components/MobileHeader';
-import { User, Send, ChevronRight, Moon, LogOut, Shield, Instagram, Save, Lock } from 'lucide-react';
+import { User, Send, ChevronRight, Moon, LogOut, Shield, Instagram, Save, Lock, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import '../modal-animations.css';
 
@@ -12,9 +12,11 @@ const Settings = () => {
     const navigate = useNavigate();
     const [darkMode, setDarkMode] = useState(true);
     const [showTelegramModal, setShowTelegramModal] = useState(false);
+    const [showWhatsappModal, setShowWhatsappModal] = useState(false);
     const [showProfileModal, setShowProfileModal] = useState(false); // New state for profile modal
     const [isClosing, setIsClosing] = useState(false); // Animation state
     const [telegramId, setTelegramId] = useState('');
+    const [whatsappId, setWhatsappId] = useState('');
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
@@ -70,10 +72,14 @@ const Settings = () => {
     };
 
     const isConnected = !!user?.telegramChatId;
+    const isWhatsappConnected = !!user?.whatsappId;
 
     useEffect(() => {
         if (user?.telegramChatId) {
             setTelegramId(user.telegramChatId);
+        }
+        if (user?.whatsappId) {
+            setWhatsappId(user.whatsappId);
         }
     }, [user]);
 
@@ -96,7 +102,7 @@ const Settings = () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ telegramChatId: telegramId })
+                body: JSON.stringify({ telegramChatId: telegramId.trim() })
             });
 
             const data = await response.json();
@@ -110,6 +116,40 @@ const Settings = () => {
             alert('¡Telegram conectado correctamente!');
         } catch (error) {
             console.error('Error al conectar Telegram:', error);
+            alert(error.message || 'Error al conectar. Inténtalo de nuevo.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleConnectWhatsapp = async () => {
+        if (!whatsappId.trim()) {
+            alert('Por favor ingresa tu ID de WhatsApp');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await fetch('/api/auth/whatsapp', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ whatsappId: whatsappId.trim() })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Error al conectar');
+            }
+
+            updateUserData({ whatsappId: whatsappId });
+            setShowWhatsappModal(false);
+            alert('¡WhatsApp conectado correctamente!');
+        } catch (error) {
+            console.error('Error al conectar WhatsApp:', error);
             alert(error.message || 'Error al conectar. Inténtalo de nuevo.');
         } finally {
             setLoading(false);
@@ -307,6 +347,98 @@ const Settings = () => {
                         >
                             <ChevronRight size={18} />
                             <span>Toca para {isConnected ? 'gestionar' : 'conectar'}</span>
+                        </button>
+                    </div>
+
+                    {/* WhatsApp Connect - Premium Card */}
+                    <div
+                        className="flex flex-col gap-5"
+                        style={{
+                            background: '#1C1C1E',
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            borderRadius: '24px',
+                            padding: '20px'
+                        }}
+                    >
+                        <div className="flex justify-between items-center">
+                            <h3 style={{
+                                fontWeight: '700',
+                                fontSize: '17px',
+                                color: 'white',
+                                margin: 0,
+                                letterSpacing: '-0.01em'
+                            }}>Conectar WhatsApp</h3>
+                            <div
+                                style={{
+                                    paddingLeft: '12px',
+                                    paddingRight: '12px',
+                                    paddingTop: '4px',
+                                    paddingBottom: '4px',
+                                    borderRadius: '999px',
+                                    fontSize: '12px',
+                                    fontWeight: '700',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    background: isWhatsappConnected ? 'rgba(37, 211, 102, 0.15)' : '#2C2C2E',
+                                    color: isWhatsappConnected ? '#25D366' : '#8E8E93',
+                                    border: isWhatsappConnected ? '1px solid rgba(37, 211, 102, 0.3)' : '1px solid rgba(255, 255, 255, 0.05)'
+                                }}
+                            >
+                                {isWhatsappConnected ? 'Conectado' : 'No conectado'}
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-4" style={{ marginTop: '10px' }}>
+                            <div
+                                style={{
+                                    width: '54px',
+                                    height: '54px',
+                                    borderRadius: '10px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0,
+                                    background: '#25D366',
+                                    color: 'white',
+                                    boxShadow: '0 4px 10px rgba(37, 211, 102, 0.2)',
+                                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                                    overflow: 'hidden'
+                                }}
+                            >
+                                <MessageCircle size={28} />
+                            </div>
+                            <p style={{
+                                fontSize: '14px',
+                                lineHeight: '1.4',
+                                fontWeight: '500',
+                                color: '#8E8E93',
+                                margin: 0
+                            }}>
+                                Registra gastos, ingresos y consulta a la IA por WhatsApp.
+                            </p>
+                        </div>
+
+                        <button
+                            onClick={() => setShowWhatsappModal(true)}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                fontSize: '13px',
+                                fontWeight: '700',
+                                color: '#8E8E93',
+                                background: 'transparent',
+                                border: 'none',
+                                padding: 0,
+                                cursor: 'pointer',
+                                outline: 'none',
+                                marginTop: '10px'
+                            }}
+                            className="transition-all active:opacity-60"
+                        >
+                            <ChevronRight size={18} />
+                            <span>Toca para {isWhatsappConnected ? 'gestionar' : 'conectar'}</span>
                         </button>
                     </div>
 
@@ -596,6 +728,158 @@ const Settings = () => {
                                 }}
                             >
                                 {loading ? 'Conectando...' : (isConnected ? 'Actualizar ID' : 'Conectar Ahora')}
+                            </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {showWhatsappModal && createPortal(
+                <div
+                    className="fixed inset-0 flex items-center justify-center p-4 animate-pure-fade"
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        zIndex: 99999,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '100vw',
+                        height: '100vh',
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)',
+                        transition: 'all 0.4s ease'
+                    }}
+                    onClick={() => setShowWhatsappModal(false)}
+                >
+                    <div
+                        className="relative w-full max-w-[340px] animate-scale-in"
+                        style={{
+                            backgroundColor: '#050505',
+                            border: '1px solid rgba(255, 255, 255, 0.15)',
+                            borderRadius: '32px',
+                            boxShadow: '0 25px 50px rgba(0,0,0,0.8)',
+                            padding: '32px 20px',
+                            animation: 'scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Header */}
+                        <div
+                            className="flex flex-col items-center text-center"
+                            style={{ marginBottom: '0.7rem' }}
+                        >
+                            <div
+                                className="flex items-center justify-center mb-6 relative"
+                                style={{
+                                    width: '74px',
+                                    height: '74px',
+                                    minWidth: '74px',
+                                    minHeight: '74px',
+                                    background: '#25D366',
+                                    borderRadius: '14px',
+                                    boxShadow: '0 8px 16px rgba(37, 211, 102, 0.2)',
+                                    border: '1.5px solid rgba(255, 255, 255, 0.4)',
+                                    overflow: 'hidden'
+                                }}
+                            >
+                                <div
+                                    className="absolute inset-0 border border-white/20"
+                                    style={{ borderRadius: '14px' }}
+                                ></div>
+                                <MessageCircle size={34} color="white" />
+                            </div>
+                            <h3 className="text-[20px] font-bold text-white mb-2 tracking-tight">
+                                Conectar WhatsApp
+                            </h3>
+                            <p className="text-[14px] leading-relaxed text-[#8E8E93] max-w-[240px]">
+                                Vincula tu cuenta para usar el bot de WhatsApp
+                            </p>
+                        </div>
+                        <div style={{ height: '8px' }}></div>
+                        {/* Input */}
+                        <div style={{ marginBottom: '0.7rem' }}>
+                            <label
+                                htmlFor="whatsapp-id"
+                                className="block text-[12px] font-medium text-white italic text-left"
+                                style={{ marginBottom: '0' }}
+                            >
+                                ID de WhatsApp
+                            </label>
+                            <div style={{ height: '8px' }}></div>
+                            <input
+                                id="whatsapp-id"
+                                name="whatsappId"
+                                type="text"
+                                value={whatsappId}
+                                onChange={(e) => setWhatsappId(e.target.value)}
+                                placeholder="51987654321@c.us"
+                                autoFocus
+                                className="w-full px-4 text-[16px] font-normal text-white placeholder-[#585858] focus:outline-none"
+                                style={{
+                                    height: '52px',
+                                    borderRadius: '14px',
+                                    backgroundColor: '#1C1C1E',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    fontSize: '16px'
+                                }}
+                            />
+                        </div>
+
+                        {/* Info Hint */}
+                        <div
+                            className="flex items-start gap-3"
+                            style={{
+                                marginBottom: '0.7rem',
+                                padding: '5px 12px',
+                                borderRadius: '16px',
+                                backgroundColor: 'rgba(37, 211, 102, 0.08)',
+                                border: '1px solid rgba(37, 211, 102, 0.15)'
+                            }}
+                        >
+                            <div className="flex-shrink-0 mt-0.5">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                    <circle cx="12" cy="12" r="10" stroke="#25D366" strokeWidth="2" />
+                                    <path d="M12 16V12M12 8H12.01" stroke="#25D366" strokeWidth="2.5" strokeLinecap="round" />
+                                </svg>
+                            </div>
+                            <p className="text-[11px] leading-[1.4] text-[#EBEBF5] font-normal text-left">
+                                Escribe <b>/start</b> al bot de WhatsApp para obtener tu ID.
+                            </p>
+                        </div>
+
+                        {/* Buttons */}
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowWhatsappModal(false)}
+                                className="flex-1 text-[15px] font-semibold text-white transition-all active:scale-[0.96]"
+                                style={{
+                                    height: '52px',
+                                    borderRadius: '14px',
+                                    backgroundColor: '#1C1C1E',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                                }}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleConnectWhatsapp}
+                                disabled={loading}
+                                className="flex-1 text-[15px] font-bold text-white transition-all active:scale-[0.96] hover:opacity-90 disabled:opacity-50"
+                                style={{
+                                    height: '52px',
+                                    borderRadius: '14px',
+                                    backgroundColor: '#25D366',
+                                    boxShadow: '0 0 20px rgba(37, 211, 102, 0.35)',
+                                    border: 'none'
+                                }}
+                            >
+                                {loading ? 'Conectando...' : (isWhatsappConnected ? 'Actualizar ID' : 'Conectar Ahora')}
                             </button>
                         </div>
                     </div>
