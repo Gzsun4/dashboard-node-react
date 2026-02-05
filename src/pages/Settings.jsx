@@ -515,14 +515,14 @@ const Settings = () => {
 
 
                     {/* Contact & Support Section */}
-                    <div className="flex flex-col items-center gap-4 mt-8 mb-4">
+                    <div className="flex flex-col items-center gap-3 mt-6 mb-2">
                         <p style={{
-                            fontSize: '11px',
-                            fontWeight: '800',
+                            fontSize: '10px',
+                            fontWeight: '700',
                             color: '#ffffff',
-                            letterSpacing: '0.15em',
+                            letterSpacing: '0.12em',
                             textTransform: 'uppercase',
-                            opacity: 0.9
+                            opacity: 0.7
                         }}>
                             Contacto & Soporte
                         </p>
@@ -536,15 +536,15 @@ const Settings = () => {
                                 background: '#121214',
                                 border: '1px solid rgba(255, 255, 255, 0.12)',
                                 borderRadius: '999px',
-                                padding: '10px 24px',
+                                padding: '8px 18px',
                                 textDecoration: 'none',
                                 color: 'white'
                             }}
                         >
-                            <Instagram size={22} style={{ color: '#ffffff', opacity: 0.8 }} />
-                            <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.1)' }}></div>
-                            <span style={{ fontWeight: '600', fontSize: '15px', color: '#ffffff', letterSpacing: '0.02em', opacity: 0.9 }}>Gszunnk</span>
-                            <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.1)' }}></div>
+                            <Instagram size={18} style={{ color: '#ffffff', opacity: 0.8 }} />
+                            <div style={{ width: '1px', height: '12px', background: 'rgba(255,255,255,0.1)' }}></div>
+                            <span style={{ fontWeight: '600', fontSize: '13px', color: '#ffffff', letterSpacing: '0.02em', opacity: 0.9 }}>Gszunnk</span>
+                            <div style={{ width: '1px', height: '12px', background: 'rgba(255,255,255,0.1)' }}></div>
                             <div
                                 onClick={(e) => {
                                     e.preventDefault();
@@ -552,7 +552,7 @@ const Settings = () => {
                                     window.open('https://t.me/gzsunk', '_blank');
                                 }}
                             >
-                                <Send size={20} style={{ color: '#ffffff', opacity: 0.8 }} />
+                                <Send size={16} style={{ color: '#ffffff', opacity: 0.8 }} />
                             </div>
                         </a>
                     </div>
